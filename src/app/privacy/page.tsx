@@ -85,7 +85,7 @@ export default async function Privacy() {
                   <span className="nowrap">dpo@cloudflare.com</span>
                 </td>
                 <td className="nowrap">미국</td>
-                <td>사이트 접속 중계와 방문 통계. 접속 IP 주소와 요청 정보가 접속할 때마다 전송됨. 보유 기간은 Cloudflare 정책을 따름</td>
+                <td>사이트 접속 중계. 접속 IP 주소와 요청 정보가 접속할 때마다 전송됨. 보유 기간은 Cloudflare 정책을 따름</td>
               </tr>
             </tbody>
           </table>
