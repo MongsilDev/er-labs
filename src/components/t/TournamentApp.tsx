@@ -87,7 +87,7 @@ export default function TournamentApp({ initial, groupIdx, basePath, created = f
   }, [example, view.code, view.name]);
 
   useEffect(() => {
-    if (example) return;
+    if (example || gone) return;
     const tick = () => {
       if (document.visibilityState === "visible") refresh();
     };
@@ -98,7 +98,7 @@ export default function TournamentApp({ initial, groupIdx, basePath, created = f
       clearInterval(timer);
       document.removeEventListener("visibilitychange", vis);
     };
-  }, [example, refresh]);
+  }, [example, gone, refresh]);
 
   const run = useCallback(
     async (op: Op) => {

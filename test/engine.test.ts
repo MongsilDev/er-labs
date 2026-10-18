@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { computeGroup, type GroupInput } from "../src/lib/engine";
 import { parseRoundCsv } from "../src/lib/parse";
+import { standingsCsv } from "../src/lib/export";
 import { presetRules, type Mode } from "../src/lib/rules";
 import { csv, places, round } from "./helpers";
 
@@ -144,6 +145,62 @@ describe("점검에서 찾은 경우", () => {
     const old = [{ id: 1, team: "브라보", roundNo: 2, kind: "rule" as const, count: 1, points: 30, reason: "지각" }];
     const res = computeGroup(group({ plannedRounds: 12, rounds: four, penalties: old }, "checkpoint"));
     expect(res.next?.checkpoint).toEqual(["알파", "찰리"]);
+  });
+});
+
+describe("재점검에서 찾은 경우", () => {
+  const ps = (...n: string[]) => n.map((nick) => ({ nick }));
+
+  it("기본 팀명의 기준 이름은 앞 라운드 CSV가 나중에 올라와도 바뀌지 않는다", () => {
+    const r2 = round(2, 2, [{ team: "Team 3", place: 1, ks: 0, players: ps("a", "b", "c") }, { team: "Other", place: 2, ks: 0, players: ps("x1", "x2", "x3") }]);
+    const extra = {
+      penalties: [{ id: 1, team: "2R Team 3", roundNo: 2, kind: "rule" as const, count: 1, points: 3, reason: "지각" }],
+      aliases: { "2R Team 3": "우리팀" },
+    };
+    const before = computeGroup(group({ rounds: [r2], ...extra }));
+    expect(before.standings.find((s) => s.name === "우리팀")).toMatchObject({ total: 7, penalty: 3 });
+    const r1 = round(1, 1, [{ team: "Team 7", place: 1, ks: 0, players: ps("a", "b", "z") }]);
+    const r3 = round(3, 3, [{ team: "Delta", place: 1, ks: 0, players: ps("a", "b", "y") }]);
+    const after = computeGroup(group({ rounds: [r1, r2, r3], ...extra }));
+    expect(after.standings.map((s) => [s.name, s.total])).toEqual([["우리팀", 27], ["Other", 7]]);
+    expect(after.standings[0].penalty).toBe(3);
+  });
+
+  it("연쇄로 겹쳐도 같은 라운드의 두 팀은 한 팀이 되지 않는다", () => {
+    const r1 = round(1, 1, [{ team: "Team 1", place: 1, ks: 0, players: ps("a", "b", "c") }, { team: "Team 2", place: 2, ks: 0, players: ps("d", "e", "f") }]);
+    const r2 = round(2, 2, [{ team: "Team 4", place: 1, ks: 0, players: ps("a", "b", "d") }, { team: "Team 6", place: 2, ks: 0, players: ps("c", "e", "f") }]);
+    const r3 = round(3, 3, [{ team: "Team 8", place: 1, ks: 0, players: ps("b", "d", "e") }]);
+    const res = computeGroup(group({ rounds: [r1, r2, r3] }));
+    expect(res.rounds.map((r) => r.teamCount)).toEqual([2, 2, 1]);
+    const totals = res.standings.reduce((a, s) => a + s.roundScore, 0);
+    expect(totals).toBe(10 + 7 + 10 + 7 + 10);
+  });
+
+  it("직접 입력한 같은 기본 팀명은 같은 팀이다", () => {
+    const manual = (roundNo: number, placement: number) => ({
+      roundNo,
+      source: "manual" as const,
+      gameId: null,
+      players: [{ nickname: "", character: "", team: "Team 3", placement, totalScore: 0, killScore: 0, kills: 0, teamKills: 0, hunting: 0, level: 0 }],
+    });
+    const res = computeGroup(group({ rounds: [manual(1, 1), manual(2, 2)] }));
+    expect(res.standings.map((s) => [s.name, s.total])).toEqual([["Team 3", 17]]);
+  });
+
+  it("합친 팀의 이름을 바꿔도 합친 상태가 유지된다", () => {
+    const rounds = [places(1, ["Alpha", "X"]), places(2, ["Bravo", "X"])];
+    const res = computeGroup(group({ rounds, aliases: { Bravo: "Alpha", Alpha: "Zulu" } }));
+    expect(res.standings.map((s) => [s.name, s.total])).toEqual([["Zulu", 20], ["X", 14]]);
+  });
+
+  it("빈 라운드가 있으면 그 라운드 시작 기준으로 체크포인트를 보여 준다", () => {
+    const rules = presetRules("masters");
+    rules.checkpoint = { ...rules.checkpoint, type: "points", points: 15 };
+    const r1 = round(1, 1, [{ team: "A", place: 1, ks: 0 }, { team: "B", place: 2, ks: 0 }]);
+    const r3 = round(3, 3, [{ team: "A", place: 1, ks: 0 }, { team: "B", place: 2, ks: 3 }]);
+    const res = computeGroup(group({ rules, plannedRounds: 12, rounds: [r1, r3] }, "checkpoint"));
+    expect(res.next?.roundNo).toBe(2);
+    expect(res.next?.checkpoint).toEqual([]);
   });
 });
 
@@ -339,5 +396,15 @@ describe("선수 기록", () => {
     const res = computeGroup(group({ rounds: [r1, r2] }));
     expect(res.players.kills.map((p) => [p.nickname, p.value, p.rank])).toEqual([["a", 4, 1], ["b", 4, 1], ["c", 1, 3]]);
     expect(res.players.level[0]).toMatchObject({ value: 19, rank: 1, team: "A" });
+  });
+});
+
+describe("순위 CSV", () => {
+  it("수식으로 시작하는 팀 이름은 작은따옴표를 붙여 내보낸다", () => {
+    const res = computeGroup(group({ rounds: [places(1, ["=HYPERLINK(1)", "보통"])] }));
+    const text = standingsCsv(res);
+    expect(text.startsWith("\ufeff순위,팀")).toBe(true);
+    expect(text).toContain("'=HYPERLINK(1)");
+    expect(text).toContain(",보통,");
   });
 });

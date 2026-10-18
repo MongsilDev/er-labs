@@ -136,41 +136,79 @@ const overlap = (a: Set<string>, b: Set<string>) => {
   return n;
 };
 
-function assignBases(raws: Raw[]) {
-  const named = raws.filter((r) => !DEFAULT_TEAM.test(r.name));
-  const unresolved: Raw[] = [];
-  for (const d of raws) {
-    if (!DEFAULT_TEAM.test(d.name)) continue;
-    let best: Raw | null = null;
-    let bestScore = 0;
-    for (const n of named) {
-      if (n.round === d.round) continue;
-      const o = overlap(d.nicknames, n.nicknames);
+type Cluster = { members: Raw[]; rounds: Set<number>; named: boolean };
+
+// 기본 팀명 기록은 "라운드R 이름"을 고정 기준으로 쓰고, 같은 라운드 기록이 둘인 묶음은 만들지 않음
+function buildClusters(raws: Raw[]): Cluster[] {
+  const isLinkable = (r: Raw) => DEFAULT_TEAM.test(r.name) && r.nicknames.size > 0;
+  for (const r of raws) r.base = isLinkable(r) ? `${r.round}R ${r.name}` : r.name;
+
+  const clusters: Cluster[] = [];
+  const byName = new Map<string, Cluster>();
+  for (const r of raws.filter((x) => !isLinkable(x))) {
+    const id = normalize(r.base);
+    let c = byName.get(id);
+    if (!c) {
+      c = { members: [], rounds: new Set(), named: true };
+      byName.set(id, c);
+      clusters.push(c);
+    }
+    c.members.push(r);
+    c.rounds.add(r.round);
+  }
+
+  const loose = raws.filter(isLinkable);
+  const nicksOf = (c: Cluster) => {
+    const all = new Set<string>();
+    for (const m of c.members) for (const n of m.nicknames) all.add(n);
+    return all;
+  };
+  const named = clusters.map((c) => ({ c, nicks: nicksOf(c) }));
+  const links: { d: Raw; c: Cluster; score: number }[] = [];
+  for (const d of loose) {
+    for (const { c, nicks } of named) {
+      const o = overlap(d.nicknames, nicks);
       if (o < 2) continue;
-      const score = o * 1000 - Math.abs(n.round - d.round);
-      if (score > bestScore) {
-        bestScore = score;
-        best = n;
-      }
+      const near = Math.min(...c.members.map((m) => Math.abs(m.round - d.round)));
+      links.push({ d, c, score: o * 1000 - near });
     }
-    if (best) d.base = best.name;
-    else unresolved.push(d);
   }
-  const parent = unresolved.map((_, i) => i);
+  links.sort((x, y) => y.score - x.score);
+  const placed = new Set<Raw>();
+  for (const { d, c } of links) {
+    if (placed.has(d) || c.rounds.has(d.round)) continue;
+    c.members.push(d);
+    c.rounds.add(d.round);
+    placed.add(d);
+  }
+
+  const rest = loose.filter((d) => !placed.has(d));
+  const own = rest.map((d) => ({ members: [d], rounds: new Set([d.round]), named: false }) as Cluster);
+  const parent = own.map((_, i) => i);
   const find = (i: number): number => (parent[i] === i ? i : (parent[i] = find(parent[i])));
-  for (let i = 0; i < unresolved.length; i++) {
-    for (let j = i + 1; j < unresolved.length; j++) {
-      if (unresolved[i].round !== unresolved[j].round && overlap(unresolved[i].nicknames, unresolved[j].nicknames) >= 2) {
-        parent[find(i)] = find(j);
-      }
+  const pairs: { i: number; j: number; o: number }[] = [];
+  for (let i = 0; i < rest.length; i++) {
+    for (let j = i + 1; j < rest.length; j++) {
+      if (rest[i].round === rest[j].round) continue;
+      const o = overlap(rest[i].nicknames, rest[j].nicknames);
+      if (o >= 2) pairs.push({ i, j, o });
     }
   }
-  const clusters = new Map<number, Raw[]>();
-  unresolved.forEach((r, i) => clusters.set(find(i), [...(clusters.get(find(i)) ?? []), r]));
-  for (const members of clusters.values()) {
-    const first = members.reduce((a, b) => (b.round < a.round ? b : a));
-    for (const m of members) m.base = `${first.round}R ${first.name}`;
+  pairs.sort((x, y) => y.o - x.o);
+  for (const { i, j } of pairs) {
+    const a = find(i);
+    const b = find(j);
+    if (a === b) continue;
+    if ([...own[a].rounds].some((r) => own[b].rounds.has(r))) continue;
+    parent[b] = a;
+    own[a].members.push(...own[b].members);
+    for (const r of own[b].rounds) own[a].rounds.add(r);
   }
+  own.forEach((c, i) => {
+    if (find(i) === i) clusters.push(c);
+  });
+  for (const c of clusters) c.members.sort((x, y) => x.round - y.round);
+  return clusters;
 }
 
 function score(a: Raw, rules: Rules) {
@@ -227,37 +265,44 @@ export function computeGroup(input: GroupInput): GroupResult {
 
   const raws: Raw[] = [];
   for (const round of ordered) raws.push(...collect(round).values());
-  assignBases(raws);
+  const clusters = buildClusters(raws);
+  const memberKey = new Map<string, string>();
 
-  for (const a of raws) {
-    const display = rename(a.base);
+  for (const c of clusters) {
+    const aliased = c.members.find((m) => alias.has(normalize(m.base)));
+    const lead = aliased ?? c.members.find((m) => m.base === m.name) ?? c.members[0];
+    const display = rename(lead.base);
     const key = normalize(display);
-    displayOf[normalize(a.base)] = display;
     if (!names.has(key)) names.set(key, display);
-    if (!baseOf.has(key)) baseOf.set(key, a.base);
-    const teams = (perRound[a.round - 1] ??= new Map<string, Agg>());
-    const sc = score(a, rules);
-    const prev = teams.get(key);
-    if (prev) {
-      prev.score = Math.max(prev.score, sc.score);
-      prev.rankScore = Math.max(prev.rankScore, sc.rankScore);
-      prev.killScore = Math.max(prev.killScore, a.killScore);
-      prev.kills = Math.max(prev.kills, a.kills);
-      if (a.placement !== null) prev.placement = prev.placement === null ? a.placement : Math.min(prev.placement, a.placement);
-      for (const n of a.nicknames) prev.nicknames.add(n);
-    } else {
-      teams.set(key, { ...a, name: display, key, ...sc, nicknames: new Set(a.nicknames) });
+    if (!baseOf.has(key)) baseOf.set(key, c.members[0].base);
+    for (const m of c.members) {
+      memberKey.set(normalize(m.base), key);
+      displayOf[normalize(m.base)] = display;
+      const teams = (perRound[m.round - 1] ??= new Map<string, Agg>());
+      const sc = score(m, rules);
+      const prev = teams.get(key);
+      if (prev) {
+        prev.score = Math.max(prev.score, sc.score);
+        prev.rankScore = Math.max(prev.rankScore, sc.rankScore);
+        prev.killScore = Math.max(prev.killScore, m.killScore);
+        prev.kills = Math.max(prev.kills, m.kills);
+        if (m.placement !== null) prev.placement = prev.placement === null ? m.placement : Math.min(prev.placement, m.placement);
+        for (const n of m.nicknames) prev.nicknames.add(n);
+      } else {
+        teams.set(key, { ...m, name: display, key, ...sc, nicknames: new Set(m.nicknames) });
+      }
+      for (const n of m.nicknames) nickTeam.set(n, key);
     }
-    for (const n of a.nicknames) nickTeam.set(n, key);
   }
-  const penalties = input.penalties.map((p) => ({ ...p, key: normalize(rename(p.team)) }));
+  const refKey = (team: string) => memberKey.get(normalize(team)) ?? normalize(rename(team));
+  const penalties = input.penalties.map((p) => ({ ...p, key: refKey(p.team) }));
   for (const p of penalties) {
     if (!names.has(p.key)) names.set(p.key, rename(p.team));
     if (!baseOf.has(p.key)) baseOf.set(p.key, p.team);
   }
   const overrides = Object.entries(input.overrides).map(([k, v]) => ({
     round: Number(k.split(":")[0]),
-    key: normalize(rename(k.slice(k.indexOf(":") + 1))),
+    key: refKey(k.slice(k.indexOf(":") + 1)),
     on: v,
   }));
 
@@ -345,7 +390,9 @@ export function computeGroup(input: GroupInput): GroupResult {
 
   const now = orderFor(played, totalsAfter(played));
   const prev = played > 1 ? orderFor(played - 1, totalsAfter(played - 1)) : null;
-  const finalStatus = statusAt[played] ?? new Set<string>();
+  let firstEmpty = 1;
+  while (roundByNo.has(firstEmpty)) firstEmpty++;
+  const finalStatus = statusAt[Math.min(firstEmpty, played + 1) - 1] ?? new Set<string>();
 
   const standings: Standing[] = now.map((x, i) => {
     const rs = roundsOf(x.key);

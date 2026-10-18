@@ -138,14 +138,10 @@ export function Penalties({ group, result, rules, run }: { group: GroupView; res
 
 export function Teams({ group, result, mode, rules, run }: { group: GroupView; result: GroupResult; mode: Mode; rules: Rules; run: Run }) {
   const names = useMemo(() => result.standings.map((s) => s.name), [result]);
-  const raw = useMemo(() => {
-    const seen = new Map<string, string>();
-    for (const s of result.standings) seen.set(s.base, s.name);
-    return [...seen.entries()].sort((a, b) => byText(a[0], b[0]));
-  }, [result]);
+  const raw = useMemo(() => [...new Set(result.standings.map((s) => s.name))].sort(byText), [result]);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
-  const source = raw.some(([b]) => b === from) ? from : (raw[0]?.[0] ?? "");
+  const source = raw.includes(from) ? from : (raw[0] ?? "");
   const next = result.next;
 
   return (
@@ -166,10 +162,8 @@ export function Teams({ group, result, mode, rules, run }: { group: GroupView; r
           <div className="full">
             <label className="lbl" htmlFor={`rf-${group.idx}`}>팀</label>
             <select id={`rf-${group.idx}`} className="field sm" value={source} onChange={(e) => setFrom(e.target.value)}>
-              {raw.map(([b, n]) => (
-                <option key={b} value={b}>
-                  {b === n ? b : `${n}, 원래 이름 ${b}`}
-                </option>
+              {raw.map((n) => (
+                <option key={n}>{n}</option>
               ))}
             </select>
           </div>
@@ -186,7 +180,7 @@ export function Teams({ group, result, mode, rules, run }: { group: GroupView; r
               placeholder="새 이름 또는 합칠 팀"
             />
             <datalist id={`rl-${group.idx}`}>
-              {names.filter((n) => n !== (result.displayOf[normalize(source)] ?? source)).map((n) => (
+              {names.filter((n) => n !== source).map((n) => (
                 <option key={n} value={n} />
               ))}
             </datalist>

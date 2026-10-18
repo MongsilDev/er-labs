@@ -231,9 +231,15 @@
 .side {
   display: grid;
   gap: 12px;
+  min-width: 0;
 }
 .side-box {
   padding: 16px;
+  min-width: 0;
+}
+.side-box .pf > *,
+.side-box .plist li > * {
+  min-width: 0;
 }
 .small {
   font-size: 13px;
@@ -358,6 +364,9 @@
 .mini-bar,
 .ks-mobile {
   display: none !important;
+}
+.cols > .panel {
+  overflow-x: auto;
 }
 .stand-empty {
   padding: 28px;
@@ -501,7 +510,7 @@
   font-size: 22px;
 }
 
-@media (max-width: 1300px) {
+@media (max-width: 1440px) {
   .cols:not(.single) .stand .c-extra {
     display: none;
   }

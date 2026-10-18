@@ -36,7 +36,9 @@ export default function Overlay({
           version.current = next.version;
           setView(next);
         }
-      } catch {}
+      } catch (e) {
+        if ((e as { status?: number }).status === 404) clearInterval(t);
+      }
     }, 5000);
     return () => clearInterval(t);
   }, [view.code]);

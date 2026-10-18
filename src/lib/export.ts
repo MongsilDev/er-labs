@@ -339,7 +339,7 @@ function drawCompact(ctx: Ctx, result: GroupResult, meta: BoardMeta, L: number, 
       font(ctx, 700, 26 * s);
       ctx.fillStyle = C.text;
       ctx.textAlign = "left";
-      const name = fit(ctx, t.name, x1 - 190 - (x0 + 110) - bw);
+      const name = fit(ctx, t.name, x1 - 240 - (x0 + 110) - bw);
       ctx.fillText(name, x0 + 110, mid + 9 * s);
       if (badge) {
         const bx = x0 + 110 + ctx.measureText(name).width + 10;
@@ -444,7 +444,8 @@ export function standingsCsv(result: GroupResult): string {
     r.push(s.wins, s.rankScore, s.killScore, s.kills, s.penalty, s.total);
     return r;
   });
-  return "﻿" + toCsv([head, ...rows]);
+  const safe = (v: string | number) => (typeof v === "string" && /^[=+\-@\t\r]/.test(v) ? `'${v}` : v);
+  return "\ufeff" + toCsv([head, ...rows.map((r) => r.map(safe))]);
 }
 
 export function download(blob: Blob, name: string) {
