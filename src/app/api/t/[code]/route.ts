@@ -16,7 +16,10 @@ export async function GET(req: NextRequest, ctx: Ctx) {
     const since = Number(req.nextUrl.searchParams.get("since"));
     if (since) {
       const v = tournamentVersion(code);
-      if (v === null) return fail("없거나 지워진 대회입니다.", 404);
+      if (v === null) {
+        miss(ip);
+        return fail("없거나 지워진 대회입니다.", 404);
+      }
       if (v === since) return new Response(null, { status: 204, headers: { "Cache-Control": "no-store" } });
     }
     const view = loadView(code, await currentUser());
