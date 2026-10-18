@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { api } from "@/lib/client";
 import { fmt1 } from "@/lib/format";
 import type { TournamentView } from "@/lib/view";
+import { barTotal } from "@/lib/engine";
 import Bar from "./t/Bar";
 import { useResult } from "./t/TournamentApp";
 import "./overlay.css";
@@ -23,14 +24,15 @@ export default function Overlay({
 }) {
   const [view, setView] = useState(initial);
   const version = useRef(initial.version);
-  const result = useResult(view, groupIdx);
+  const idx = view.groups[groupIdx] ? groupIdx : 0;
+  const result = useResult(view, idx);
   useEffect(() => {
     document.documentElement.dataset.theme = "dark";
     document.documentElement.classList.add("overlay-page");
     const t = setInterval(async () => {
       try {
         const next = await api.view(view.code, version.current);
-        if (next) {
+        if (next && next.version >= version.current) {
           version.current = next.version;
           setView(next);
         }
@@ -38,12 +40,12 @@ export default function Overlay({
     }, 5000);
     return () => clearInterval(t);
   }, [view.code]);
-  const g = view.groups[groupIdx];
+  const g = view.groups[idx];
   const rows = result.standings.slice(0, limit);
-  const max = Math.max(1, ...result.standings.map((s) => s.roundScore));
+  const max = Math.max(1, ...result.standings.map(barTotal));
   const status = result.ended ? "최종 순위" : result.played ? `${result.played}라운드 종료` : "경기 전";
   return (
-    <div className={`ov ${side}`} style={{ zoom: scale }}>
+    <div className={`ov ${side}${rows.length > 12 ? " dense" : ""}`} style={{ zoom: scale, ["--n" as string]: rows.length, ["--zoom-fix" as string]: scale }}>
       <div className="ov-hd">
         <b>
           {view.name}

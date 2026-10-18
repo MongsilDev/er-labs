@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { currentUser } from "@/server/auth";
 import { cancelInvite, createInvite, members, removeMember, transferOwner } from "@/server/tournament";
-import { fail, guardWrite, handle, json } from "@/server/http";
+import { fail, guardWrite, handle, json, readJson } from "@/server/http";
 
 type Ctx = { params: Promise<{ code: string }> };
 
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest, ctx: Ctx) {
     const g = await guardWrite();
     if ("error" in g) return g.error;
     const { code } = await ctx.params;
-    const body = (await req.json()) as Body;
+    const body = await readJson<Body>(req);
     switch (body.action) {
       case "invite":
         return json({ token: createInvite(code, g.user) });

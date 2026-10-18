@@ -71,6 +71,43 @@ describe("대회 서버", () => {
     expect(() => t.applyOp(code, owner, { op: "update_settings", plannedRounds: 1 })).toThrow("2라운드까지 기록이 있어");
   });
 
+  it("직접 입력은 잘못된 순위와 중복 순위를 거부한다", () => {
+    const code = t.createTournament(owner, { name: "직접", mode: "points", preset: "masters", plannedRounds: 4, groupCount: 1 });
+    const bad = (teams: unknown[]) => () => t.applyOp(code, owner, { op: "add_manual", group: 0, round: 1, teams: teams as never });
+    expect(bad([{ team: "A", placement: 0, killScore: 0 }])).toThrow("순위는 1부터 24까지의 정수로");
+    expect(bad([{ team: "A", placement: "3", killScore: 0 }])).toThrow("순위는 1부터 24까지의 정수로");
+    expect(bad([{ team: "A", placement: 1, killScore: 0 }, { team: "B", placement: 1, killScore: 0 }])).toThrow("같은 순위를 두 팀에");
+    expect(bad([{ team: "A", placement: 1, killScore: 1e9 }])).toThrow("킬 점수는 0부터 300까지");
+    t.applyOp(code, owner, { op: "add_manual", group: 0, round: 1, teams: [{ team: "A", placement: 1, killScore: 2 }] });
+    expect(t.loadView(code, null)!.groups[0].rounds[0].players[0]).toMatchObject({ team: "A", placement: 1, killScore: 2 });
+  });
+
+  it("되살리기는 지금 설정 범위를 벗어난 라운드를 거부한다", () => {
+    const code = t.createTournament(owner, { name: "범위", mode: "points", preset: "masters", plannedRounds: 4, groupCount: 1 });
+    const files = [1, 2, 3, 4].map((i) => ({ name: `${i}.csv`, text: csv(900 + i, teams(["가"])) }));
+    t.applyOp(code, owner, { op: "add_csv", group: 0, files });
+    const r4 = t.loadView(code, null)!.groups[0].rounds.find((r) => r.roundNo === 4)!;
+    t.applyOp(code, owner, { op: "delete_round", id: r4.id });
+    t.applyOp(code, owner, { op: "update_settings", plannedRounds: 3 });
+    expect(() => t.applyOp(code, owner, { op: "restore_round", id: r4.id })).toThrow("벗어난 기록이라 되살릴 수 없습니다");
+  });
+
+  it("두 팀 이름이 서로를 가리키는 설정은 거부한다", () => {
+    const code = t.createTournament(owner, { name: "별칭", mode: "points", preset: "masters", plannedRounds: 4, groupCount: 1 });
+    t.applyOp(code, owner, { op: "rename_team", group: 0, from: "A", to: "B" });
+    expect(() => t.applyOp(code, owner, { op: "rename_team", group: 0, from: "B", to: "A" })).toThrow("서로를 가리키게");
+  });
+
+  it("CSV 팀 이름은 40자로 정리돼 감점이 같은 팀에 붙는다", () => {
+    const code = t.createTournament(owner, { name: "긴 이름", mode: "points", preset: "masters", plannedRounds: 4, groupCount: 1 });
+    const long = "가".repeat(50);
+    t.applyOp(code, owner, { op: "add_csv", group: 0, files: [{ name: "l.csv", text: csv(999, teams([long])) }] });
+    const stored = t.loadView(code, null)!.groups[0].rounds[0].players[0].team;
+    expect(stored.length).toBe(40);
+    t.applyOp(code, owner, { op: "add_penalty", group: 0, team: stored, round: 1, kind: "rule", points: 5, reason: "지각" });
+    expect(t.loadView(code, null)!.groups[0].penalties[0].team).toBe(stored);
+  });
+
   it("마지막 수정 24시간이 지난 대회와 남은 사용자를 지운다", () => {
     const code = t.createTournament(stranger, { name: "만료", mode: "points", preset: "masters", plannedRounds: 4, groupCount: 1 });
     db.db().prepare("UPDATE tournaments SET updated_at = ? WHERE code = ?").run(Date.now() - 25 * 3600_000, code);

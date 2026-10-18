@@ -94,3 +94,22 @@ html.overlay-page body {
   right: auto;
   left: 24px;
 }
+.ov.dense .ov-row {
+  height: clamp(22px, calc((100vh / var(--zoom-fix, 1) - 130px) / var(--n)), 40px);
+  grid-template-columns: 30px minmax(0, 1fr) 60px;
+}
+.ov.dense .rk {
+  width: 24px;
+  height: 22px;
+  font-size: 13px;
+}
+.ov.dense .ov-nm {
+  font-size: 14px;
+  margin: 0;
+}
+.ov.dense .ov-mid .bar {
+  display: none;
+}
+.ov.dense .ov-tt {
+  font-size: 17px;
+}

@@ -126,6 +126,27 @@ describe("점수 규칙", () => {
   });
 });
 
+describe("점검에서 찾은 경우", () => {
+  it("중간 라운드가 비어 있으면 끝나지 않고 빈 라운드가 다음 경기다", () => {
+    const res = computeGroup(group({ plannedRounds: 4, rounds: [places(1, T), places(2, T), places(4, T)] }));
+    expect(res.ended).toBe(false);
+    expect(res.next?.roundNo).toBe(3);
+  });
+
+  it("동점 표시는 위아래 어느 쪽이 동점이어도 붙는다", () => {
+    const r1 = round(1, 1, [{ team: "A", place: 1, ks: 0 }, { team: "C", place: 2, ks: 0 }, { team: "B", place: 4, ks: 3 }]);
+    const res = computeGroup(group({ rounds: [r1] }));
+    expect(res.standings.map((s) => [s.name, s.tiedBy])).toEqual([["A", null], ["B", "killScore"], ["C", "killScore"]]);
+  });
+
+  it("감점 예외는 직전 라운드의 규정 위반 감점에만 적용된다", () => {
+    const four = [0, 1, 2, 3].map((i) => places(i + 1, T));
+    const old = [{ id: 1, team: "브라보", roundNo: 2, kind: "rule" as const, count: 1, points: 30, reason: "지각" }];
+    const res = computeGroup(group({ plannedRounds: 12, rounds: four, penalties: old }, "checkpoint"));
+    expect(res.next?.checkpoint).toEqual(["알파", "찰리"]);
+  });
+});
+
 describe("다른 동점 기준", () => {
   const r1 = round(1, 1, [{ team: "A", place: 1, ks: 0 }, { team: "B", place: 3, ks: 5 }]);
   const r2 = round(2, 2, [{ team: "A", place: 4, ks: 1 }, { team: "B", place: 2, ks: 0 }]);
@@ -162,9 +183,35 @@ describe("팀 이름", () => {
     const r2 = round(2, 2, [{ team: "Team 3", place: 1, ks: 0, players: p("a") }, { team: "Team 4", place: 2, ks: 0, players: [{ nick: "x" }] }]);
     expect(computeGroup(group({ rounds: [r1, r2] })).standings.map((s) => [s.name, s.total])).toEqual([
       ["Alpha", 20],
+      ["2R Team 4", 7],
       ["Beta", 7],
-      ["Team 4", 7],
     ]);
+  });
+
+  it("기본 팀명이 같아도 선수가 다르면 다른 팀이다", () => {
+    const p = (team: string) => [1, 2, 3].map((i) => ({ nick: `${team}${i}` }));
+    const r1 = round(1, 1, [{ team: "Team 3", place: 1, ks: 0, players: p("a") }]);
+    const r2 = round(2, 2, [{ team: "Team 3", place: 1, ks: 0, players: p("d") }, { team: "Alpha", place: 2, ks: 0, players: p("a") }]);
+    const res = computeGroup(group({ rounds: [r1, r2] }));
+    expect(res.standings.map((s) => [s.name, s.total])).toEqual([["Alpha", 17], ["2R Team 3", 10]]);
+  });
+
+  it("기본 팀명은 뒤 라운드의 팀 이름과도 이어진다", () => {
+    const p = [1, 2, 3].map((i) => ({ nick: `x${i}` }));
+    const r1 = round(1, 1, [{ team: "Team 1", place: 2, ks: 0, players: p }]);
+    const r2 = round(2, 2, [{ team: "우리팀", place: 1, ks: 0, players: p }]);
+    expect(computeGroup(group({ rounds: [r1, r2] })).standings.map((s) => [s.name, s.total])).toEqual([["우리팀", 17]]);
+  });
+
+  it("감점과 체크포인트 조정은 팀 이름을 바꾸거나 되돌려도 원래 팀을 따라간다", () => {
+    const rounds = [places(1, ["Foo", "B"]), places(2, ["Foo", "B"]), places(3, ["Foo", "B"]), places(4, ["B", "Foo"])];
+    const penalties = [{ id: 1, team: "Foo", roundNo: 1, kind: "rule" as const, count: 1, points: 5, reason: "지각" }];
+    const renamed = computeGroup(group({ plannedRounds: 12, rounds, penalties, aliases: { Foo: "Bar" }, overrides: { "5:foo": false } }, "checkpoint"));
+    expect(renamed.standings.map((s) => s.name).sort()).toEqual(["B", "Bar"]);
+    expect(renamed.standings.find((s) => s.name === "Bar")!.penalty).toBe(5);
+    expect(renamed.next?.checkpoint).toEqual(["B"]);
+    const back = computeGroup(group({ plannedRounds: 12, rounds, penalties }, "checkpoint"));
+    expect(back.standings.map((s) => s.name).sort()).toEqual(["B", "Foo"]);
   });
 
   it("팀 이름 바꾸기로 두 팀을 합친다", () => {

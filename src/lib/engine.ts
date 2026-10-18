@@ -39,8 +39,11 @@ export type TeamRound = {
   score: number;
 };
 
+export const barTotal = (s: { rounds: (TeamRound | null)[] }) => s.rounds.reduce((a, r) => a + Math.max(0, r?.score ?? 0), 0);
+
 export type Standing = {
   key: string;
+  base: string;
   name: string;
   rank: number;
   delta: number;
@@ -81,6 +84,7 @@ export type PlayerStat = { nickname: string; team: string; value: number; rank: 
 
 export type GroupResult = {
   standings: Standing[];
+  displayOf: Record<string, string>;
   rounds: RoundSummary[];
   played: number;
   next: NextRound | null;
@@ -97,19 +101,22 @@ export function normalize(name: string): string {
 }
 
 type Agg = TeamRound & { name: string; key: string; nicknames: Set<string>; csvTotal: number };
+type Raw = Omit<Agg, "key" | "score" | "rankScore"> & { round: number; source: RoundInput["source"]; base: string };
 
-function aggregate(round: RoundInput, rules: Rules, rename: (name: string) => string, history: Map<string, Set<string>>[]) {
-  const byName = new Map<string, Agg>();
+function collect(round: RoundInput): Map<string, Raw> {
+  const byName = new Map<string, Raw>();
   for (const p of round.players) {
-    const name = rename(p.team.trim().replace(/\s+/g, " "));
-    const a: Agg = byName.get(name) ?? {
+    const name = p.team.trim().replace(/\s+/g, " ");
+    if (!name) continue;
+    const id = normalize(name);
+    const a: Raw = byName.get(id) ?? {
+      round: round.roundNo,
+      source: round.source,
       name,
-      key: "",
+      base: name,
       placement: null,
       killScore: 0,
       kills: 0,
-      rankScore: 0,
-      score: 0,
       nicknames: new Set<string>(),
       csvTotal: -Infinity,
     };
@@ -118,49 +125,61 @@ function aggregate(round: RoundInput, rules: Rules, rename: (name: string) => st
     a.kills = Math.max(a.kills, p.teamKills || 0);
     if (p.placement !== null) a.placement = a.placement === null ? p.placement : Math.min(a.placement, p.placement);
     if (p.nickname) a.nicknames.add(normalize(p.nickname));
-    byName.set(name, a);
+    byName.set(id, a);
   }
+  return byName;
+}
 
-  for (const a of byName.values()) {
-    if (!DEFAULT_TEAM.test(a.name)) continue;
-    let best: string | null = null;
-    let bestCount = 0;
-    for (const previous of history) {
-      for (const [name, nicks] of previous) {
-        if (DEFAULT_TEAM.test(name)) continue;
-        let overlap = 0;
-        for (const n of a.nicknames) if (nicks.has(n)) overlap++;
-        if (overlap >= 2 && overlap > bestCount) {
-          bestCount = overlap;
-          best = name;
-        }
+const overlap = (a: Set<string>, b: Set<string>) => {
+  let n = 0;
+  for (const x of a) if (b.has(x)) n++;
+  return n;
+};
+
+function assignBases(raws: Raw[]) {
+  const named = raws.filter((r) => !DEFAULT_TEAM.test(r.name));
+  const unresolved: Raw[] = [];
+  for (const d of raws) {
+    if (!DEFAULT_TEAM.test(d.name)) continue;
+    let best: Raw | null = null;
+    let bestScore = 0;
+    for (const n of named) {
+      if (n.round === d.round) continue;
+      const o = overlap(d.nicknames, n.nicknames);
+      if (o < 2) continue;
+      const score = o * 1000 - Math.abs(n.round - d.round);
+      if (score > bestScore) {
+        bestScore = score;
+        best = n;
       }
     }
-    if (best) a.name = rename(best);
+    if (best) d.base = best.name;
+    else unresolved.push(d);
   }
-
-  const merged = new Map<string, Agg>();
-  for (const a of byName.values()) {
-    const key = normalize(a.name);
-    const fromTable =
-      a.placement === null ? 0 : (rules.placementPoints[a.placement - 1] ?? 0) + a.killScore * rules.killMultiplier;
-    const table = round.source === "manual" || rules.scoreSource === "table";
-    const score = round2(table ? fromTable : a.csvTotal);
-    const rankScore = round2(
-      table ? (a.placement === null ? 0 : (rules.placementPoints[a.placement - 1] ?? 0)) : Math.max(0, a.csvTotal - a.killScore),
-    );
-    const prev = merged.get(key);
-    if (prev) {
-      prev.score = Math.max(prev.score, score);
-      prev.rankScore = Math.max(prev.rankScore, rankScore);
-      prev.killScore = Math.max(prev.killScore, a.killScore);
-      prev.kills = Math.max(prev.kills, a.kills);
-      for (const n of a.nicknames) prev.nicknames.add(n);
-    } else {
-      merged.set(key, { ...a, key, score, rankScore });
+  const parent = unresolved.map((_, i) => i);
+  const find = (i: number): number => (parent[i] === i ? i : (parent[i] = find(parent[i])));
+  for (let i = 0; i < unresolved.length; i++) {
+    for (let j = i + 1; j < unresolved.length; j++) {
+      if (unresolved[i].round !== unresolved[j].round && overlap(unresolved[i].nicknames, unresolved[j].nicknames) >= 2) {
+        parent[find(i)] = find(j);
+      }
     }
   }
-  return merged;
+  const clusters = new Map<number, Raw[]>();
+  unresolved.forEach((r, i) => clusters.set(find(i), [...(clusters.get(find(i)) ?? []), r]));
+  for (const members of clusters.values()) {
+    const first = members.reduce((a, b) => (b.round < a.round ? b : a));
+    for (const m of members) m.base = `${first.round}R ${first.name}`;
+  }
+}
+
+function score(a: Raw, rules: Rules) {
+  const table = a.source === "manual" || rules.scoreSource === "table";
+  const points = a.placement === null ? 0 : (rules.placementPoints[a.placement - 1] ?? 0);
+  return {
+    score: round2(table ? points + a.killScore * rules.killMultiplier : a.csvTotal),
+    rankScore: round2(table ? points : Math.max(0, a.csvTotal - a.killScore)),
+  };
 }
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
@@ -198,25 +217,49 @@ export function computeGroup(input: GroupInput): GroupResult {
 
   const ordered = [...input.rounds].sort((a, b) => a.roundNo - b.roundNo);
   const played = ordered.length ? ordered[ordered.length - 1].roundNo : 0;
+  const recorded = new Set(ordered.map((r) => r.roundNo)).size;
   const perRound: (Map<string, Agg> | null)[] = Array(played).fill(null);
   const roundByNo = new Map(ordered.map((r) => [r.roundNo, r]));
-  const history: Map<string, Set<string>>[] = [];
   const names = new Map<string, string>();
+  const baseOf = new Map<string, string>();
+  const displayOf: Record<string, string> = {};
   const nickTeam = new Map<string, string>();
 
-  for (let r = 1; r <= played; r++) {
-    const round = roundByNo.get(r);
-    if (!round) continue;
-    const teams = aggregate(round, rules, rename, history);
-    perRound[r - 1] = teams;
-    history.push(new Map([...teams.values()].map((t) => [t.name, t.nicknames])));
-    for (const t of teams.values()) {
-      if (!names.has(t.key)) names.set(t.key, t.name);
-      for (const n of t.nicknames) nickTeam.set(n, t.key);
+  const raws: Raw[] = [];
+  for (const round of ordered) raws.push(...collect(round).values());
+  assignBases(raws);
+
+  for (const a of raws) {
+    const display = rename(a.base);
+    const key = normalize(display);
+    displayOf[normalize(a.base)] = display;
+    if (!names.has(key)) names.set(key, display);
+    if (!baseOf.has(key)) baseOf.set(key, a.base);
+    const teams = (perRound[a.round - 1] ??= new Map<string, Agg>());
+    const sc = score(a, rules);
+    const prev = teams.get(key);
+    if (prev) {
+      prev.score = Math.max(prev.score, sc.score);
+      prev.rankScore = Math.max(prev.rankScore, sc.rankScore);
+      prev.killScore = Math.max(prev.killScore, a.killScore);
+      prev.kills = Math.max(prev.kills, a.kills);
+      if (a.placement !== null) prev.placement = prev.placement === null ? a.placement : Math.min(prev.placement, a.placement);
+      for (const n of a.nicknames) prev.nicknames.add(n);
+    } else {
+      teams.set(key, { ...a, name: display, key, ...sc, nicknames: new Set(a.nicknames) });
     }
+    for (const n of a.nicknames) nickTeam.set(n, key);
   }
   const penalties = input.penalties.map((p) => ({ ...p, key: normalize(rename(p.team)) }));
-  for (const p of penalties) if (!names.has(p.key)) names.set(p.key, rename(p.team));
+  for (const p of penalties) {
+    if (!names.has(p.key)) names.set(p.key, rename(p.team));
+    if (!baseOf.has(p.key)) baseOf.set(p.key, p.team);
+  }
+  const overrides = Object.entries(input.overrides).map(([k, v]) => ({
+    round: Number(k.split(":")[0]),
+    key: normalize(rename(k.slice(k.indexOf(":") + 1))),
+    on: v,
+  }));
 
   const keys = [...names.keys()];
   const roundsOf = (key: string) => perRound.map((m) => (m?.get(key) as TeamRound | undefined) ?? null);
@@ -228,7 +271,7 @@ export function computeGroup(input: GroupInput): GroupResult {
       const sum = rs.reduce((a, x) => a + (x?.score ?? 0), 0);
       const pen = penalties.filter((p) => p.key === key && p.roundNo <= r);
       const all = pen.reduce((a, p) => a + penaltyPoints(p, rules), 0);
-      const rule = pen.filter((p) => p.kind === "rule").reduce((a, p) => a + p.points, 0);
+      const ruleNow = pen.filter((p) => p.kind === "rule" && p.roundNo === r && r > 0).reduce((a, p) => a + p.points, 0);
       const last = [...rs].reverse().find((x) => x !== null);
       return {
         key,
@@ -238,7 +281,7 @@ export function computeGroup(input: GroupInput): GroupResult {
         rankScore: round2(rs.reduce((a, x) => a + (x?.rankScore ?? 0), 0)),
         wins: rs.filter((x) => x?.placement === 1).length,
         last: last?.placement ?? null,
-        ruleFree: round2(sum - all + rule),
+        ruleFree: round2(sum - all + ruleNow),
       };
     });
 
@@ -253,7 +296,7 @@ export function computeGroup(input: GroupInput): GroupResult {
   const fixed: { key: string; round: number }[] = [];
   let status = new Set<string>();
   const statusAt: Set<string>[] = [];
-  let ended = mode === "points" ? played >= input.plannedRounds && played > 0 : false;
+  let ended = mode === "points" ? recorded >= input.plannedRounds && recorded > 0 : false;
   const need = mode === "double" ? 2 : 1;
 
   const orderFor = (r: number, rows: Row[]) => {
@@ -281,11 +324,10 @@ export function computeGroup(input: GroupInput): GroupResult {
         }
       }
       if (rules.checkpoint.keep) for (const k of status) if (!fixedKeys.has(k)) next.add(k);
-      for (const [k, v] of Object.entries(input.overrides)) {
-        const [rn, key] = [Number(k.split(":")[0]), k.slice(k.indexOf(":") + 1)];
-        if (rn !== r) continue;
-        if (v) next.add(key);
-        else next.delete(key);
+      for (const o of overrides) {
+        if (o.round !== r) continue;
+        if (o.on) next.add(o.key);
+        else next.delete(o.key);
       }
       status = next;
       statusAt[r - 1] = status;
@@ -298,7 +340,7 @@ export function computeGroup(input: GroupInput): GroupResult {
         if (fixed.length >= need) ended = true;
       }
     }
-    if (played >= input.plannedRounds && played > 0) ended = true;
+    if (recorded >= input.plannedRounds && recorded > 0) ended = true;
   }
 
   const now = orderFor(played, totalsAfter(played));
@@ -309,14 +351,16 @@ export function computeGroup(input: GroupInput): GroupResult {
     const rs = roundsOf(x.key);
     const pi = prev ? prev.findIndex((p) => p.key === x.key) : -1;
     const fixedIndex = fixed.findIndex((f) => f.key === x.key);
-    const neighbor = now[i - 1] ?? now[i + 1];
+    const isTied = (o: (typeof now)[number] | undefined) => o !== undefined && o.total === x.total && !fixed.some((f) => f.key === o.key);
+    const neighbor = isTied(now[i - 1]) ? now[i - 1] : isTied(now[i + 1]) ? now[i + 1] : undefined;
     let tiedBy: Standing["tiedBy"] = null;
-    if (fixedIndex < 0 && neighbor && neighbor.total === x.total && !fixed.some((f) => f.key === neighbor.key)) {
+    if (fixedIndex < 0 && neighbor) {
       const second = primary === "killScore" ? "kills" : "killScore";
       tiedBy = neighbor[primary] !== x[primary] ? primary : neighbor[second] !== x[second] ? second : "lastPlacement";
     }
     return {
       key: x.key,
+      base: baseOf.get(x.key) ?? names.get(x.key) ?? x.key,
       name: names.get(x.key) ?? x.key,
       rank: i + 1,
       delta: pi >= 0 ? pi - i : 0,
@@ -376,7 +420,8 @@ export function computeGroup(input: GroupInput): GroupResult {
   }
 
   let next: NextRound | null = null;
-  const nextNo = played + 1;
+  let nextNo = 1;
+  while (roundByNo.has(nextNo)) nextNo++;
   if (!ended && nextNo <= input.plannedRounds) {
     const cycleStart = Math.floor((nextNo - 1) / SUB_WEATHERS.length) * SUB_WEATHERS.length + 1;
     const used = new Set<string>();
@@ -420,6 +465,7 @@ export function computeGroup(input: GroupInput): GroupResult {
 
   return {
     standings,
+    displayOf,
     rounds,
     played,
     next,

@@ -18,3 +18,13 @@ export function allow(key: string, max: number, windowMs: number): boolean {
   b.count++;
   return true;
 }
+
+// 없는 대회 코드를 반복해 여는 IP는 있는 코드도 잠시 막음
+export function miss(ip: string) {
+  allow(`miss:${ip}`, 1_000_000, 10 * 60_000);
+}
+
+export function blocked(ip: string): boolean {
+  const b = buckets.get(`miss:${ip}`);
+  return Boolean(b && b.reset > Date.now() && b.count >= 30);
+}

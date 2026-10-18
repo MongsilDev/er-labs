@@ -3,6 +3,7 @@ import { randomInt } from "node:crypto";
 import type { PenaltyInput } from "@/lib/engine";
 import { normalize } from "@/lib/engine";
 import { parseRoundCsv, type Player } from "@/lib/parse";
+import { cleanName } from "@/lib/text";
 import {
   LIMITS,
   MAIN_WEATHERS,
@@ -288,11 +289,24 @@ export function applyOp(code: string, user: User, op: Op): OpResult {
       case "add_manual": {
         const g = assertGroup(t, op.group);
         const round = assertRound(t, op.round);
-        const teams = (Array.isArray(op.teams) ? op.teams : [])
-          .map((x) => ({ team: clean(x?.team, 40), placement: int(x?.placement, 1, 24, 0), killScore: Number(x?.killScore) || 0 }))
-          .filter((x) => x.team && x.placement > 0)
-          .slice(0, LIMITS.teamsPerGroup);
+        const rows = Array.isArray(op.teams) ? op.teams.slice(0, LIMITS.teamsPerGroup) : [];
+        const teams: { team: string; placement: number; killScore: number }[] = [];
+        for (const x of rows) {
+          const team = cleanName(x?.team);
+          if (!team) continue;
+          const placement = x?.placement;
+          const killScore = x?.killScore ?? 0;
+          if (typeof placement !== "number" || !Number.isInteger(placement) || placement < 1 || placement > LIMITS.teamsPerGroup) {
+            throw new OpError(`${team}: 순위는 1부터 ${LIMITS.teamsPerGroup}까지의 정수로 입력해주세요.`);
+          }
+          if (typeof killScore !== "number" || !Number.isFinite(killScore) || killScore < 0 || killScore > 300) {
+            throw new OpError(`${team}: 킬 점수는 0부터 300까지 입력해주세요.`);
+          }
+          teams.push({ team, placement, killScore });
+        }
         if (teams.length === 0) throw new OpError("팀과 순위를 입력해주세요.");
+        if (new Set(teams.map((x) => x.placement)).size !== teams.length) throw new OpError("같은 순위를 두 팀에 넣었습니다. 순위를 다시 확인해주세요.");
+        if (new Set(teams.map((x) => normalize(x.team))).size !== teams.length) throw new OpError("같은 팀 이름이 두 번 있습니다.");
         const old = conn
           .prepare("SELECT id FROM rounds WHERE tournament_id = ? AND group_idx = ? AND round_no = ? AND deleted_at IS NULL")
           .get(t.id, g, round) as { id: number } | undefined;
@@ -332,6 +346,9 @@ export function applyOp(code: string, user: User, op: Op): OpResult {
           bump(t, user, `${prefix(t, r.group_idx)}${r.round_no}라운드 삭제`);
         } else {
           if (!r.deleted_at) break;
+          if (r.round_no > t.planned_rounds || r.group_idx >= t.group_count) {
+            throw new OpError("지금 대회 설정의 라운드 수나 조 수를 벗어난 기록이라 되살릴 수 없습니다.");
+          }
           const taken = conn
             .prepare("SELECT id FROM rounds WHERE tournament_id = ? AND group_idx = ? AND round_no = ? AND deleted_at IS NULL")
             .get(t.id, r.group_idx, r.round_no) as { id: number } | undefined;
@@ -365,8 +382,10 @@ export function applyOp(code: string, user: User, op: Op): OpResult {
       case "add_penalty": {
         const g = assertGroup(t, op.group);
         const round = int(op.round, 0, t.planned_rounds, 0);
-        const team = clean(op.team, 40);
+        const team = cleanName(op.team, 60);
         if (!team) throw new OpError("팀을 골라주세요.");
+        const count0 = (conn.prepare("SELECT COUNT(*) AS n FROM penalties WHERE tournament_id = ? AND group_idx = ? AND deleted_at IS NULL").get(t.id, g) as { n: number }).n;
+        if (count0 >= 300) throw new OpError("한 조에 감점은 300건까지 넣을 수 있습니다.");
         const kind = op.kind === "death" ? "death" : "rule";
         const count = kind === "death" ? int(op.count, 1, 30, 1) : 1;
         const points = kind === "death" ? count : Math.round(Math.min(100, Math.max(0.5, Number(op.points) || 0)) * 2) / 2;
@@ -398,13 +417,26 @@ export function applyOp(code: string, user: User, op: Op): OpResult {
       }
       case "rename_team": {
         const g = assertGroup(t, op.group);
-        const from = clean(op.from, 40);
-        const to = clean(op.to, 40);
+        const from = cleanName(op.from, 60);
+        const to = cleanName(op.to, 40);
         if (!from) throw new OpError("바꿀 팀을 골라주세요.");
         if (!to || normalize(to) === normalize(from)) {
           conn.prepare("DELETE FROM aliases WHERE tournament_id = ? AND group_idx = ? AND from_name = ?").run(t.id, g, from);
           bump(t, user, `팀 이름 되돌림: ${prefix(t, g)}${from}`);
         } else {
+          const map = new Map(
+            (conn.prepare("SELECT from_name, to_name FROM aliases WHERE tournament_id = ? AND group_idx = ?").all(t.id, g) as { from_name: string; to_name: string }[]).map(
+              (a) => [normalize(a.from_name), a.to_name],
+            ),
+          );
+          if (!map.has(normalize(from)) && map.size >= 100) throw new OpError("한 조에 팀 이름 변경은 100건까지 할 수 있습니다.");
+          let cur = to;
+          for (let i = 0; i < 20; i++) {
+            if (normalize(cur) === normalize(from)) throw new OpError("두 팀 이름이 서로를 가리키게 되어 바꿀 수 없습니다. 기존 변경을 먼저 되돌려주세요.");
+            const next = map.get(normalize(cur));
+            if (!next) break;
+            cur = next;
+          }
           conn
             .prepare("INSERT INTO aliases(tournament_id, group_idx, from_name, to_name) VALUES (?, ?, ?, ?) ON CONFLICT DO UPDATE SET to_name = excluded.to_name")
             .run(t.id, g, from, to);
@@ -415,7 +447,7 @@ export function applyOp(code: string, user: User, op: Op): OpResult {
       case "set_checkpoint": {
         const g = assertGroup(t, op.group);
         const round = assertRound(t, op.round);
-        const team = clean(op.team, 40);
+        const team = cleanName(op.team, 60);
         if (!team) throw new OpError("팀을 골라주세요.");
         const key = normalize(team);
         if (op.state === null) {

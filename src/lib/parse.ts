@@ -1,4 +1,5 @@
 import { parseCsv } from "./csv";
+import { cleanName } from "./text";
 
 export type Player = {
   nickname: string;
@@ -44,12 +45,12 @@ export function parseRoundCsv(text: string): ParseResult {
 
   const players: Player[] = [];
   for (const r of rows.slice(1)) {
-    const team = at(r, "teamName");
+    const team = cleanName(at(r, "teamName"));
     if (!team) continue;
     const placement = Number.parseInt(at(r, "rank"), 10);
     players.push({
-      nickname: at(r, "nickname"),
-      character: at(r, "character"),
+      nickname: cleanName(at(r, "nickname")),
+      character: cleanName(at(r, "character")),
       team,
       placement: Number.isFinite(placement) && placement > 0 ? placement : null,
       totalScore: num(at(r, "tournament total score")),

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { api, rememberRecent } from "@/lib/client";
 import { computeGroup, type GroupResult } from "@/lib/engine";
@@ -48,8 +49,12 @@ export default function TournamentApp({ initial, groupIdx, basePath, created = f
   const roleRef = useRef(initial.role);
   const now = useNow();
   const example = Boolean(view.example);
-  const group = view.groups[groupIdx];
-  const result = useResult(view, groupIdx);
+  const group = view.groups[groupIdx] ?? view.groups[0];
+  const result = useResult(view, view.groups[groupIdx] ? groupIdx : 0);
+  const router = useRouter();
+  useEffect(() => {
+    if (!view.groups[groupIdx]) router.replace(`${basePath}/a`);
+  }, [view.groups, groupIdx, basePath, router]);
   const operator = !example && !preview && view.role !== null;
   const owner = operator && view.role === "owner";
   const label = view.groupCount > 1 ? `${group.label}조` : view.name;
@@ -65,7 +70,7 @@ export default function TournamentApp({ initial, groupIdx, basePath, created = f
       if (example) return;
       try {
         const next = await api.view(view.code, force ? undefined : versionRef.current);
-        if (!next) return;
+        if (!next || next.version < versionRef.current) return;
         if (roleRef.current && !next.role) toast({ text: "운영자 권한이 없어져 보기 화면으로 바뀌었습니다.", bad: true }, 8000);
         roleRef.current = next.role;
         versionRef.current = next.version;

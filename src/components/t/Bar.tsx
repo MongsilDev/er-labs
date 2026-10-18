@@ -1,4 +1,4 @@
-import type { Standing } from "@/lib/engine";
+import { barTotal, type Standing } from "@/lib/engine";
 import { fmt, rampColor, rampHigh } from "@/lib/format";
 
 export default function Bar({ s, max, rounds, height = 16, labels = true }: { s: Standing; max: number; rounds: number; height?: number; labels?: boolean }) {
@@ -17,10 +17,10 @@ export default function Bar({ s, max, rounds, height = 16, labels = true }: { s:
           </s>
         ) : null,
       )}
-      {s.penalty > 0 && s.roundScore > 0 && (
+      {s.penalty > 0 && barTotal(s) > 0 && (
         <i
           className="pen"
-          style={{ left: `${Math.max(0, s.roundScore - s.penalty) * scale}%`, width: `${Math.min(s.penalty, s.roundScore) * scale}%` }}
+          style={{ left: `${Math.max(0, barTotal(s) - s.penalty) * scale}%`, width: `${Math.min(s.penalty, barTotal(s)) * scale}%` }}
           title={`감점 ${fmt(s.penalty)}점`}
         />
       )}

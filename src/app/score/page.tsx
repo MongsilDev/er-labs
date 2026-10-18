@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import OpenCode from "@/components/OpenCode";
 import Bar from "@/components/t/Bar";
-import { computeGroup } from "@/lib/engine";
+import { barTotal, computeGroup } from "@/lib/engine";
 import { exampleView } from "@/lib/example";
 import { currentUser } from "@/server/auth";
 import { myTournaments } from "@/server/tournament";
@@ -31,7 +31,7 @@ export default async function ScorePage({ searchParams }: { searchParams: Promis
     overrides: g.overrides,
   });
   const top = res.standings.slice(0, 4);
-  const max = Math.max(...res.standings.map((s) => s.roundScore));
+  const max = Math.max(1, ...res.standings.map(barTotal));
   return (
     <>
       <Header user={user} crumb="점수 계산" next="/score" />

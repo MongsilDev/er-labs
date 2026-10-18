@@ -1,5 +1,5 @@
 import { toCsv } from "./csv";
-import type { GroupResult } from "./engine";
+import { barTotal, type GroupResult } from "./engine";
 import { dateKo, fmt, fmt1 } from "./format";
 import { MODE_LABEL, PRESET_LABEL, type Mode, type Rules } from "./rules";
 
@@ -108,7 +108,8 @@ export async function boardImage(result: GroupResult, meta: BoardMeta): Promise<
   let lx = R;
   font(ctx, 500, 19);
   const legend: { label: string; color: string; line?: boolean }[] = [];
-  for (let i = 0; i < played; i++) legend.push({ label: `${i + 1}R`, color: ramp(i, played) });
+  const compact = standings.length > 12;
+  if (!compact) for (let i = 0; i < played; i++) legend.push({ label: `${i + 1}R`, color: ramp(i, played) });
   if (meta.rules.advance > 0) legend.unshift({ label: `상위 ${meta.rules.advance}팀 진출`, color: C.cyan, line: true });
   for (const item of [...legend].reverse()) {
     const w = ctx.measureText(item.label).width;
@@ -122,6 +123,11 @@ export async function boardImage(result: GroupResult, meta: BoardMeta): Promise<
   }
 
   const top = 206;
+  if (compact) {
+    drawCompact(ctx, result, meta, L, R, top, H - 120);
+    drawFooter(ctx, meta, L, R, H - 120, n);
+    return new Promise((resolve, reject) => c.toBlob((b) => (b ? resolve(b) : reject(new Error("이미지를 만들지 못했습니다."))), "image/png"));
+  }
   const colRank = L + 24;
   const colTeam = L + 150;
   const colBar = L + 700;
@@ -148,7 +154,7 @@ export async function boardImage(result: GroupResult, meta: BoardMeta): Promise<
   const rowH = Math.min(84, (footerTop - 20 - rowsTop) / n);
   const scale = rowH / 84;
   const barW = colWins - 100 - colBar;
-  const max = Math.max(1, ...standings.map((s) => s.roundScore));
+  const max = Math.max(1, ...standings.map(barTotal));
 
   standings.forEach((s, i) => {
     const y = rowsTop + i * rowH;
@@ -207,9 +213,10 @@ export async function boardImage(result: GroupResult, meta: BoardMeta): Promise<
       }
       x += w;
     });
-    if (s.penalty > 0 && s.roundScore > 0) {
-      const pw = (Math.min(s.penalty, s.roundScore) / max) * barW;
-      const px = colBar + ((s.roundScore - Math.min(s.penalty, s.roundScore)) / max) * barW;
+    const bt = barTotal(s);
+    if (s.penalty > 0 && bt > 0) {
+      const pw = (Math.min(s.penalty, bt) / max) * barW;
+      const px = colBar + ((bt - Math.min(s.penalty, bt)) / max) * barW;
       ctx.save();
       ctx.beginPath();
       ctx.rect(px, mid - barH / 2 - 3, pw, barH + 6);
@@ -253,6 +260,11 @@ export async function boardImage(result: GroupResult, meta: BoardMeta): Promise<
     }
   });
 
+  drawFooter(ctx, meta, L, R, footerTop, n);
+  return new Promise((resolve, reject) => c.toBlob((b) => (b ? resolve(b) : reject(new Error("이미지를 만들지 못했습니다."))), "image/png"));
+}
+
+function drawFooter(ctx: Ctx, meta: BoardMeta, L: number, R: number, footerTop: number, n: number) {
   const pts = meta.rules.placementPoints.slice(0, Math.min(8, Math.max(8, n)));
   let mx = L;
   pts.forEach((p, i) => {
@@ -280,7 +292,81 @@ export async function boardImage(result: GroupResult, meta: BoardMeta): Promise<
   ctx.textAlign = "right";
   ctx.fillText("er.mongsil.dev", R, footerTop + 84);
 
-  return new Promise((resolve, reject) => c.toBlob((b) => (b ? resolve(b) : reject(new Error("이미지를 만들지 못했습니다."))), "image/png"));
+}
+
+function drawCompact(ctx: Ctx, result: GroupResult, meta: BoardMeta, L: number, R: number, top: number, bottom: number) {
+  const { standings } = result;
+  const per = Math.ceil(standings.length / 2);
+  const gap = 48;
+  const colW = (R - L - gap) / 2;
+  const rowH = Math.min(64, (bottom - 20 - (top + 40)) / per);
+  const s = rowH / 64;
+  const killLabel = meta.rules.tiebreak === "kills" ? "킬" : "킬 점수";
+  for (let c = 0; c < 2; c++) {
+    const x0 = L + c * (colW + gap);
+    const x1 = x0 + colW;
+    font(ctx, 600, 17);
+    ctx.fillStyle = C.text3;
+    ctx.textAlign = "left";
+    ctx.fillText("순위", x0 + 12, top + 22);
+    ctx.fillText("팀", x0 + 110, top + 22);
+    ctx.textAlign = "right";
+    ctx.fillText(killLabel, x1 - 150, top + 22);
+    ctx.fillText("총점", x1 - 12, top + 22);
+    ctx.fillStyle = C.line;
+    ctx.fillRect(x0, top + 38, colW, 1);
+    standings.slice(c * per, c * per + per).forEach((t, i) => {
+      const y = top + 40 + i * rowH;
+      const mid = y + rowH / 2;
+      const box = Math.round(42 * s);
+      const fill = t.rank === 1 ? C.gold : meta.rules.advance > 0 && t.rank <= meta.rules.advance ? C.cyan : C.box;
+      ctx.fillStyle = fill;
+      roundRect(ctx, x0 + 12, mid - box / 2, box, box, 5);
+      ctx.fill();
+      font(ctx, 800, 22 * s);
+      ctx.fillStyle = fill === C.box ? C.text : C.bg;
+      ctx.textAlign = "center";
+      ctx.fillText(String(t.rank), x0 + 12 + box / 2, mid + 8 * s);
+      if (t.delta) {
+        font(ctx, 700, 14 * s);
+        ctx.fillStyle = t.delta > 0 ? C.cyan : C.minus;
+        ctx.textAlign = "left";
+        ctx.fillText(`${t.delta > 0 ? "▲" : "▼"}${Math.abs(t.delta)}`, x0 + 12 + box + 6, mid + 5 * s);
+      }
+      const badge = t.fixed ? `${t.fixed}위 확정` : meta.mode !== "points" && t.checkpoint ? "체크포인트" : "";
+      font(ctx, 700, 14 * s);
+      const bw = badge ? ctx.measureText(badge).width + 16 * s : 0;
+      font(ctx, 700, 26 * s);
+      ctx.fillStyle = C.text;
+      ctx.textAlign = "left";
+      const name = fit(ctx, t.name, x1 - 190 - (x0 + 110) - bw);
+      ctx.fillText(name, x0 + 110, mid + 9 * s);
+      if (badge) {
+        const bx = x0 + 110 + ctx.measureText(name).width + 10;
+        ctx.strokeStyle = C.gold;
+        ctx.lineWidth = 1.5;
+        roundRect(ctx, bx, mid - 12 * s, bw, 24 * s, 4);
+        ctx.stroke();
+        font(ctx, 700, 14 * s);
+        ctx.fillStyle = C.gold;
+        ctx.fillText(badge, bx + 8 * s, mid + 5 * s);
+      }
+      numWithSmallDecimal(ctx, meta.rules.tiebreak === "kills" ? t.kills : t.killScore, x1 - 150, mid + 9 * s, 24 * s, 600, C.text2);
+      numWithSmallDecimal(ctx, t.total, x1 - 12, mid + 12 * s, 34 * s, 800, C.text);
+      if (t.penalty > 0) {
+        font(ctx, 700, 13 * s);
+        ctx.fillStyle = C.minus;
+        ctx.textAlign = "right";
+        ctx.fillText(`감점 ${fmt(t.penalty)}`, x1 - 12, mid + 26 * s);
+      }
+      ctx.fillStyle = C.soft;
+      ctx.fillRect(x0, y + rowH - 1, colW, 1);
+      if (meta.rules.advance > 0 && t.rank === meta.rules.advance) {
+        ctx.fillStyle = C.cyan;
+        ctx.fillRect(x0, y + rowH - 1, colW, 2);
+      }
+    });
+  }
 }
 
 export async function playersImage(result: GroupResult, meta: BoardMeta): Promise<Blob> {

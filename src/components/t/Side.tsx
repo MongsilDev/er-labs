@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { GroupResult } from "@/lib/engine";
+import { normalize, type GroupResult } from "@/lib/engine";
 import { ago, byText, fmt } from "@/lib/format";
 import { RULE_PENALTIES, type Mode, type Rules } from "@/lib/rules";
 import type { GroupView, LogRow, Op } from "@/lib/view";
@@ -11,7 +11,7 @@ type Run = (op: Op) => Promise<unknown>;
 const CUSTOM = "직접 입력";
 
 export function Penalties({ group, result, rules, run }: { group: GroupView; result: GroupResult; rules: Rules; run: Run }) {
-  const teams = result.standings.map((s) => s.name);
+  const teams = result.standings.map((s) => ({ base: s.base, name: s.name }));
   const [team, setTeam] = useState("");
   const [reason, setReason] = useState(rules.deathPenalty ? "처치자 불명 사망" : RULE_PENALTIES[0].reason);
   const [picked, setRound] = useState<string | null>(null);
@@ -21,7 +21,7 @@ export function Penalties({ group, result, rules, run }: { group: GroupView; res
   const [busy, setBusy] = useState(false);
   const death = reason === "처치자 불명 사망";
   const preset = RULE_PENALTIES.find((p) => p.reason === reason);
-  const selectedTeam = team || teams[0] || "";
+  const selectedTeam = teams.some((t) => t.base === team) ? team : (teams[0]?.base ?? "");
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,7 +54,9 @@ export function Penalties({ group, result, rules, run }: { group: GroupView; res
             <label className="lbl" htmlFor={`pt-${group.idx}`}>팀</label>
             <select id={`pt-${group.idx}`} className="field sm" value={selectedTeam} onChange={(e) => setTeam(e.target.value)}>
               {teams.map((t) => (
-                <option key={t}>{t}</option>
+                <option key={t.base} value={t.base}>
+                  {t.name}
+                </option>
               ))}
             </select>
           </div>
@@ -120,10 +122,10 @@ export function Penalties({ group, result, rules, run }: { group: GroupView; res
             <li key={p.id}>
               <span className="chip">{p.roundNo ? `${p.roundNo}R` : "전체"}</span>
               <span className="ellipsis">
-                {p.team} {p.kind === "death" ? `처치자 불명 사망 ${p.count}회` : p.reason}
+                {result.displayOf[normalize(p.team)] ?? p.team} {p.kind === "death" ? `처치자 불명 사망 ${p.count}회` : p.reason}
               </span>
               <b>-{fmt(p.points)}</b>
-              <button type="button" className="link" aria-label={`${p.team} 감점 삭제`} onClick={() => run({ op: "delete_penalty", id: p.id })}>
+              <button type="button" className="link" aria-label={`${result.displayOf[normalize(p.team)] ?? p.team} 감점 삭제`} onClick={() => run({ op: "delete_penalty", id: p.id })}>
                 삭제
               </button>
             </li>
@@ -137,14 +139,13 @@ export function Penalties({ group, result, rules, run }: { group: GroupView; res
 export function Teams({ group, result, mode, rules, run }: { group: GroupView; result: GroupResult; mode: Mode; rules: Rules; run: Run }) {
   const names = useMemo(() => result.standings.map((s) => s.name), [result]);
   const raw = useMemo(() => {
-    const set = new Set<string>();
-    for (const r of group.rounds) for (const p of r.players) set.add(p.team.trim().replace(/\s+/g, " "));
-    for (const n of names) set.add(n);
-    return [...set].sort(byText);
-  }, [group, names]);
+    const seen = new Map<string, string>();
+    for (const s of result.standings) seen.set(s.base, s.name);
+    return [...seen.entries()].sort((a, b) => byText(a[0], b[0]));
+  }, [result]);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
-  const source = from || raw[0] || "";
+  const source = raw.some(([b]) => b === from) ? from : (raw[0]?.[0] ?? "");
   const next = result.next;
 
   return (
@@ -163,10 +164,12 @@ export function Teams({ group, result, mode, rules, run }: { group: GroupView; r
           }}
         >
           <div className="full">
-            <label className="lbl" htmlFor={`rf-${group.idx}`}>CSV의 팀 이름</label>
+            <label className="lbl" htmlFor={`rf-${group.idx}`}>팀</label>
             <select id={`rf-${group.idx}`} className="field sm" value={source} onChange={(e) => setFrom(e.target.value)}>
-              {raw.map((t) => (
-                <option key={t}>{t}</option>
+              {raw.map(([b, n]) => (
+                <option key={b} value={b}>
+                  {b === n ? b : `${n}, 원래 이름 ${b}`}
+                </option>
               ))}
             </select>
           </div>
@@ -183,7 +186,7 @@ export function Teams({ group, result, mode, rules, run }: { group: GroupView; r
               placeholder="새 이름 또는 합칠 팀"
             />
             <datalist id={`rl-${group.idx}`}>
-              {names.filter((n) => n !== source).map((n) => (
+              {names.filter((n) => n !== (result.displayOf[normalize(source)] ?? source)).map((n) => (
                 <option key={n} value={n} />
               ))}
             </datalist>
@@ -217,7 +220,7 @@ export function Teams({ group, result, mode, rules, run }: { group: GroupView; r
           <summary className="lbl">{next.roundNo}라운드 체크포인트 조정</summary>
           <ul className="plist">
             {result.standings.map((s) => {
-              const key = `${next.roundNo}:${s.key}`;
+              const key = `${next.roundNo}:${normalize(s.base)}`;
               const manual = group.overrides[key];
               const value = manual === undefined ? "auto" : manual ? "on" : "off";
               return (
@@ -233,7 +236,7 @@ export function Teams({ group, result, mode, rules, run }: { group: GroupView; r
                         op: "set_checkpoint",
                         group: group.idx,
                         round: next.roundNo,
-                        team: s.name,
+                        team: s.base,
                         state: e.target.value === "auto" ? null : e.target.value === "on",
                       })
                     }
