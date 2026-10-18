@@ -14,7 +14,7 @@ docker compose -f "$HOME/docker/compose.yaml" up -d er-tools
 
 echo "==> 확인"
 for _ in $(seq 1 20); do
-  if curl -fsS -o /dev/null http://127.0.0.1:8745/api/health; then
+  if curl -fs -o /dev/null http://127.0.0.1:8745/api/health; then
     echo "  준비됨"
     exit 0
   fi
