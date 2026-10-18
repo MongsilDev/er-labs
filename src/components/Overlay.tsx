@@ -8,7 +8,19 @@ import Bar from "./t/Bar";
 import { useResult } from "./t/TournamentApp";
 import "./overlay.css";
 
-export default function Overlay({ initial, groupIdx, limit }: { initial: TournamentView; groupIdx: number; limit: number }) {
+export default function Overlay({
+  initial,
+  groupIdx,
+  limit,
+  scale,
+  side,
+}: {
+  initial: TournamentView;
+  groupIdx: number;
+  limit: number;
+  scale: number;
+  side: "left" | "right";
+}) {
   const [view, setView] = useState(initial);
   const version = useRef(initial.version);
   const result = useResult(view, groupIdx);
@@ -31,7 +43,7 @@ export default function Overlay({ initial, groupIdx, limit }: { initial: Tournam
   const max = Math.max(1, ...result.standings.map((s) => s.roundScore));
   const status = result.ended ? "최종 순위" : result.played ? `${result.played}라운드 종료` : "경기 전";
   return (
-    <div className="ov">
+    <div className={`ov ${side}`} style={{ zoom: scale }}>
       <div className="ov-hd">
         <b>
           {view.name}

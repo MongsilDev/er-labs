@@ -6,7 +6,7 @@ import { loadView } from "@/server/tournament";
 export const metadata: Metadata = { title: "방송 화면", robots: { index: false } };
 export const dynamic = "force-dynamic";
 
-export default async function Page({ params, searchParams }: { params: Promise<{ code: string; group: string }>; searchParams: Promise<{ top?: string }> }) {
+export default async function Page({ params, searchParams }: { params: Promise<{ code: string; group: string }>; searchParams: Promise<{ top?: string; scale?: string; side?: string }> }) {
   const { code, group } = await params;
   const q = await searchParams;
   const view = loadView(code, null);
@@ -16,7 +16,13 @@ export default async function Page({ params, searchParams }: { params: Promise<{
   return (
     <>
       <style>{"html,body{background:transparent!important}"}</style>
-      <Overlay initial={view} groupIdx={idx} limit={Math.max(1, Math.min(24, Number(q.top) || 24))} />
+      <Overlay
+        initial={view}
+        groupIdx={idx}
+        limit={Math.max(1, Math.min(24, Number(q.top) || 24))}
+        scale={Math.max(0.5, Math.min(3, Number(q.scale) || 1))}
+        side={q.side === "left" ? "left" : "right"}
+      />
     </>
   );
 }

@@ -6,6 +6,8 @@ html.overlay-page body {
   position: fixed;
   top: 24px;
   right: 24px;
+  max-height: calc(100vh - 48px);
+  overflow: hidden;
   width: 500px;
   background: rgba(10, 13, 20, 0.86);
   border-radius: 8px;
@@ -87,4 +89,8 @@ html.overlay-page body {
   color: #7f889b;
   margin-top: 6px;
   text-align: right;
+}
+.ov.left {
+  right: auto;
+  left: 24px;
 }
