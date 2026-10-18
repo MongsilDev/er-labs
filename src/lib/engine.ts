@@ -44,6 +44,7 @@ export const barTotal = (s: { rounds: (TeamRound | null)[] }) => s.rounds.reduce
 export type Standing = {
   key: string;
   base: string;
+  bases: { round: number; base: string }[];
   name: string;
   rank: number;
   delta: number;
@@ -85,6 +86,7 @@ export type PlayerStat = { nickname: string; team: string; value: number; rank: 
 export type GroupResult = {
   standings: Standing[];
   displayOf: Record<string, string>;
+  orphanPenalties: number[];
   rounds: RoundSummary[];
   played: number;
   next: NextRound | null;
@@ -268,15 +270,22 @@ export function computeGroup(input: GroupInput): GroupResult {
   const clusters = buildClusters(raws);
   const memberKey = new Map<string, string>();
 
-  for (const c of clusters) {
+  const basesOf = new Map<string, { round: number; base: string }[]>();
+  const manualOnly = (c: Cluster) => c.members.every((m) => m.source === "manual" && m.nicknames.size === 0);
+  // 직접 입력에 다른 기록의 기준 이름을 그대로 쓴 경우 그 팀으로 넣기 위해 직접 입력만 있는 묶음을 나중에 처리
+  const orderedClusters = [...clusters.filter((c) => !manualOnly(c)), ...clusters.filter(manualOnly)];
+  for (const c of orderedClusters) {
     const aliased = c.members.find((m) => alias.has(normalize(m.base)));
     const lead = aliased ?? c.members.find((m) => m.base === m.name) ?? c.members[0];
-    const display = rename(lead.base);
-    const key = normalize(display);
+    const joined = manualOnly(c) && !aliased ? memberKey.get(normalize(lead.base)) : undefined;
+    const display = joined ? (names.get(joined) ?? rename(lead.base)) : rename(lead.base);
+    const key = joined ?? normalize(display);
     if (!names.has(key)) names.set(key, display);
     if (!baseOf.has(key)) baseOf.set(key, c.members[0].base);
+    const list = basesOf.get(key) ?? [];
     for (const m of c.members) {
-      memberKey.set(normalize(m.base), key);
+      if (!memberKey.has(normalize(m.base))) memberKey.set(normalize(m.base), key);
+      list.push({ round: m.round, base: m.base });
       displayOf[normalize(m.base)] = display;
       const teams = (perRound[m.round - 1] ??= new Map<string, Agg>());
       const sc = score(m, rules);
@@ -293,13 +302,13 @@ export function computeGroup(input: GroupInput): GroupResult {
       }
       for (const n of m.nicknames) nickTeam.set(n, key);
     }
+    basesOf.set(key, list.sort((x, y) => x.round - y.round));
   }
   const refKey = (team: string) => memberKey.get(normalize(team)) ?? normalize(rename(team));
-  const penalties = input.penalties.map((p) => ({ ...p, key: refKey(p.team) }));
-  for (const p of penalties) {
-    if (!names.has(p.key)) names.set(p.key, rename(p.team));
-    if (!baseOf.has(p.key)) baseOf.set(p.key, p.team);
-  }
+  // 이어 붙일 팀이 없는 감점은 순위표에 빈 팀 행을 만들지 않고 따로 돌려줌
+  const allPenalties = input.penalties.map((p) => ({ ...p, key: refKey(p.team) }));
+  const penalties = allPenalties.filter((p) => names.has(p.key));
+  const orphanPenalties = allPenalties.filter((p) => !names.has(p.key)).map((p) => p.id);
   const overrides = Object.entries(input.overrides).map(([k, v]) => ({
     round: Number(k.split(":")[0]),
     key: refKey(k.slice(k.indexOf(":") + 1)),
@@ -408,6 +417,7 @@ export function computeGroup(input: GroupInput): GroupResult {
     return {
       key: x.key,
       base: baseOf.get(x.key) ?? names.get(x.key) ?? x.key,
+      bases: basesOf.get(x.key) ?? [],
       name: names.get(x.key) ?? x.key,
       rank: i + 1,
       delta: pi >= 0 ? pi - i : 0,
@@ -513,6 +523,7 @@ export function computeGroup(input: GroupInput): GroupResult {
   return {
     standings,
     displayOf,
+    orphanPenalties,
     rounds,
     played,
     next,

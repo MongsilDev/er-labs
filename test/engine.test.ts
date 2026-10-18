@@ -193,6 +193,41 @@ describe("재점검에서 찾은 경우", () => {
     expect(res.standings.map((s) => [s.name, s.total])).toEqual([["Zulu", 20], ["X", 14]]);
   });
 
+  it("직접 입력에 기준 이름을 그대로 쓰면 원래 팀에 이어 붙는다", () => {
+    const r1 = round(1, 1, [{ team: "Team 3", place: 2, ks: 0, players: ps("a", "b", "c") }]);
+    const m2 = {
+      roundNo: 2,
+      source: "manual" as const,
+      gameId: null,
+      players: [{ nickname: "", character: "", team: "1R Team 3", placement: 1, totalScore: 0, killScore: 0, kills: 0, teamKills: 0, hunting: 0, level: 0 }],
+    };
+    const r3 = round(3, 3, [{ team: "Delta", place: 1, ks: 0, players: ps("a", "b", "z") }]);
+    const extra = { penalties: [{ id: 1, team: "1R Team 3", roundNo: 2, kind: "rule" as const, count: 1, points: 2, reason: "지각" }] };
+    const res = computeGroup(group({ rounds: [r1, m2, r3], ...extra }));
+    expect(res.standings.map((s) => [s.name, s.total])).toEqual([["Delta", 25]]);
+    expect(res.orphanPenalties).toEqual([]);
+  });
+
+  it("다른 라운드 기록을 지워도 그 라운드 기록에 건 감점은 남고, 기록이 없으면 팀 없음으로 따로 둔다", () => {
+    const r1 = round(1, 1, [{ team: "Team 3", place: 1, ks: 0, players: ps("a", "b", "c") }]);
+    const r2 = round(2, 2, [{ team: "Team 5", place: 1, ks: 0, players: ps("a", "b", "c") }]);
+    const extra = {
+      penalties: [
+        { id: 1, team: "2R Team 5", roundNo: 2, kind: "rule" as const, count: 1, points: 2, reason: "지각" },
+        { id: 2, team: "1R Team 3", roundNo: 1, kind: "rule" as const, count: 1, points: 1, reason: "지각" },
+      ],
+      aliases: { "1R Team 3": "우리팀", "2R Team 5": "우리팀" },
+    };
+    const both = computeGroup(group({ rounds: [r1, r2], ...extra }));
+    expect(both.standings.map((s) => [s.name, s.total, s.bases.length])).toEqual([["우리팀", 17, 2]]);
+    const only2 = computeGroup(group({ rounds: [r2], ...extra }));
+    expect(only2.standings.map((s) => [s.name, s.total])).toEqual([["우리팀", 7]]);
+    expect(only2.orphanPenalties).toEqual([]);
+    const plain = computeGroup(group({ rounds: [r2], penalties: extra.penalties }));
+    expect(plain.standings.map((s) => [s.name, s.total])).toEqual([["2R Team 5", 8]]);
+    expect(plain.orphanPenalties).toEqual([2]);
+  });
+
   it("빈 라운드가 있으면 그 라운드 시작 기준으로 체크포인트를 보여 준다", () => {
     const rules = presetRules("masters");
     rules.checkpoint = { ...rules.checkpoint, type: "points", points: 15 };

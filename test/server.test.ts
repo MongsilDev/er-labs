@@ -98,6 +98,14 @@ describe("대회 서버", () => {
     expect(() => t.applyOp(code, owner, { op: "rename_team", group: 0, from: "B", to: "A" })).toThrow("서로를 가리키게");
   });
 
+  it("이름 변경은 팀에 속한 기록 기준 이름 전부에 걸고, 되돌리기도 각각 된다", () => {
+    const code = t.createTournament(owner, { name: "여러 기록", mode: "points", preset: "masters", plannedRounds: 4, groupCount: 1 });
+    t.applyOp(code, owner, { op: "rename_team", group: 0, from: "1R Team 3", to: "우리팀", also: ["1R Team 3", "2R Team 5", "우리팀"] });
+    expect(t.loadView(code, null)!.groups[0].aliases).toEqual({ "1R Team 3": "우리팀", "2R Team 5": "우리팀" });
+    t.applyOp(code, owner, { op: "rename_team", group: 0, from: "2R Team 5", to: "" });
+    expect(t.loadView(code, null)!.groups[0].aliases).toEqual({ "1R Team 3": "우리팀" });
+  });
+
   it("CSV 팀 이름은 40자로 정리돼 감점이 같은 팀에 붙는다", () => {
     const code = t.createTournament(owner, { name: "긴 이름", mode: "points", preset: "masters", plannedRounds: 4, groupCount: 1 });
     const long = "가".repeat(50);

@@ -417,31 +417,41 @@ export function applyOp(code: string, user: User, op: Op): OpResult {
       }
       case "rename_team": {
         const g = assertGroup(t, op.group);
-        const from = cleanName(op.from, 60);
         const to = cleanName(op.to, 40);
-        if (!from) throw new OpError("바꿀 팀을 골라주세요.");
-        if (!to || normalize(to) === normalize(from)) {
-          conn.prepare("DELETE FROM aliases WHERE tournament_id = ? AND group_idx = ? AND from_name = ?").run(t.id, g, from);
-          bump(t, user, `팀 이름 되돌림: ${prefix(t, g)}${from}`);
-        } else {
-          const map = new Map(
-            (conn.prepare("SELECT from_name, to_name FROM aliases WHERE tournament_id = ? AND group_idx = ?").all(t.id, g) as { from_name: string; to_name: string }[]).map(
-              (a) => [normalize(a.from_name), a.to_name],
-            ),
-          );
-          if (!map.has(normalize(from)) && map.size >= 100) throw new OpError("한 조에 팀 이름 변경은 100건까지 할 수 있습니다.");
+        const froms = [...new Set([op.from, ...(Array.isArray(op.also) ? op.also.slice(0, LIMITS.rounds) : [])].map((x) => cleanName(x, 60)).filter(Boolean))];
+        if (froms.length === 0) throw new OpError("바꿀 팀을 골라주세요.");
+        const shown = froms[0];
+        const map = new Map(
+          (conn.prepare("SELECT from_name, to_name FROM aliases WHERE tournament_id = ? AND group_idx = ?").all(t.id, g) as { from_name: string; to_name: string }[]).map(
+            (a) => [normalize(a.from_name), a.to_name],
+          ),
+        );
+        if (!to) {
+          for (const from of froms) conn.prepare("DELETE FROM aliases WHERE tournament_id = ? AND group_idx = ? AND from_name = ?").run(t.id, g, from);
+          bump(t, user, `팀 이름 되돌림: ${prefix(t, g)}${shown}`);
+          break;
+        }
+        const targets = froms.filter((f) => normalize(f) !== normalize(to));
+        if (targets.length === 0) break;
+        if (targets.filter((f) => !map.has(normalize(f))).length + map.size > 100) throw new OpError("한 조에 팀 이름 변경은 100건까지 할 수 있습니다.");
+        for (const from of targets) map.set(normalize(from), to);
+        for (const from of targets) {
           let cur = to;
           for (let i = 0; i < 20; i++) {
-            if (normalize(cur) === normalize(from)) throw new OpError("두 팀 이름이 서로를 가리키게 되어 바꿀 수 없습니다. 기존 변경을 먼저 되돌려주세요.");
             const next = map.get(normalize(cur));
             if (!next) break;
+            if (normalize(next) === normalize(from) || normalize(cur) === normalize(from)) {
+              throw new OpError("두 팀 이름이 서로를 가리키게 되어 바꿀 수 없습니다. 기존 변경을 먼저 되돌려주세요.");
+            }
             cur = next;
           }
+        }
+        for (const from of targets) {
           conn
             .prepare("INSERT INTO aliases(tournament_id, group_idx, from_name, to_name) VALUES (?, ?, ?, ?) ON CONFLICT DO UPDATE SET to_name = excluded.to_name")
             .run(t.id, g, from, to);
-          bump(t, user, `팀 이름: ${prefix(t, g)}${from} 대신 ${to}`);
         }
+        bump(t, user, `팀 이름: ${prefix(t, g)}${shown} 대신 ${to}`);
         break;
       }
       case "set_checkpoint": {

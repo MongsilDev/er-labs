@@ -61,7 +61,7 @@ export type Op =
   | { op: "add_penalty"; group: number; team: string; round: number; kind: "death" | "rule"; count?: number; points?: number; reason?: string }
   | { op: "delete_penalty"; id: number }
   | { op: "restore_penalty"; id: number }
-  | { op: "rename_team"; group: number; from: string; to: string }
+  | { op: "rename_team"; group: number; from: string; to: string; also?: string[] }
   | { op: "set_checkpoint"; group: number; round: number; team: string; state: boolean | null }
   | { op: "update_settings"; name?: string; mode?: Mode; preset?: Preset; rules?: Partial<Rules>; plannedRounds?: number; groupCount?: number };
 

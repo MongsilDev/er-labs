@@ -11,7 +11,7 @@ type Run = (op: Op) => Promise<unknown>;
 const CUSTOM = "직접 입력";
 
 export function Penalties({ group, result, rules, run }: { group: GroupView; result: GroupResult; rules: Rules; run: Run }) {
-  const teams = result.standings.map((s) => ({ base: s.base, name: s.name }));
+  const teams = result.standings.map((s) => ({ key: s.key, name: s.name, bases: s.bases.length ? s.bases : [{ round: 0, base: s.base }] }));
   const [team, setTeam] = useState("");
   const [reason, setReason] = useState(rules.deathPenalty ? "처치자 불명 사망" : RULE_PENALTIES[0].reason);
   const [picked, setRound] = useState<string | null>(null);
@@ -21,7 +21,12 @@ export function Penalties({ group, result, rules, run }: { group: GroupView; res
   const [busy, setBusy] = useState(false);
   const death = reason === "처치자 불명 사망";
   const preset = RULE_PENALTIES.find((p) => p.reason === reason);
-  const selectedTeam = teams.some((t) => t.base === team) ? team : (teams[0]?.base ?? "");
+  const selectedTeam = teams.some((t) => t.key === team) ? team : (teams[0]?.key ?? "");
+  // 감점은 그 라운드 기록의 기준 이름으로 저장해 다른 라운드 기록이 지워져도 떨어지지 않게 함
+  const baseFor = (key: string, roundNo: number) => {
+    const bases = teams.find((t) => t.key === key)?.bases ?? [];
+    return (bases.find((b) => b.round === roundNo) ?? bases[bases.length - 1])?.base ?? "";
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +36,7 @@ export function Penalties({ group, result, rules, run }: { group: GroupView; res
       await run({
         op: "add_penalty",
         group: group.idx,
-        team: selectedTeam,
+        team: baseFor(selectedTeam, Number(round)),
         round: Number(round),
         kind: death ? "death" : "rule",
         count: death ? Number(amount) || 1 : undefined,
@@ -54,7 +59,7 @@ export function Penalties({ group, result, rules, run }: { group: GroupView; res
             <label className="lbl" htmlFor={`pt-${group.idx}`}>팀</label>
             <select id={`pt-${group.idx}`} className="field sm" value={selectedTeam} onChange={(e) => setTeam(e.target.value)}>
               {teams.map((t) => (
-                <option key={t.base} value={t.base}>
+                <option key={t.key} value={t.key}>
                   {t.name}
                 </option>
               ))}
@@ -124,6 +129,9 @@ export function Penalties({ group, result, rules, run }: { group: GroupView; res
               <span className="ellipsis">
                 {result.displayOf[normalize(p.team)] ?? p.team} {p.kind === "death" ? `처치자 불명 사망 ${p.count}회` : p.reason}
               </span>
+              {result.orphanPenalties.includes(p.id) && (
+                <span className="chip dashed" title="이 감점이 걸린 기록이 지워졌습니다">팀 없음</span>
+              )}
               <b>-{fmt(p.points)}</b>
               <button type="button" className="link" aria-label={`${result.displayOf[normalize(p.team)] ?? p.team} 감점 삭제`} onClick={() => run({ op: "delete_penalty", id: p.id })}>
                 삭제
@@ -155,7 +163,8 @@ export function Teams({ group, result, mode, rules, run }: { group: GroupView; r
           onSubmit={async (e) => {
             e.preventDefault();
             if (!source || !to.trim()) return;
-            await run({ op: "rename_team", group: group.idx, from: source, to });
+            const st = result.standings.find((x) => x.name === source);
+            await run({ op: "rename_team", group: group.idx, from: source, to, also: st?.bases.map((b) => b.base) ?? [] });
             setTo("");
           }}
         >
@@ -190,12 +199,23 @@ export function Teams({ group, result, mode, rules, run }: { group: GroupView; r
       )}
       {Object.keys(group.aliases).length > 0 && (
         <ul className="plist">
-          {Object.entries(group.aliases).map(([a, b]) => (
-            <li key={a}>
+          {Object.entries(
+            Object.entries(group.aliases).reduce<Record<string, string[]>>((acc, [from, to]) => {
+              (acc[to] ??= []).push(from);
+              return acc;
+            }, {}),
+          ).map(([to, froms]) => (
+            <li key={to}>
               <span className="ellipsis">
-                {a} 대신 <b className="plain">{b}</b>
+                {froms.filter((f) => normalize(f) !== normalize(to)).join(", ")} 대신 <b className="plain">{to}</b>
               </span>
-              <button type="button" className="link" onClick={() => run({ op: "rename_team", group: group.idx, from: a, to: "" })}>
+              <button
+                type="button"
+                className="link"
+                onClick={async () => {
+                  for (const from of froms) await run({ op: "rename_team", group: group.idx, from, to: "" });
+                }}
+              >
                 되돌리기
               </button>
             </li>
@@ -214,8 +234,9 @@ export function Teams({ group, result, mode, rules, run }: { group: GroupView; r
           <summary className="lbl">{next.roundNo}라운드 체크포인트 조정</summary>
           <ul className="plist">
             {result.standings.map((s) => {
-              const key = `${next.roundNo}:${normalize(s.base)}`;
-              const manual = group.overrides[key];
+              const own = s.bases.length ? s.bases.map((b) => b.base) : [s.base];
+              const hit = own.find((b) => group.overrides[`${next.roundNo}:${normalize(b)}`] !== undefined);
+              const manual = hit ? group.overrides[`${next.roundNo}:${normalize(hit)}`] : undefined;
               const value = manual === undefined ? "auto" : manual ? "on" : "off";
               return (
                 <li key={s.key}>
@@ -230,7 +251,7 @@ export function Teams({ group, result, mode, rules, run }: { group: GroupView; r
                         op: "set_checkpoint",
                         group: group.idx,
                         round: next.roundNo,
-                        team: s.base,
+                        team: hit ?? own[own.length - 1],
                         state: e.target.value === "auto" ? null : e.target.value === "on",
                       })
                     }
