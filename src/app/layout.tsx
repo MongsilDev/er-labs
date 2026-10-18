@@ -14,6 +14,9 @@ export const viewport: Viewport = {
   themeColor: "#0a0d14",
 };
 
+// Cloudflare Web Analytics 비콘 토큰. 공개값이라 코드에 둠
+const ANALYTICS_TOKEN = "bcb82a8155fd406aba6ddc424ff1b0be";
+
 const themeScript = `(function(){try{var t=localStorage.getItem('er-theme');if(t!=='light'&&t!=='dark')t='dark';document.documentElement.dataset.theme=t;var m=document.querySelector('meta[name=theme-color]');if(m)m.content=t==='light'?'#eef1f5':'#0a0d14'}catch(e){}})()`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -28,6 +31,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {themeScript}
         </Script>
         {children}
+        {process.env.BASE_URL?.startsWith("https://") && (
+          <Script
+            id="cf-analytics"
+            strategy="afterInteractive"
+            src="https://static.cloudflareinsights.com/beacon.min.js"
+            data-cf-beacon={JSON.stringify({ token: ANALYTICS_TOKEN })}
+          />
+        )}
       </body>
     </html>
   );

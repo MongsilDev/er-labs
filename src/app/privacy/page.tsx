@@ -22,7 +22,7 @@ export default async function Privacy() {
         <ul>
           <li>대회 순위 계산과 공유</li>
           <li>대회 운영자 로그인과 권한 확인</li>
-          <li>남용 방지</li>
+          <li>남용 방지와 방문 통계</li>
         </ul>
 
         <h2>2. 처리 항목과 보유 기간</h2>
@@ -85,7 +85,7 @@ export default async function Privacy() {
                   <span className="nowrap">dpo@cloudflare.com</span>
                 </td>
                 <td className="nowrap">미국</td>
-                <td>사이트 접속 중계. 접속 IP 주소와 요청 정보가 접속할 때마다 전송됨. 보유 기간은 Cloudflare 정책을 따름</td>
+                <td>사이트 접속 중계와 방문 통계. 접속 IP 주소, 요청 정보, 방문한 페이지 주소, 브라우저 종류가 접속할 때마다 전송됨. 방문 통계는 쿠키를 쓰지 않음. 보유 기간은 Cloudflare 정책을 따름</td>
               </tr>
             </tbody>
           </table>
