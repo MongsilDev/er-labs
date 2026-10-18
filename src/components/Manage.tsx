@@ -1,0 +1,328 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState, useSyncExternalStore } from "react";
+import { api } from "@/lib/client";
+import { timeKo } from "@/lib/format";
+import { LIMITS, MODE_LABEL, PRESET_LABEL, presetRules, type Mode, type Preset, type Rules } from "@/lib/rules";
+import type { InviteRow, MemberRow, TournamentView } from "@/lib/view";
+import Avatar from "./Avatar";
+import RulesFields from "./RulesFields";
+import "./manage.css";
+
+export default function Manage({ view, me, initialMembers, initialInvites }: { view: TournamentView; me: string; initialMembers: MemberRow[]; initialInvites: InviteRow[] }) {
+  const router = useRouter();
+  const [list, setList] = useState(initialMembers);
+  const [invites, setInvites] = useState(initialInvites);
+  const [msg, setMsg] = useState<{ text: string; bad?: boolean } | null>(null);
+  const [confirm, setConfirm] = useState<null | { kind: "transfer" | "remove"; user: MemberRow } | { kind: "delete" }>(null);
+  const owner = view.role === "owner";
+  const origin = useSyncExternalStore(
+    () => () => {},
+    () => window.location.origin,
+    () => "",
+  );
+  const inviteUrl = (t: string) => `${origin}/i/${t}`;
+
+  const reload = async () => {
+    const d = await api.members(view.code);
+    setList(d.members.map((m) => ({ ...m, avatar: m.avatar ? `https://cdn.discordapp.com/avatars/${m.id}/${m.avatar}.webp?size=64` : null })));
+    setInvites(d.invites);
+  };
+  const act = async (body: { action: string; token?: string; user?: string }, done?: string) => {
+    try {
+      const r = await api.member(view.code, body);
+      if (done) setMsg({ text: done });
+      await reload();
+      return r;
+    } catch (e) {
+      setMsg({ text: e instanceof Error ? e.message : "처리하지 못했습니다.", bad: true });
+    }
+  };
+
+  return (
+    <main id="main" className="wrap slim manage">
+      <Link className="back muted" href={`/t/${view.code}/a`}>
+        대회 화면으로 돌아가기
+      </Link>
+      <h1 className="page-h1">운영자{owner ? "와 설정" : ""}</h1>
+      <p className="sub">
+        {view.name}, 대회 코드 <b translate="no">{view.code}</b>
+      </p>
+      {msg && (
+        <p className={`panel notice${msg.bad ? " bad" : ""}`} role={msg.bad ? "alert" : "status"}>
+          {msg.text}
+        </p>
+      )}
+
+      <section className="panel box" aria-labelledby="m-h">
+        <h2 className="h2" id="m-h">
+          운영자 <span className="muted">{list.length}명, 최대 {LIMITS.operators + 1}명</span>
+        </h2>
+        <ul className="ul">
+          {list.map((m) => (
+            <li key={m.id} className="li">
+              <Avatar name={m.name} src={m.avatar} />
+              <b className="ellipsis">{m.name}</b>
+              {m.role === "owner" ? <span className="chip">개최자</span> : <span className="muted small nowrap">{timeKo(m.joinedAt)} 참여</span>}
+              <span className="acts">
+                {owner && m.role === "operator" && (
+                  <>
+                    <button type="button" className="btn sm" onClick={() => setConfirm({ kind: "transfer", user: m })}>
+                      개최자 넘기기
+                    </button>
+                    <button type="button" className="btn sm danger" onClick={() => setConfirm({ kind: "remove", user: m })}>
+                      운영자에서 빼기
+                    </button>
+                  </>
+                )}
+                {!owner && m.id === me && (
+                  <button
+                    type="button"
+                    className="btn sm danger"
+                    onClick={async () => {
+                      await act({ action: "leave" });
+                      router.push(`/t/${view.code}/a`);
+                    }}
+                  >
+                    운영자 그만두기
+                  </button>
+                )}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {owner && (
+        <section className="panel box" aria-labelledby="i-h">
+          <h2 className="h2" id="i-h">
+            초대 링크 <span className="muted">링크 하나에 한 명, 대회가 지워지면 함께 만료</span>
+          </h2>
+          {invites.length > 0 && (
+            <ul className="ul">
+              {invites.map((i) => (
+                <li key={i.token} className="li inv">
+                  <code className="ellipsis" translate="no">
+                    {inviteUrl(i.token).replace(/^https?:\/\//, "")}
+                  </code>
+                  <span className="acts">
+                    <button
+                      type="button"
+                      className="btn sm"
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard.writeText(inviteUrl(i.token));
+                          setMsg({ text: "초대 링크를 복사했습니다. 운영을 맡길 사람에게 보내주세요." });
+                        } catch {
+                          setMsg({ text: "복사하지 못했습니다. 링크를 직접 선택해 복사해주세요.", bad: true });
+                        }
+                      }}
+                    >
+                      복사
+                    </button>
+                    <button type="button" className="btn sm" onClick={() => act({ action: "cancel", token: i.token }, "초대 링크를 취소했습니다.")}>
+                      취소
+                    </button>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+          <button
+            type="button"
+            className="btn primary"
+            style={{ marginTop: 12 }}
+            onClick={async () => {
+              const r = await act({ action: "invite" });
+              if (r?.token) {
+                try {
+                  await navigator.clipboard.writeText(inviteUrl(r.token));
+                  setMsg({ text: "초대 링크를 만들고 복사했습니다. 운영을 맡길 사람에게 보내주세요." });
+                } catch {
+                  setMsg({ text: "초대 링크를 만들었습니다. 아래 목록에서 복사해주세요." });
+                }
+              }
+            }}
+          >
+            초대 링크 만들기
+          </button>
+        </section>
+      )}
+
+      {owner && <Settings view={view} onSaved={(t) => setMsg({ text: t })} onError={(t) => setMsg({ text: t, bad: true })} />}
+
+      {owner && (
+        <section className="panel box" aria-labelledby="d-h">
+          <h2 className="h2" id="d-h">대회 삭제</h2>
+          <p className="muted small" style={{ marginTop: 6 }}>
+            순위, CSV, 변경 기록이 모두 지워지고 되돌릴 수 없습니다.
+          </p>
+          <button type="button" className="btn danger" style={{ marginTop: 12 }} onClick={() => setConfirm({ kind: "delete" })}>
+            대회 삭제
+          </button>
+        </section>
+      )}
+
+      {confirm && (
+        <Confirm
+          confirm={confirm}
+          name={view.name}
+          onClose={() => setConfirm(null)}
+          onOk={async (typed) => {
+            if (confirm.kind === "delete") {
+              try {
+                await api.remove(view.code, typed);
+                router.push("/score");
+              } catch (e) {
+                setMsg({ text: e instanceof Error ? e.message : "삭제하지 못했습니다.", bad: true });
+              }
+            } else if (confirm.kind === "transfer") {
+              await act({ action: "transfer", user: confirm.user.id }, `${confirm.user.name}님에게 개최자를 넘겼습니다.`);
+              router.refresh();
+            } else {
+              await act({ action: "remove", user: confirm.user.id }, `${confirm.user.name}님을 운영자에서 뺐습니다.`);
+            }
+            setConfirm(null);
+          }}
+        />
+      )}
+    </main>
+  );
+}
+
+function Settings({ view, onSaved, onError }: { view: TournamentView; onSaved: (t: string) => void; onError: (t: string) => void }) {
+  const router = useRouter();
+  const [name, setName] = useState(view.name);
+  const [mode, setMode] = useState<Mode>(view.mode);
+  const [preset, setPreset] = useState<Preset>(view.rules.preset);
+  const [rules, setRules] = useState<Rules>(view.rules);
+  const [rounds, setRounds] = useState(view.plannedRounds);
+  const [groups, setGroups] = useState(view.groupCount);
+  const [busy, setBusy] = useState(false);
+  return (
+    <section className="panel box" aria-labelledby="s-h">
+      <h2 className="h2" id="s-h">대회 설정</h2>
+      <form
+        className="settings"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          setBusy(true);
+          try {
+            await api.op(view.code, { op: "update_settings", name, mode, preset, rules, plannedRounds: rounds, groupCount: groups });
+            onSaved("설정을 저장했습니다.");
+            router.refresh();
+          } catch (err) {
+            onError(err instanceof Error ? err.message : "저장하지 못했습니다.");
+          } finally {
+            setBusy(false);
+          }
+        }}
+      >
+        <div>
+          <label className="lbl" htmlFor="s-name">대회 이름</label>
+          <input id="s-name" className="field" maxLength={LIMITS.nameLength} value={name} onChange={(e) => setName(e.target.value)} autoComplete="off" />
+        </div>
+        <div className="grid4">
+          <div>
+            <label className="lbl" htmlFor="s-mode">진행 방식</label>
+            <select id="s-mode" className="field" value={mode} onChange={(e) => setMode(e.target.value as Mode)}>
+              {(Object.keys(MODE_LABEL) as Mode[]).map((m) => (
+                <option key={m} value={m}>
+                  {MODE_LABEL[m]}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="lbl" htmlFor="s-rule">규칙</label>
+            <select
+              id="s-rule"
+              className="field"
+              value={preset}
+              onChange={(e) => {
+                const p = e.target.value as Preset;
+                setPreset(p);
+                setRules({ ...presetRules(p), advance: rules.advance });
+              }}
+            >
+              {(Object.keys(PRESET_LABEL) as Preset[]).map((p) => (
+                <option key={p} value={p}>
+                  {PRESET_LABEL[p]}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="lbl" htmlFor="s-rounds">{mode === "points" ? "라운드 수" : "최대 라운드 수"}</label>
+            <input id="s-rounds" className="field" type="number" inputMode="numeric" min={1} max={LIMITS.rounds} value={rounds} onChange={(e) => setRounds(Number(e.target.value) || 1)} />
+          </div>
+          <div>
+            <label className="lbl" htmlFor="s-groups">조 수</label>
+            <input id="s-groups" className="field" type="number" inputMode="numeric" min={1} max={LIMITS.groups} value={groups} onChange={(e) => setGroups(Number(e.target.value) || 1)} />
+          </div>
+        </div>
+        <RulesFields rules={rules} mode={mode} rounds={rounds} onChange={setRules} />
+        <div className="row-acts">
+          <button className="btn primary" disabled={busy}>
+            설정 저장
+          </button>
+        </div>
+      </form>
+    </section>
+  );
+}
+
+function Confirm({
+  confirm,
+  name,
+  onClose,
+  onOk,
+}: {
+  confirm: { kind: "transfer" | "remove"; user: MemberRow } | { kind: "delete" };
+  name: string;
+  onClose: () => void;
+  onOk: (typed: string) => Promise<void>;
+}) {
+  const [typed, setTyped] = useState("");
+  const [busy, setBusy] = useState(false);
+  const title =
+    confirm.kind === "delete" ? "대회를 삭제할까요?" : confirm.kind === "transfer" ? `${confirm.user.name}님에게 개최자를 넘길까요?` : `${confirm.user.name}님을 운영자에서 뺄까요?`;
+  const body =
+    confirm.kind === "delete"
+      ? "확인을 위해 대회 이름을 입력해주세요."
+      : confirm.kind === "transfer"
+        ? "넘긴 뒤에는 운영자가 되고, 설정과 운영자 관리는 새 개최자만 할 수 있습니다."
+        : "다시 운영을 맡기려면 새 초대 링크를 보내야 합니다.";
+  return (
+    <div className="dim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <form
+        className="panel dialog"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="cf-h"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          setBusy(true);
+          await onOk(typed);
+          setBusy(false);
+        }}
+      >
+        <h2 id="cf-h">{title}</h2>
+        <p className="muted small">{body}</p>
+        {confirm.kind === "delete" && (
+          <input className="field" style={{ marginTop: 12 }} aria-label="대회 이름" placeholder={name} value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" autoFocus />
+        )}
+        <div className="acts">
+          <button type="button" className="btn" onClick={onClose}>
+            취소
+          </button>
+          <button className={`btn ${confirm.kind === "transfer" ? "primary" : "danger"}`} disabled={busy || (confirm.kind === "delete" && typed.trim() !== name)}>
+            {confirm.kind === "delete" ? "삭제" : confirm.kind === "transfer" ? "넘기기" : "빼기"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}

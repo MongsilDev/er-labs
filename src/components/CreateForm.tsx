@@ -1,0 +1,166 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { api } from "@/lib/client";
+import { LIMITS, MODE_LABEL, PRESET_LABEL, presetRules, type Mode, type Preset, type Rules } from "@/lib/rules";
+import type { CreateInput } from "@/lib/view";
+import RulesFields from "./RulesFields";
+
+const DRAFT = "er-draft";
+const MODES: [Mode, string][] = [
+  ["points", "라운드 수 고정"],
+  ["checkpoint", "1위 확정 시 종료"],
+  ["double", "2위 확정 시 종료"],
+];
+
+export default function CreateForm({ loggedIn, autoCreate }: { loggedIn: boolean; autoCreate: boolean }) {
+  const router = useRouter();
+  const [name, setName] = useState("");
+  const [mode, setMode] = useState<Mode>("points");
+  const [preset, setPreset] = useState<Preset>("masters");
+  const [rules, setRules] = useState<Rules>(() => presetRules("masters"));
+  const [rounds, setRounds] = useState(4);
+  const [groups, setGroups] = useState(1);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const input = (): CreateInput => ({ name, mode, preset, plannedRounds: rounds, groupCount: groups, rules });
+
+  const create = async (data: CreateInput) => {
+    setBusy(true);
+    setError("");
+    try {
+      const { code } = await api.create(data);
+      sessionStorage.removeItem(DRAFT);
+      router.push(`/t/${code}/a?created=1`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "대회를 만들지 못했습니다.");
+      setBusy(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!autoCreate || !loggedIn) return;
+    const raw = sessionStorage.getItem(DRAFT);
+    if (!raw) return;
+    const timer = setTimeout(() => {
+      sessionStorage.removeItem(DRAFT);
+      try {
+        const d = JSON.parse(raw) as CreateInput;
+        setName(d.name);
+        setMode(d.mode);
+        setPreset(d.preset);
+        if (d.rules) setRules(d.rules as Rules);
+        setRounds(d.plannedRounds);
+        setGroups(d.groupCount);
+        create(d);
+      } catch {}
+    }, 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoCreate, loggedIn]);
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) return setError("대회 이름을 입력해주세요.");
+    if (!loggedIn) {
+      sessionStorage.setItem(DRAFT, JSON.stringify(input()));
+      // 로그인 경로는 페이지가 아닌 라우트 핸들러라 전체 이동 필요
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+      window.location.href = `/auth/login?next=${encodeURIComponent("/score?create=1")}`;
+      return;
+    }
+    create(input());
+  };
+
+  return (
+    <form className="panel create" onSubmit={submit} noValidate>
+      <div>
+        <label className="lbl" htmlFor="c-name">대회 이름</label>
+        <input
+          id="c-name"
+          name="tournament"
+          className="field"
+          autoComplete="off"
+          maxLength={LIMITS.nameLength}
+          placeholder="가을 커뮤니티 컵"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          aria-invalid={error === "대회 이름을 입력해주세요." || undefined}
+        />
+      </div>
+      <fieldset>
+        <legend className="lbl">진행 방식</legend>
+        <div className="seg">
+          {MODES.map(([m, small]) => (
+            <label key={m}>
+              <input
+                type="radio"
+                name="mode"
+                checked={mode === m}
+                onChange={() => {
+                  setMode(m);
+                  if (m !== "points" && rounds < 9) setRounds(12);
+                  if (m === "points" && rounds === 12) setRounds(4);
+                }}
+              />
+              {MODE_LABEL[m]}
+              <small>{small}</small>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      <div className="three">
+        <div>
+          <label className="lbl" htmlFor="c-rule">규칙</label>
+          <select
+            id="c-rule"
+            className="field"
+            value={preset}
+            onChange={(e) => {
+              const p = e.target.value as Preset;
+              setPreset(p);
+              setRules({ ...presetRules(p), advance: rules.advance });
+            }}
+          >
+            {(Object.keys(PRESET_LABEL) as Preset[]).map((p) => (
+              <option key={p} value={p}>
+                {PRESET_LABEL[p]}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="lbl" htmlFor="c-rounds">{mode === "points" ? "라운드 수" : "최대 라운드 수"}</label>
+          <input id="c-rounds" className="field" type="number" inputMode="numeric" min={1} max={LIMITS.rounds} value={rounds} onChange={(e) => setRounds(Math.max(1, Math.min(LIMITS.rounds, Number(e.target.value) || 1)))} />
+        </div>
+        <div>
+          <label className="lbl" htmlFor="c-groups">조 수</label>
+          <input id="c-groups" className="field" type="number" inputMode="numeric" min={1} max={LIMITS.groups} value={groups} onChange={(e) => setGroups(Math.max(1, Math.min(LIMITS.groups, Number(e.target.value) || 1)))} />
+        </div>
+      </div>
+      <details>
+        <summary>세부 규칙</summary>
+        <RulesFields
+          rules={rules}
+          mode={mode}
+          rounds={rounds}
+          onChange={(r) => {
+            setRules(r);
+            if (preset !== "custom" && (r.scoreSource === "table") !== (rules.scoreSource === "table")) setPreset("custom");
+          }}
+        />
+      </details>
+      {error && (
+        <p className="err" role="alert">
+          {error}
+        </p>
+      )}
+      <button className={`btn lg block ${loggedIn ? "primary" : "discord"}`} disabled={busy}>
+        {busy ? "만드는 중" : loggedIn ? "대회 만들기" : "디스코드로 로그인하고 만들기"}
+      </button>
+      <p className="keep muted">마지막 수정 24시간 뒤 자동 삭제</p>
+    </form>
+  );
+}

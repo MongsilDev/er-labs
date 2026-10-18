@@ -1,0 +1,600 @@
+import "server-only";
+import { randomInt } from "node:crypto";
+import type { PenaltyInput } from "@/lib/engine";
+import { normalize } from "@/lib/engine";
+import { parseRoundCsv, type Player } from "@/lib/parse";
+import {
+  LIMITS,
+  MAIN_WEATHERS,
+  MODE_LABEL,
+  SUB_WEATHERS,
+  clampRules,
+  groupLabel,
+  type Mode,
+  type Preset,
+  type Rules,
+} from "@/lib/rules";
+import {
+  RETENTION_MS,
+  type CreateInput,
+  type GroupView,
+  type InviteRow,
+  type MemberRow,
+  type MyTournament,
+  type Op,
+  type OpResult,
+  type Role,
+  type RoundRow,
+  type TournamentView,
+} from "@/lib/view";
+import type { User } from "./auth";
+import { token } from "./auth";
+import { db, now, tx } from "./db";
+
+const CODE_ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
+const MODES: Mode[] = ["points", "checkpoint", "double"];
+const PRESETS: Preset[] = ["masters", "kel", "custom"];
+
+type TRow = {
+  id: number;
+  code: string;
+  name: string;
+  mode: Mode;
+  rules: string;
+  planned_rounds: number;
+  group_count: number;
+  created_by: string;
+  updated_at: number;
+  version: number;
+};
+
+export class OpError extends Error {}
+
+function newCode(): string {
+  for (let i = 0; i < 20; i++) {
+    let c = "";
+    for (let j = 0; j < 6; j++) c += CODE_ALPHABET[randomInt(CODE_ALPHABET.length)];
+    if (!db().prepare("SELECT 1 FROM tournaments WHERE code = ?").get(c)) return c;
+  }
+  throw new Error("대회 코드를 만들지 못했습니다.");
+}
+
+export function normalizeCode(code: string): string {
+  return code.trim().toUpperCase();
+}
+
+const clean = (s: unknown, max: number) =>
+  typeof s === "string" ? s.replace(/[\u0000-\u001f\u007f]/g, "").trim().replace(/\s+/g, " ").slice(0, max) : "";
+
+const int = (v: unknown, lo: number, hi: number, d: number) => {
+  const n = typeof v === "number" && Number.isFinite(v) ? Math.round(v) : d;
+  return Math.min(hi, Math.max(lo, n));
+};
+
+function find(code: string): TRow | undefined {
+  return db().prepare("SELECT * FROM tournaments WHERE code = ?").get(normalizeCode(code)) as TRow | undefined;
+}
+
+function roleOf(t: TRow, user: User | null): Role {
+  if (!user) return null;
+  const m = db().prepare("SELECT role FROM members WHERE tournament_id = ? AND user_id = ?").get(t.id, user.id) as
+    | { role: "owner" | "operator" }
+    | undefined;
+  return m?.role ?? null;
+}
+
+function rulesOf(t: TRow): Rules {
+  const parsed = JSON.parse(t.rules) as Rules;
+  return clampRules(parsed, parsed.preset);
+}
+
+function bump(t: TRow, user: User, text: string) {
+  const conn = db();
+  const at = now();
+  conn.prepare("UPDATE tournaments SET version = version + 1, updated_at = ? WHERE id = ?").run(at, t.id);
+  conn.prepare("INSERT INTO logs(tournament_id, user_name, text, created_at) VALUES (?, ?, ?, ?)").run(t.id, user.name, text, at);
+}
+
+function versionOf(id: number): number {
+  return (db().prepare("SELECT version FROM tournaments WHERE id = ?").get(id) as { version: number }).version;
+}
+
+export function createTournament(user: User, input: CreateInput): string {
+  const name = clean(input.name, LIMITS.nameLength);
+  if (!name) throw new OpError("대회 이름을 입력해주세요.");
+  const mode = MODES.includes(input.mode) ? input.mode : "points";
+  const preset = PRESETS.includes(input.preset) ? input.preset : "masters";
+  const rules = clampRules(input.rules, preset);
+  const planned = int(input.plannedRounds, 1, LIMITS.rounds, mode === "points" ? 4 : LIMITS.rounds);
+  const groups = int(input.groupCount, 1, LIMITS.groups, 1);
+  const active = db().prepare("SELECT COUNT(*) AS n FROM members WHERE user_id = ? AND role = 'owner'").get(user.id) as { n: number };
+  if (active.n >= 20) throw new OpError("진행 중인 대회는 20개까지 만들 수 있습니다. 끝난 대회를 지운 뒤 다시 만들어주세요.");
+  return tx(() => {
+    const code = newCode();
+    const t = now();
+    const r = db()
+      .prepare("INSERT INTO tournaments(code, name, mode, rules, planned_rounds, group_count, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
+      .run(code, name, mode, JSON.stringify(rules), planned, groups, user.id, t, t);
+    const id = Number(r.lastInsertRowid);
+    db().prepare("INSERT INTO members(tournament_id, user_id, role, joined_at) VALUES (?, ?, 'owner', ?)").run(id, user.id, t);
+    db().prepare("INSERT INTO logs(tournament_id, user_name, text, created_at) VALUES (?, ?, ?, ?)").run(id, user.name, "대회 만들기", t);
+    return code;
+  });
+}
+
+export function tournamentVersion(code: string): number | null {
+  return find(code)?.version ?? null;
+}
+
+export function loadView(code: string, user: User | null): TournamentView | null {
+  const t = find(code);
+  if (!t) return null;
+  const conn = db();
+  const role = roleOf(t, user);
+  const groups: GroupView[] = Array.from({ length: t.group_count }, (_, idx) => ({
+    idx,
+    label: groupLabel(idx),
+    rounds: [],
+    penalties: [],
+    weather: [],
+    aliases: {},
+    overrides: {},
+  }));
+  type RR = { id: number; group_idx: number; round_no: number; source: "csv" | "manual"; game_id: number | null; file_name: string | null; players: string };
+  for (const r of conn.prepare("SELECT * FROM rounds WHERE tournament_id = ? AND deleted_at IS NULL ORDER BY round_no").all(t.id) as RR[]) {
+    groups[r.group_idx]?.rounds.push({
+      id: r.id,
+      roundNo: r.round_no,
+      source: r.source,
+      gameId: r.game_id,
+      fileName: r.file_name,
+      players: JSON.parse(r.players) as Player[],
+    });
+  }
+  type PR = { id: number; group_idx: number; team: string; round_no: number; kind: "death" | "rule"; count: number; points: number; reason: string };
+  for (const p of conn.prepare("SELECT * FROM penalties WHERE tournament_id = ? AND deleted_at IS NULL ORDER BY id").all(t.id) as PR[]) {
+    groups[p.group_idx]?.penalties.push({ id: p.id, team: p.team, roundNo: p.round_no, kind: p.kind, count: p.count, points: p.points, reason: p.reason });
+  }
+  type WR = { group_idx: number; round_no: number; main: string | null; sub: string | null };
+  for (const w of conn.prepare("SELECT * FROM weather WHERE tournament_id = ?").all(t.id) as WR[]) {
+    groups[w.group_idx]?.weather.push({ roundNo: w.round_no, main: w.main, sub: w.sub });
+  }
+  type AR = { group_idx: number; from_name: string; to_name: string };
+  for (const a of conn.prepare("SELECT * FROM aliases WHERE tournament_id = ?").all(t.id) as AR[]) {
+    if (groups[a.group_idx]) groups[a.group_idx].aliases[a.from_name] = a.to_name;
+  }
+  type OR = { group_idx: number; round_no: number; team: string; state: number };
+  for (const o of conn.prepare("SELECT * FROM overrides WHERE tournament_id = ?").all(t.id) as OR[]) {
+    if (groups[o.group_idx]) groups[o.group_idx].overrides[`${o.round_no}:${o.team}`] = o.state === 1;
+  }
+  type LR = { id: number; user_name: string; text: string; created_at: number };
+  const logs = role
+    ? (conn.prepare("SELECT * FROM logs WHERE tournament_id = ? ORDER BY id DESC LIMIT 50").all(t.id) as LR[]).map((l) => ({
+        id: l.id,
+        userName: l.user_name,
+        text: l.text,
+        at: l.created_at,
+      }))
+    : null;
+  return {
+    code: t.code,
+    name: t.name,
+    mode: t.mode,
+    rules: rulesOf(t),
+    plannedRounds: t.planned_rounds,
+    groupCount: t.group_count,
+    version: t.version,
+    updatedAt: t.updated_at,
+    expiresAt: t.updated_at + RETENTION_MS,
+    role,
+    groups,
+    logs,
+  };
+}
+
+function assertGroup(t: TRow, group: unknown): number {
+  const g = typeof group === "number" ? group : -1;
+  if (!Number.isInteger(g) || g < 0 || g >= t.group_count) throw new OpError("없는 조입니다.");
+  return g;
+}
+
+function assertRound(t: TRow, round: unknown): number {
+  const r = typeof round === "number" ? round : 0;
+  if (!Number.isInteger(r) || r < 1 || r > t.planned_rounds) throw new OpError(`라운드는 1부터 ${t.planned_rounds}까지입니다.`);
+  return r;
+}
+
+const prefix = (t: TRow, g: number) => (t.group_count > 1 ? `${groupLabel(g)}조 ` : "");
+
+export function applyOp(code: string, user: User, op: Op): OpResult {
+  const t = find(code);
+  if (!t) throw new OpError("없는 대회입니다.");
+  const role = roleOf(t, user);
+  if (!role) throw new OpError("이 대회의 운영자만 바꿀 수 있습니다.");
+  const notices: string[] = [];
+  const errors: string[] = [];
+  let undo: OpResult["undo"];
+  const conn = db();
+
+  tx(() => {
+    switch (op.op) {
+      case "add_csv": {
+        const g = assertGroup(t, op.group);
+        const files = Array.isArray(op.files) ? op.files.slice(0, 24) : [];
+        if (files.length === 0) throw new OpError("CSV 파일을 골라주세요.");
+        const parsed: { name: string; gameId: number; players: Player[] }[] = [];
+        for (const f of files) {
+          const name = clean(f?.name, 120) || "이름 없는 파일";
+          if (typeof f?.text !== "string" || f.text.length > LIMITS.csvBytes) {
+            errors.push(`${name}: 200KB가 넘는 파일은 올릴 수 없습니다.`);
+            continue;
+          }
+          const r = parseRoundCsv(f.text);
+          if (!r.ok) {
+            errors.push(`${name}: ${r.error}`);
+            continue;
+          }
+          if (parsed.some((p) => p.gameId === r.round.gameId)) {
+            errors.push(`${name}: 같이 올린 파일 중 같은 경기가 있습니다.`);
+            continue;
+          }
+          const dup = conn
+            .prepare("SELECT group_idx, round_no FROM rounds WHERE tournament_id = ? AND game_id = ? AND deleted_at IS NULL")
+            .get(t.id, r.round.gameId) as { group_idx: number; round_no: number } | undefined;
+          if (dup) {
+            errors.push(`${name}: 이미 ${prefix(t, dup.group_idx)}${dup.round_no}라운드에 올린 경기입니다.`);
+            continue;
+          }
+          parsed.push({ name, gameId: r.round.gameId, players: r.round.players });
+        }
+        parsed.sort((a, b) => a.gameId - b.gameId);
+        const used = new Set(
+          (conn.prepare("SELECT round_no FROM rounds WHERE tournament_id = ? AND group_idx = ? AND deleted_at IS NULL").all(t.id, g) as { round_no: number }[]).map(
+            (r) => r.round_no,
+          ),
+        );
+        const target = op.round !== undefined && parsed.length === 1 ? assertRound(t, op.round) : null;
+        for (const p of parsed) {
+          let slot = target;
+          if (slot !== null && used.has(slot)) {
+            const old = conn
+              .prepare("SELECT id FROM rounds WHERE tournament_id = ? AND group_idx = ? AND round_no = ? AND deleted_at IS NULL")
+              .get(t.id, g, slot) as { id: number };
+            conn.prepare("UPDATE rounds SET deleted_at = ? WHERE id = ?").run(now(), old.id);
+            undo = { op: { op: "restore_round", id: old.id, replace: true }, label: `${slot}라운드 이전 기록 되살리기` };
+          }
+          if (slot === null) {
+            for (let n = 1; n <= t.planned_rounds; n++) {
+              if (!used.has(n)) {
+                slot = n;
+                break;
+              }
+            }
+          }
+          if (slot === null) {
+            errors.push(`${p.name}: 라운드 칸이 모두 찼습니다. 라운드 수를 늘리거나 기존 라운드를 지워주세요.`);
+            continue;
+          }
+          used.add(slot);
+          conn
+            .prepare("INSERT INTO rounds(tournament_id, group_idx, round_no, source, game_id, file_name, players, created_at) VALUES (?, ?, ?, 'csv', ?, ?, ?, ?)")
+            .run(t.id, g, slot, p.gameId, p.name, JSON.stringify(p.players), now());
+          const teams = new Set(p.players.map((x) => normalize(x.team))).size;
+          notices.push(`${prefix(t, g)}${slot}라운드에 추가했습니다, ${teams}팀`);
+          bump(t, user, `${prefix(t, g)}${slot}라운드 CSV ${target !== null ? "교체" : "추가"}`);
+        }
+        break;
+      }
+      case "add_manual": {
+        const g = assertGroup(t, op.group);
+        const round = assertRound(t, op.round);
+        const teams = (Array.isArray(op.teams) ? op.teams : [])
+          .map((x) => ({ team: clean(x?.team, 40), placement: int(x?.placement, 1, 24, 0), killScore: Number(x?.killScore) || 0 }))
+          .filter((x) => x.team && x.placement > 0)
+          .slice(0, LIMITS.teamsPerGroup);
+        if (teams.length === 0) throw new OpError("팀과 순위를 입력해주세요.");
+        const old = conn
+          .prepare("SELECT id FROM rounds WHERE tournament_id = ? AND group_idx = ? AND round_no = ? AND deleted_at IS NULL")
+          .get(t.id, g, round) as { id: number } | undefined;
+        if (old) {
+          conn.prepare("UPDATE rounds SET deleted_at = ? WHERE id = ?").run(now(), old.id);
+          undo = { op: { op: "restore_round", id: old.id, replace: true }, label: `${round}라운드 이전 기록 되살리기` };
+        }
+        const players: Player[] = teams.map((x) => ({
+          nickname: "",
+          character: "",
+          team: x.team,
+          placement: x.placement,
+          totalScore: 0,
+          killScore: Math.max(0, Math.round(x.killScore * 2) / 2),
+          kills: 0,
+          teamKills: 0,
+          hunting: 0,
+          level: 0,
+        }));
+        conn
+          .prepare("INSERT INTO rounds(tournament_id, group_idx, round_no, source, game_id, file_name, players, created_at) VALUES (?, ?, ?, 'manual', NULL, NULL, ?, ?)")
+          .run(t.id, g, round, JSON.stringify(players), now());
+        notices.push(`${prefix(t, g)}${round}라운드를 직접 입력했습니다, ${teams.length}팀`);
+        bump(t, user, `${prefix(t, g)}${round}라운드 직접 입력`);
+        break;
+      }
+      case "delete_round":
+      case "restore_round": {
+        const r = conn.prepare("SELECT * FROM rounds WHERE id = ? AND tournament_id = ?").get(op.id, t.id) as
+          | { id: number; group_idx: number; round_no: number; game_id: number | null; deleted_at: number | null }
+          | undefined;
+        if (!r) throw new OpError("없는 라운드입니다.");
+        if (op.op === "delete_round") {
+          if (r.deleted_at) break;
+          conn.prepare("UPDATE rounds SET deleted_at = ? WHERE id = ?").run(now(), r.id);
+          undo = { op: { op: "restore_round", id: r.id }, label: "되돌리기" };
+          bump(t, user, `${prefix(t, r.group_idx)}${r.round_no}라운드 삭제`);
+        } else {
+          if (!r.deleted_at) break;
+          const taken = conn
+            .prepare("SELECT id FROM rounds WHERE tournament_id = ? AND group_idx = ? AND round_no = ? AND deleted_at IS NULL")
+            .get(t.id, r.group_idx, r.round_no) as { id: number } | undefined;
+          if (taken && !op.replace) throw new OpError(`${r.round_no}라운드에 다른 기록이 있어 되살릴 수 없습니다. 지금 기록을 먼저 지워주세요.`);
+          if (taken) conn.prepare("UPDATE rounds SET deleted_at = ? WHERE id = ?").run(now(), taken.id);
+          if (r.game_id !== null && conn.prepare("SELECT 1 FROM rounds WHERE tournament_id = ? AND game_id = ? AND deleted_at IS NULL").get(t.id, r.game_id)) {
+            throw new OpError("같은 경기가 다른 라운드에 있어 되살릴 수 없습니다.");
+          }
+          conn.prepare("UPDATE rounds SET deleted_at = NULL WHERE id = ?").run(r.id);
+          bump(t, user, `${prefix(t, r.group_idx)}${r.round_no}라운드 되살림`);
+        }
+        break;
+      }
+      case "set_weather": {
+        const g = assertGroup(t, op.group);
+        const round = assertRound(t, op.round);
+        const cur = conn.prepare("SELECT main, sub FROM weather WHERE tournament_id = ? AND group_idx = ? AND round_no = ?").get(t.id, g, round) as
+          | { main: string | null; sub: string | null }
+          | undefined;
+        const main = op.main === undefined ? (cur?.main ?? null) : op.main;
+        const sub = op.sub === undefined ? (cur?.sub ?? null) : op.sub;
+        if (main !== null && !(MAIN_WEATHERS as readonly string[]).includes(main)) throw new OpError("없는 메인 날씨입니다.");
+        if (sub !== null && !(SUB_WEATHERS as readonly string[]).includes(sub)) throw new OpError("없는 서브 날씨입니다.");
+        conn
+          .prepare("INSERT INTO weather(tournament_id, group_idx, round_no, main, sub) VALUES (?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET main = excluded.main, sub = excluded.sub")
+          .run(t.id, g, round, main, sub);
+        const parts = [op.main !== undefined ? `메인 ${main ?? "기본값"}` : null, op.sub !== undefined ? `서브 ${sub ?? "없음"}` : null].filter(Boolean);
+        bump(t, user, `${prefix(t, g)}${round}라운드 날씨: ${parts.join(", ")}`);
+        break;
+      }
+      case "add_penalty": {
+        const g = assertGroup(t, op.group);
+        const round = int(op.round, 0, t.planned_rounds, 0);
+        const team = clean(op.team, 40);
+        if (!team) throw new OpError("팀을 골라주세요.");
+        const kind = op.kind === "death" ? "death" : "rule";
+        const count = kind === "death" ? int(op.count, 1, 30, 1) : 1;
+        const points = kind === "death" ? count : Math.round(Math.min(100, Math.max(0.5, Number(op.points) || 0)) * 2) / 2;
+        if (kind === "rule" && !(Number(op.points) > 0)) throw new OpError("감점할 점수를 입력해주세요.");
+        const reason = kind === "death" ? "처치자 불명 사망" : clean(op.reason, 40) || "규정 위반";
+        conn
+          .prepare("INSERT INTO penalties(tournament_id, group_idx, team, round_no, kind, count, points, reason, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
+          .run(t.id, g, team, round, kind, count, points, reason, now());
+        bump(t, user, `감점 추가: ${prefix(t, g)}${team} ${points}점, ${reason}`);
+        break;
+      }
+      case "delete_penalty":
+      case "restore_penalty": {
+        const p = conn.prepare("SELECT * FROM penalties WHERE id = ? AND tournament_id = ?").get(op.id, t.id) as
+          | { id: number; group_idx: number; team: string; points: number; deleted_at: number | null }
+          | undefined;
+        if (!p) throw new OpError("없는 감점입니다.");
+        if (op.op === "delete_penalty") {
+          if (p.deleted_at) break;
+          conn.prepare("UPDATE penalties SET deleted_at = ? WHERE id = ?").run(now(), p.id);
+          undo = { op: { op: "restore_penalty", id: p.id }, label: "되돌리기" };
+          bump(t, user, `감점 삭제: ${prefix(t, p.group_idx)}${p.team} ${p.points}점`);
+        } else {
+          if (!p.deleted_at) break;
+          conn.prepare("UPDATE penalties SET deleted_at = NULL WHERE id = ?").run(p.id);
+          bump(t, user, `감점 되살림: ${prefix(t, p.group_idx)}${p.team} ${p.points}점`);
+        }
+        break;
+      }
+      case "rename_team": {
+        const g = assertGroup(t, op.group);
+        const from = clean(op.from, 40);
+        const to = clean(op.to, 40);
+        if (!from) throw new OpError("바꿀 팀을 골라주세요.");
+        if (!to || normalize(to) === normalize(from)) {
+          conn.prepare("DELETE FROM aliases WHERE tournament_id = ? AND group_idx = ? AND from_name = ?").run(t.id, g, from);
+          bump(t, user, `팀 이름 되돌림: ${prefix(t, g)}${from}`);
+        } else {
+          conn
+            .prepare("INSERT INTO aliases(tournament_id, group_idx, from_name, to_name) VALUES (?, ?, ?, ?) ON CONFLICT DO UPDATE SET to_name = excluded.to_name")
+            .run(t.id, g, from, to);
+          bump(t, user, `팀 이름: ${prefix(t, g)}${from} 대신 ${to}`);
+        }
+        break;
+      }
+      case "set_checkpoint": {
+        const g = assertGroup(t, op.group);
+        const round = assertRound(t, op.round);
+        const team = clean(op.team, 40);
+        if (!team) throw new OpError("팀을 골라주세요.");
+        const key = normalize(team);
+        if (op.state === null) {
+          conn.prepare("DELETE FROM overrides WHERE tournament_id = ? AND group_idx = ? AND round_no = ? AND team = ?").run(t.id, g, round, key);
+          bump(t, user, `체크포인트 자동 판정: ${prefix(t, g)}${team}`);
+        } else {
+          conn
+            .prepare("INSERT INTO overrides(tournament_id, group_idx, round_no, team, state) VALUES (?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET state = excluded.state")
+            .run(t.id, g, round, key, op.state ? 1 : 0);
+          bump(t, user, `체크포인트 ${op.state ? "부여" : "해제"}: ${prefix(t, g)}${round}라운드 ${team}`);
+        }
+        break;
+      }
+      case "update_settings": {
+        if (role !== "owner") throw new OpError("대회 설정은 개최자만 바꿀 수 있습니다.");
+        const changes: string[] = [];
+        const name = op.name === undefined ? t.name : clean(op.name, LIMITS.nameLength);
+        if (!name) throw new OpError("대회 이름을 입력해주세요.");
+        if (name !== t.name) changes.push(`이름 ${name}`);
+        const mode = op.mode && MODES.includes(op.mode) ? op.mode : t.mode;
+        if (mode !== t.mode) changes.push(`진행 방식 ${MODE_LABEL[mode]}`);
+        const current = rulesOf(t);
+        const preset = op.preset && PRESETS.includes(op.preset) ? op.preset : current.preset;
+        const rules = op.rules || preset !== current.preset ? clampRules({ ...current, ...(op.preset && !op.rules ? clampRules(undefined, preset) : op.rules) }, preset) : current;
+        if (JSON.stringify(rules) !== JSON.stringify(current)) changes.push("규칙");
+        const planned = op.plannedRounds === undefined ? t.planned_rounds : int(op.plannedRounds, 1, LIMITS.rounds, t.planned_rounds);
+        const maxRound = (conn.prepare("SELECT MAX(round_no) AS m FROM rounds WHERE tournament_id = ? AND deleted_at IS NULL").get(t.id) as { m: number | null }).m ?? 0;
+        if (planned < maxRound) throw new OpError(`${maxRound}라운드까지 기록이 있어 라운드 수를 그보다 줄일 수 없습니다.`);
+        if (planned !== t.planned_rounds) changes.push(`라운드 수 ${planned}`);
+        const groups = op.groupCount === undefined ? t.group_count : int(op.groupCount, 1, LIMITS.groups, t.group_count);
+        if (groups < t.group_count) {
+          const used = conn
+            .prepare(
+              "SELECT MAX(g) AS m FROM (SELECT group_idx AS g FROM rounds WHERE tournament_id = ? AND deleted_at IS NULL UNION ALL SELECT group_idx FROM penalties WHERE tournament_id = ? AND deleted_at IS NULL)",
+            )
+            .get(t.id, t.id) as { m: number | null };
+          if (used.m !== null && used.m >= groups) throw new OpError(`${groupLabel(used.m)}조에 기록이 있어 조 수를 줄일 수 없습니다.`);
+        }
+        if (groups !== t.group_count) changes.push(`조 ${groups}개`);
+        if (changes.length === 0) break;
+        conn
+          .prepare("UPDATE tournaments SET name = ?, mode = ?, rules = ?, planned_rounds = ?, group_count = ? WHERE id = ?")
+          .run(name, mode, JSON.stringify(rules), planned, groups, t.id);
+        bump(t, user, `설정 변경: ${changes.join(", ")}`);
+        notices.push("설정을 저장했습니다.");
+        break;
+      }
+      default:
+        throw new OpError("알 수 없는 요청입니다.");
+    }
+  });
+  return { ok: errors.length === 0, version: versionOf(t.id), notices, errors, undo };
+}
+
+export function myTournaments(user: User): MyTournament[] {
+  const rows = db()
+    .prepare("SELECT t.code, t.name, m.role, t.updated_at FROM members m JOIN tournaments t ON t.id = m.tournament_id WHERE m.user_id = ? ORDER BY t.updated_at DESC")
+    .all(user.id) as { code: string; name: string; role: "owner" | "operator"; updated_at: number }[];
+  return rows.map((r) => ({ code: r.code, name: r.name, role: r.role, expiresAt: r.updated_at + RETENTION_MS }));
+}
+
+function requireOwner(code: string, user: User): TRow {
+  const t = find(code);
+  if (!t) throw new OpError("없는 대회입니다.");
+  if (roleOf(t, user) !== "owner") throw new OpError("개최자만 할 수 있습니다.");
+  return t;
+}
+
+export function members(code: string, user: User): { members: MemberRow[]; invites: InviteRow[] } {
+  const t = find(code);
+  if (!t) throw new OpError("없는 대회입니다.");
+  const role = roleOf(t, user);
+  if (!role) throw new OpError("이 대회의 운영자만 볼 수 있습니다.");
+  const list = db()
+    .prepare("SELECT u.id, u.name, u.avatar, m.role, m.joined_at FROM members m JOIN users u ON u.id = m.user_id WHERE m.tournament_id = ? ORDER BY m.role = 'owner' DESC, m.joined_at")
+    .all(t.id) as { id: string; name: string; avatar: string | null; role: "owner" | "operator"; joined_at: number }[];
+  const invites =
+    role === "owner"
+      ? (db().prepare("SELECT token, created_at FROM invites WHERE tournament_id = ? ORDER BY created_at").all(t.id) as { token: string; created_at: number }[]).map(
+          (i) => ({ token: i.token, createdAt: i.created_at }),
+        )
+      : [];
+  return { members: list.map((m) => ({ id: m.id, name: m.name, avatar: m.avatar, role: m.role, joinedAt: m.joined_at })), invites };
+}
+
+export function createInvite(code: string, user: User): string {
+  const t = requireOwner(code, user);
+  const pending = db().prepare("SELECT COUNT(*) AS n FROM invites WHERE tournament_id = ?").get(t.id) as { n: number };
+  if (pending.n >= LIMITS.operators) throw new OpError("사용 전 초대 링크가 너무 많습니다. 쓰지 않을 링크를 취소해주세요.");
+  const tk = token(12);
+  db().prepare("INSERT INTO invites(token, tournament_id, created_by, created_at) VALUES (?, ?, ?, ?)").run(tk, t.id, user.id, now());
+  return tk;
+}
+
+export function cancelInvite(code: string, user: User, tk: string) {
+  const t = requireOwner(code, user);
+  db().prepare("DELETE FROM invites WHERE token = ? AND tournament_id = ?").run(tk, t.id);
+}
+
+export type InviteInfo = { code: string; name: string; mode: Mode; plannedRounds: number; groupCount: number; inviter: string } | null;
+
+export function inviteInfo(tk: string): InviteInfo {
+  const row = db()
+    .prepare(
+      "SELECT t.code, t.name, t.mode, t.planned_rounds, t.group_count, u.name AS inviter FROM invites i JOIN tournaments t ON t.id = i.tournament_id LEFT JOIN users u ON u.id = i.created_by WHERE i.token = ?",
+    )
+    .get(tk) as { code: string; name: string; mode: Mode; planned_rounds: number; group_count: number; inviter: string | null } | undefined;
+  if (!row) return null;
+  return { code: row.code, name: row.name, mode: row.mode, plannedRounds: row.planned_rounds, groupCount: row.group_count, inviter: row.inviter ?? "개최자" };
+}
+
+export function acceptInvite(tk: string, user: User): { code: string; already: boolean } {
+  return tx(() => {
+    const inv = db().prepare("SELECT tournament_id FROM invites WHERE token = ?").get(tk) as { tournament_id: number } | undefined;
+    if (!inv) throw new OpError("이미 사용했거나 취소된 초대 링크입니다. 개최자에게 새 링크를 요청해주세요.");
+    const t = db().prepare("SELECT * FROM tournaments WHERE id = ?").get(inv.tournament_id) as TRow;
+    if (roleOf(t, user)) return { code: t.code, already: true };
+    const n = db().prepare("SELECT COUNT(*) AS n FROM members WHERE tournament_id = ? AND role = 'operator'").get(t.id) as { n: number };
+    if (n.n >= LIMITS.operators) throw new OpError(`운영자는 ${LIMITS.operators}명까지입니다. 개최자에게 문의해주세요.`);
+    db().prepare("DELETE FROM invites WHERE token = ?").run(tk);
+    db().prepare("INSERT INTO members(tournament_id, user_id, role, joined_at) VALUES (?, ?, 'operator', ?)").run(t.id, user.id, now());
+    bump(t, user, "운영자로 참여");
+    return { code: t.code, already: false };
+  });
+}
+
+export function removeMember(code: string, user: User, target: string) {
+  const t = find(code);
+  if (!t) throw new OpError("없는 대회입니다.");
+  const role = roleOf(t, user);
+  const self = target === user.id;
+  if (self) {
+    if (role === "owner") throw new OpError("개최자는 다른 운영자에게 개최자를 넘긴 뒤 나갈 수 있습니다.");
+    if (!role) return;
+  } else if (role !== "owner") {
+    throw new OpError("개최자만 운영자를 뺄 수 있습니다.");
+  }
+  tx(() => {
+    const m = db()
+      .prepare("SELECT u.name, m.role FROM members m JOIN users u ON u.id = m.user_id WHERE m.tournament_id = ? AND m.user_id = ?")
+      .get(t.id, target) as { name: string; role: string } | undefined;
+    if (!m || m.role === "owner") return;
+    db().prepare("DELETE FROM members WHERE tournament_id = ? AND user_id = ?").run(t.id, target);
+    bump(t, user, self ? "운영자 그만두기" : `운영자에서 빼기: ${m.name}`);
+  });
+}
+
+export function transferOwner(code: string, user: User, target: string) {
+  const t = requireOwner(code, user);
+  tx(() => {
+    const m = db()
+      .prepare("SELECT u.name, m.role FROM members m JOIN users u ON u.id = m.user_id WHERE m.tournament_id = ? AND m.user_id = ?")
+      .get(t.id, target) as { name: string; role: string } | undefined;
+    if (!m || m.role !== "operator") throw new OpError("이 대회의 운영자에게만 넘길 수 있습니다.");
+    db().prepare("UPDATE members SET role = 'operator' WHERE tournament_id = ? AND user_id = ?").run(t.id, user.id);
+    db().prepare("UPDATE members SET role = 'owner' WHERE tournament_id = ? AND user_id = ?").run(t.id, target);
+    bump(t, user, `개최자 넘기기: ${m.name}`);
+  });
+}
+
+export function deleteTournament(code: string, user: User, confirmName: string) {
+  const t = requireOwner(code, user);
+  if (clean(confirmName, LIMITS.nameLength) !== t.name) throw new OpError("대회 이름이 맞지 않습니다.");
+  db().prepare("DELETE FROM tournaments WHERE id = ?").run(t.id);
+}
+
+export function cleanup(): { tournaments: number; sessions: number; users: number } {
+  const conn = db();
+  const t = now();
+  const tournaments = Number(conn.prepare("DELETE FROM tournaments WHERE updated_at < ?").run(t - RETENTION_MS).changes);
+  conn.prepare("DELETE FROM rounds WHERE deleted_at IS NOT NULL AND deleted_at < ?").run(t - 60 * 60 * 1000);
+  conn.prepare("DELETE FROM penalties WHERE deleted_at IS NOT NULL AND deleted_at < ?").run(t - 60 * 60 * 1000);
+  const sessions = Number(conn.prepare("DELETE FROM sessions WHERE expires_at < ?").run(t).changes);
+  const users = Number(
+    conn
+      .prepare("DELETE FROM users WHERE id NOT IN (SELECT user_id FROM sessions) AND id NOT IN (SELECT user_id FROM members)")
+      .run().changes,
+  );
+  return { tournaments, sessions, users };
+}
+
+export type { PenaltyInput, RoundRow };

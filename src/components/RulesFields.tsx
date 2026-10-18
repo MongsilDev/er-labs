@@ -1,0 +1,152 @@
+"use client";
+
+import { LIMITS, type Mode, type Rules } from "@/lib/rules";
+import "./rules.css";
+
+export default function RulesFields({ rules, mode, rounds, onChange }: { rules: Rules; mode: Mode; rounds: number; onChange: (r: Rules) => void }) {
+  const set = <K extends keyof Rules>(k: K, v: Rules[K]) => onChange({ ...rules, [k]: v });
+  const cp = rules.checkpoint;
+  return (
+    <div className="rules-fields">
+      <div className="rf-grid">
+        <div>
+          <label className="lbl" htmlFor="rf-adv">진출 표시</label>
+          <select id="rf-adv" className="field sm" value={rules.advance} onChange={(e) => set("advance", Number(e.target.value))}>
+            <option value={0}>표시 안 함</option>
+            {Array.from({ length: 12 }, (_, i) => (
+              <option key={i + 1} value={i + 1}>
+                상위 {i + 1}팀
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="lbl" htmlFor="rf-tie">동점일 때</label>
+          <select id="rf-tie" className="field sm" value={rules.tiebreak} onChange={(e) => set("tiebreak", e.target.value as Rules["tiebreak"])}>
+            <option value="killScore">킬 점수가 높은 팀</option>
+            <option value="kills">킬 수가 많은 팀</option>
+          </select>
+        </div>
+      </div>
+
+      <fieldset className="checks">
+        <legend className="lbl">규칙</legend>
+        <label>
+          <input type="checkbox" checked={rules.deathPenalty} onChange={(e) => set("deathPenalty", e.target.checked)} />
+          처치자 불명 사망 1회 1점 감점
+        </label>
+        <label>
+          <input type="checkbox" checked={rules.bans} onChange={(e) => set("bans", e.target.checked)} />
+          같은 실험체 3명 이상이면 다음 라운드 금지
+        </label>
+        <label>
+          <input type="checkbox" checked={rules.subWeather} onChange={(e) => set("subWeather", e.target.checked)} />
+          서브 날씨 후보 표시
+        </label>
+        <label>
+          <input type="checkbox" checked={rules.scoreSource === "table"} onChange={(e) => set("scoreSource", e.target.checked ? "table" : "csv")} />
+          순위 점수표로 다시 계산
+        </label>
+      </fieldset>
+
+      {rules.scoreSource === "table" && (
+        <fieldset>
+          <legend className="lbl">순위 점수</legend>
+          <div className="pts">
+            {rules.placementPoints.map((p, i) => (
+              <label key={i}>
+                <span>{i + 1}위</span>
+                <input
+                  className="field sm"
+                  type="number"
+                  inputMode="decimal"
+                  step={0.5}
+                  value={p}
+                  onChange={(e) => {
+                    const next = [...rules.placementPoints];
+                    next[i] = Number(e.target.value) || 0;
+                    set("placementPoints", next);
+                  }}
+                />
+              </label>
+            ))}
+          </div>
+          <div className="row-acts left">
+            {rules.placementPoints.length < LIMITS.teamsPerGroup && (
+              <button type="button" className="link" onClick={() => set("placementPoints", [...rules.placementPoints, 0])}>
+                순위 추가
+              </button>
+            )}
+            {rules.placementPoints.length > 1 && (
+              <button type="button" className="link" onClick={() => set("placementPoints", rules.placementPoints.slice(0, -1))}>
+                마지막 순위 빼기
+              </button>
+            )}
+          </div>
+          <div className="rf-grid" style={{ marginTop: 10 }}>
+            <div>
+              <label className="lbl" htmlFor="rf-km">킬 점수 1당 점수</label>
+              <input id="rf-km" className="field sm" type="number" inputMode="decimal" step={0.5} min={0} value={rules.killMultiplier} onChange={(e) => set("killMultiplier", Number(e.target.value) || 0)} />
+            </div>
+          </div>
+        </fieldset>
+      )}
+
+      {mode !== "points" && (
+        <fieldset>
+          <legend className="lbl">체크포인트</legend>
+          <div className="rf-grid">
+            <div>
+              <label className="lbl" htmlFor="rf-cpt">받는 조건</label>
+              <select id="rf-cpt" className="field sm" value={cp.type} onChange={(e) => set("checkpoint", { ...cp, type: e.target.value as Rules["checkpoint"]["type"] })}>
+                <option value="sequential">라운드별 상위 팀</option>
+                <option value="points">기준 점수 도달</option>
+              </select>
+            </div>
+            {cp.type === "points" ? (
+              <div>
+                <label className="lbl" htmlFor="rf-cpp">기준 점수</label>
+                <input id="rf-cpp" className="field sm" type="number" inputMode="numeric" min={1} value={cp.points} onChange={(e) => set("checkpoint", { ...cp, points: Number(e.target.value) || 1 })} />
+              </div>
+            ) : (
+              <div>
+                <label className="lbl" htmlFor="rf-cpk">순위가 밀리면</label>
+                <select id="rf-cpk" className="field sm" value={cp.keep ? "keep" : "lose"} onChange={(e) => set("checkpoint", { ...cp, keep: e.target.value === "keep" })}>
+                  <option value="lose">체크포인트 해제</option>
+                  <option value="keep">계속 유지</option>
+                </select>
+              </div>
+            )}
+          </div>
+          {cp.type === "sequential" && (
+            <div className="pts seq">
+              {Array.from({ length: rounds }, (_, i) => (
+                <label key={i}>
+                  <span>{i + 1}R 시작</span>
+                  <input
+                    className="field sm"
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    max={24}
+                    aria-label={`${i + 1}라운드 시작 때 체크포인트 팀 수`}
+                    value={cp.sequence[i] ?? cp.sequence[cp.sequence.length - 1] ?? 0}
+                    onChange={(e) => {
+                      const seq = Array.from({ length: rounds }, (_, k) => cp.sequence[k] ?? cp.sequence[cp.sequence.length - 1] ?? 0);
+                      seq[i] = Math.max(0, Math.min(24, Number(e.target.value) || 0));
+                      set("checkpoint", { ...cp, sequence: seq });
+                    }}
+                  />
+                </label>
+              ))}
+            </div>
+          )}
+          <label className="check-line">
+            <input type="checkbox" checked={cp.penaltyKeeps} onChange={(e) => set("checkpoint", { ...cp, penaltyKeeps: e.target.checked })} />
+            라운드 사이 규정 위반 감점으로는 해제하지 않음
+          </label>
+        </fieldset>
+      )}
+    </div>
+  );
+}

@@ -1,0 +1,118 @@
+export type Mode = "points" | "checkpoint" | "double";
+export type Preset = "masters" | "kel" | "custom";
+
+export type Rules = {
+  preset: Preset;
+  scoreSource: "csv" | "table";
+  placementPoints: number[];
+  killMultiplier: number;
+  tiebreak: "killScore" | "kills";
+  deathPenalty: boolean;
+  bans: boolean;
+  subWeather: boolean;
+  advance: number;
+  checkpoint: {
+    type: "sequential" | "points";
+    sequence: number[];
+    points: number;
+    keep: boolean;
+    penaltyKeeps: boolean;
+  };
+};
+
+export const MAIN_WEATHERS = ["모래바람", "비", "쾌청", "흐림"] as const;
+export const SUB_WEATHERS = ["무풍", "강풍", "벼락", "자색안개"] as const;
+export const PLACEMENT_POINTS = [10, 7, 5, 4, 3, 2, 1, 0];
+export const CHECKPOINT_SEQUENCE = [0, 0, 0, 0, 2, 3, 5, 7, 8];
+
+export const PRESET_LABEL: Record<Preset, string> = {
+  masters: "마스터즈 현행",
+  kel: "KEL 2026",
+  custom: "직접 입력",
+};
+
+export const MODE_LABEL: Record<Mode, string> = {
+  points: "포인트제",
+  checkpoint: "체크포인트",
+  double: "더블 체크포인트",
+};
+
+export function presetRules(preset: Preset): Rules {
+  return {
+    preset,
+    scoreSource: preset === "custom" ? "table" : "csv",
+    placementPoints: [...PLACEMENT_POINTS],
+    killMultiplier: 1,
+    tiebreak: "killScore",
+    deathPenalty: true,
+    bans: true,
+    subWeather: true,
+    advance: 0,
+    checkpoint: {
+      type: "sequential",
+      sequence: [...CHECKPOINT_SEQUENCE],
+      points: 70,
+      keep: false,
+      penaltyKeeps: preset !== "kel",
+    },
+  };
+}
+
+export const RULE_PENALTIES = [
+  { reason: "지각", points: 5 },
+  { reason: "로비 미합류", points: 3 },
+  { reason: "승부 포기", points: 3 },
+  { reason: "전략맵 이후 로비 귀환", points: 5 },
+  { reason: "교체 불가 시기 선수 교체", points: 5 },
+  { reason: "스타팅 엔트리 미제출", points: 3 },
+] as const;
+
+export const LIMITS = {
+  nameLength: 40,
+  groups: 8,
+  rounds: 12,
+  csvBytes: 200_000,
+  teamsPerGroup: 24,
+  operators: 10,
+};
+
+export function clampRules(input: Partial<Rules> | undefined, preset: Preset): Rules {
+  const base = presetRules(preset);
+  if (!input) return base;
+  const num = (v: unknown, lo: number, hi: number, d: number) => {
+    const n = typeof v === "number" && Number.isFinite(v) ? v : d;
+    return Math.min(hi, Math.max(lo, n));
+  };
+  const points = Array.isArray(input.placementPoints)
+    ? input.placementPoints.slice(0, LIMITS.teamsPerGroup).map((v) => num(v, -100, 100, 0))
+    : base.placementPoints;
+  const cp = input.checkpoint ?? base.checkpoint;
+  return {
+    preset,
+    scoreSource: input.scoreSource === "table" ? "table" : preset === "custom" ? "table" : "csv",
+    placementPoints: points.length ? points : base.placementPoints,
+    killMultiplier: num(input.killMultiplier, 0, 10, 1),
+    tiebreak: input.tiebreak === "kills" ? "kills" : "killScore",
+    deathPenalty: input.deathPenalty ?? base.deathPenalty,
+    bans: input.bans ?? base.bans,
+    subWeather: input.subWeather ?? base.subWeather,
+    advance: Math.round(num(input.advance, 0, LIMITS.teamsPerGroup, 0)),
+    checkpoint: {
+      type: cp.type === "points" ? "points" : "sequential",
+      sequence: Array.isArray(cp.sequence)
+        ? cp.sequence.slice(0, LIMITS.rounds).map((v) => Math.round(num(v, 0, LIMITS.teamsPerGroup, 0)))
+        : base.checkpoint.sequence,
+      points: num(cp.points, 1, 1000, 70),
+      keep: Boolean(cp.keep),
+      penaltyKeeps: cp.penaltyKeeps ?? base.checkpoint.penaltyKeeps,
+    },
+  };
+}
+
+export function groupLabel(index: number): string {
+  return String.fromCharCode(65 + index);
+}
+
+export function defaultMainWeather(roundNo: number): string {
+  return MAIN_WEATHERS[(roundNo - 1) % MAIN_WEATHERS.length];
+}
