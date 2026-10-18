@@ -126,6 +126,35 @@ describe("점수 규칙", () => {
   });
 });
 
+describe("다른 동점 기준", () => {
+  const r1 = round(1, 1, [{ team: "A", place: 1, ks: 0 }, { team: "B", place: 3, ks: 5 }]);
+  const r2 = round(2, 2, [{ team: "A", place: 4, ks: 1 }, { team: "B", place: 2, ks: 0 }]);
+  it("배틀그라운드식 순위 점수 합 기준", () => {
+    const rules = { ...presetRules("masters"), tiebreak: "rankScore" as const };
+    const res = computeGroup(group({ rules, rounds: [r1, r2] }));
+    expect(res.standings.map((s) => [s.name, s.total, s.rankScore])).toEqual([["A", 15, 14], ["B", 17, 12]].sort((a, b) => (b[1] as number) - (a[1] as number)));
+  });
+  it("포트나이트식 1위 횟수 기준과 순위 점수, 1위 횟수 집계", () => {
+    const a1 = round(1, 1, [{ team: "A", place: 1, ks: 0 }, { team: "B", place: 2, ks: 3 }]);
+    const a2 = round(2, 2, [{ team: "A", place: 2, ks: 0 }, { team: "B", place: 1, ks: 0 }, { team: "C", place: 3, ks: 0 }]);
+    const a3 = round(3, 3, [{ team: "C", place: 1, ks: 0 }, { team: "A", place: 3, ks: 0 }, { team: "B", place: 8, ks: 0 }]);
+    const rules = { ...presetRules("masters"), tiebreak: "wins" as const };
+    const res = computeGroup(group({ rules, rounds: [a1, a2, a3] }));
+    const a = res.standings.find((s) => s.name === "A")!;
+    expect(a).toMatchObject({ total: 22, rankScore: 22, wins: 1 });
+    const b = res.standings.find((s) => s.name === "B")!;
+    expect(b).toMatchObject({ total: 20, rankScore: 17, wins: 1, killScore: 3 });
+  });
+  it("총점과 1위 횟수가 같으면 다음 기준으로 넘어간다", () => {
+    const t1 = round(1, 1, [{ team: "A", place: 1, ks: 0 }, { team: "B", place: 2, ks: 3 }]);
+    const t2 = round(2, 2, [{ team: "B", place: 1, ks: 0 }, { team: "A", place: 2, ks: 3 }]);
+    const rules = { ...presetRules("masters"), tiebreak: "wins" as const };
+    const res = computeGroup(group({ rules, rounds: [t1, t2] }));
+    expect(res.standings.map((s) => s.name)).toEqual(["B", "A"]);
+    expect(res.standings[1].tiedBy).toBe("lastPlacement");
+  });
+});
+
 describe("팀 이름", () => {
   it("기본 팀명은 앞 라운드와 닉네임이 2명 이상 겹치는 팀으로 이어진다", () => {
     const p = (team: string) => [1, 2, 3].map((i) => ({ nick: `${team}${i}` }));

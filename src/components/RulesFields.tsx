@@ -1,6 +1,6 @@
 "use client";
 
-import { LIMITS, type Mode, type Rules } from "@/lib/rules";
+import { LIMITS, TIEBREAK_LABEL, type Mode, type Rules, type Tiebreak } from "@/lib/rules";
 import "./rules.css";
 
 export default function RulesFields({ rules, mode, rounds, onChange }: { rules: Rules; mode: Mode; rounds: number; onChange: (r: Rules) => void }) {
@@ -22,9 +22,12 @@ export default function RulesFields({ rules, mode, rounds, onChange }: { rules: 
         </div>
         <div>
           <label className="lbl" htmlFor="rf-tie">동점일 때</label>
-          <select id="rf-tie" className="field sm" value={rules.tiebreak} onChange={(e) => set("tiebreak", e.target.value as Rules["tiebreak"])}>
-            <option value="killScore">킬 점수가 높은 팀</option>
-            <option value="kills">킬 수가 많은 팀</option>
+          <select id="rf-tie" className="field sm" value={rules.tiebreak} onChange={(e) => set("tiebreak", e.target.value as Tiebreak)}>
+            {(Object.keys(TIEBREAK_LABEL) as Tiebreak[]).map((t) => (
+              <option key={t} value={t}>
+                {TIEBREAK_LABEL[t]}
+              </option>
+            ))}
           </select>
         </div>
       </div>

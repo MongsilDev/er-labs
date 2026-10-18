@@ -35,6 +35,7 @@ export type TeamRound = {
   placement: number | null;
   killScore: number;
   kills: number;
+  rankScore: number;
   score: number;
 };
 
@@ -47,12 +48,14 @@ export type Standing = {
   roundScore: number;
   killScore: number;
   kills: number;
+  rankScore: number;
+  wins: number;
   penalty: number;
   total: number;
   lastPlacement: number | null;
   checkpoint: boolean;
   fixed: number | null;
-  tiedBy: "killScore" | "kills" | "lastPlacement" | null;
+  tiedBy: "killScore" | "kills" | "rankScore" | "wins" | "lastPlacement" | null;
 };
 
 export type RoundSummary = {
@@ -105,6 +108,7 @@ function aggregate(round: RoundInput, rules: Rules, rename: (name: string) => st
       placement: null,
       killScore: 0,
       kills: 0,
+      rankScore: 0,
       score: 0,
       nicknames: new Set<string>(),
       csvTotal: -Infinity,
@@ -140,15 +144,20 @@ function aggregate(round: RoundInput, rules: Rules, rename: (name: string) => st
     const key = normalize(a.name);
     const fromTable =
       a.placement === null ? 0 : (rules.placementPoints[a.placement - 1] ?? 0) + a.killScore * rules.killMultiplier;
-    const score = round2(round.source === "manual" || rules.scoreSource === "table" ? fromTable : a.csvTotal);
+    const table = round.source === "manual" || rules.scoreSource === "table";
+    const score = round2(table ? fromTable : a.csvTotal);
+    const rankScore = round2(
+      table ? (a.placement === null ? 0 : (rules.placementPoints[a.placement - 1] ?? 0)) : Math.max(0, a.csvTotal - a.killScore),
+    );
     const prev = merged.get(key);
     if (prev) {
       prev.score = Math.max(prev.score, score);
+      prev.rankScore = Math.max(prev.rankScore, rankScore);
       prev.killScore = Math.max(prev.killScore, a.killScore);
       prev.kills = Math.max(prev.kills, a.kills);
       for (const n of a.nicknames) prev.nicknames.add(n);
     } else {
-      merged.set(key, { ...a, key, score });
+      merged.set(key, { ...a, key, score, rankScore });
     }
   }
   return merged;
@@ -212,7 +221,7 @@ export function computeGroup(input: GroupInput): GroupResult {
   const keys = [...names.keys()];
   const roundsOf = (key: string) => perRound.map((m) => (m?.get(key) as TeamRound | undefined) ?? null);
 
-  type Row = { key: string; total: number; killScore: number; kills: number; last: number | null; ruleFree: number };
+  type Row = { key: string; total: number; killScore: number; kills: number; rankScore: number; wins: number; last: number | null; ruleFree: number };
   const totalsAfter = (r: number): Row[] =>
     keys.map((key) => {
       const rs = roundsOf(key).slice(0, r);
@@ -226,14 +235,18 @@ export function computeGroup(input: GroupInput): GroupResult {
         total: round2(sum - all),
         killScore: round2(rs.reduce((a, x) => a + (x?.killScore ?? 0), 0)),
         kills: rs.reduce((a, x) => a + (x?.kills ?? 0), 0),
+        rankScore: round2(rs.reduce((a, x) => a + (x?.rankScore ?? 0), 0)),
+        wins: rs.filter((x) => x?.placement === 1).length,
         last: last?.placement ?? null,
         ruleFree: round2(sum - all + rule),
       };
     });
 
+  const primary = rules.tiebreak;
   const compare = (a: Row, b: Row) =>
     b.total - a.total ||
-    (rules.tiebreak === "kills" ? b.kills - a.kills || b.killScore - a.killScore : b.killScore - a.killScore || b.kills - a.kills) ||
+    b[primary] - a[primary] ||
+    (primary === "killScore" ? b.kills - a.kills : b.killScore - a.killScore) ||
     (a.last ?? 99) - (b.last ?? 99) ||
     byText(names.get(a.key) ?? "", names.get(b.key) ?? "");
 
@@ -299,8 +312,8 @@ export function computeGroup(input: GroupInput): GroupResult {
     const neighbor = now[i - 1] ?? now[i + 1];
     let tiedBy: Standing["tiedBy"] = null;
     if (fixedIndex < 0 && neighbor && neighbor.total === x.total && !fixed.some((f) => f.key === neighbor.key)) {
-      const primary = rules.tiebreak === "kills" ? "kills" : "killScore";
-      tiedBy = neighbor[primary] !== x[primary] ? primary : "lastPlacement";
+      const second = primary === "killScore" ? "kills" : "killScore";
+      tiedBy = neighbor[primary] !== x[primary] ? primary : neighbor[second] !== x[second] ? second : "lastPlacement";
     }
     return {
       key: x.key,
@@ -311,6 +324,8 @@ export function computeGroup(input: GroupInput): GroupResult {
       roundScore: round2(rs.reduce((a, r) => a + (r?.score ?? 0), 0)),
       killScore: x.killScore,
       kills: x.kills,
+      rankScore: x.rankScore,
+      wins: x.wins,
       penalty: round2(rs.reduce((a, r) => a + (r?.score ?? 0), 0) - x.total),
       total: x.total,
       lastPlacement: x.last,

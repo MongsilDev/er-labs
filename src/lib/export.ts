@@ -88,7 +88,7 @@ export async function boardImage(result: GroupResult, meta: BoardMeta): Promise<
   const metaLine = `${MODE_LABEL[meta.mode]}, ${PRESET_LABEL[meta.rules.preset]} 규칙`;
   const date = dateKo(Date.now());
   const killLabel = meta.rules.tiebreak === "kills" ? "킬" : "킬 점수";
-  await fonts([title, event, metaLine, date, killLabel, "순위팀라운드별점수총점체크포인트위확정상위팀진출감점처치자불명사망회킬점er.mongsil.dev0123456789.R=-", ...standings.map((s) => s.name)]);
+  await fonts([title, event, metaLine, date, killLabel, "순위팀라운드별점수총점체크포인트위확정상위팀진출감점처치자불명사망회킬점1위er.mongsil.dev0123456789.R=-", ...standings.map((s) => s.name)]);
 
   const L = 96;
   const R = W - 96;
@@ -126,6 +126,8 @@ export async function boardImage(result: GroupResult, meta: BoardMeta): Promise<
   const colTeam = L + 150;
   const colBar = L + 700;
   const colKs = R - 210;
+  const colRs = R - 360;
+  const colWins = R - 490;
   const colTotal = R - 24;
   font(ctx, 600, 19);
   ctx.fillStyle = C.text3;
@@ -134,6 +136,8 @@ export async function boardImage(result: GroupResult, meta: BoardMeta): Promise<
   ctx.fillText("팀", colTeam, top + 22);
   ctx.fillText("라운드별 점수", colBar, top + 22);
   ctx.textAlign = "right";
+  ctx.fillText("1위", colWins, top + 22);
+  ctx.fillText("순위 점수", colRs, top + 22);
   ctx.fillText(killLabel, colKs, top + 22);
   ctx.fillText("총점", colTotal, top + 22);
   ctx.fillStyle = C.line;
@@ -143,7 +147,7 @@ export async function boardImage(result: GroupResult, meta: BoardMeta): Promise<
   const rowsTop = top + 40;
   const rowH = Math.min(84, (footerTop - 20 - rowsTop) / n);
   const scale = rowH / 84;
-  const barW = colKs - 120 - colBar;
+  const barW = colWins - 100 - colBar;
   const max = Math.max(1, ...standings.map((s) => s.roundScore));
 
   standings.forEach((s, i) => {
@@ -226,6 +230,11 @@ export async function boardImage(result: GroupResult, meta: BoardMeta): Promise<
       ctx.strokeRect(px, mid - barH / 2 - 3, pw, barH + 6);
     }
 
+    font(ctx, 600, 28 * scale);
+    ctx.fillStyle = C.text2;
+    ctx.textAlign = "right";
+    if (s.wins) ctx.fillText(String(s.wins), colWins, mid + 10 * scale);
+    numWithSmallDecimal(ctx, s.rankScore, colRs, mid + 11 * scale, 30 * scale, 600, C.text2);
     const ksValue = meta.rules.tiebreak === "kills" ? s.kills : s.killScore;
     numWithSmallDecimal(ctx, ksValue, colKs, mid + 11 * scale, 30 * scale, 600, C.text2);
     numWithSmallDecimal(ctx, s.total, colTotal, mid + 16 * scale, 46 * scale, 800, C.text);
@@ -339,14 +348,14 @@ export async function playersImage(result: GroupResult, meta: BoardMeta): Promis
 export function standingsCsv(result: GroupResult): string {
   const head = ["순위", "팀"];
   for (let i = 1; i <= result.played; i++) head.push(`${i}R 순위`, `${i}R 킬 점수`, `${i}R 점수`);
-  head.push("킬 점수", "킬", "감점", "총점");
+  head.push("1위 횟수", "순위 점수", "킬 점수", "킬", "감점", "총점");
   const rows = result.standings.map((s) => {
     const r: (string | number)[] = [s.rank, s.name];
     for (let i = 0; i < result.played; i++) {
       const x = s.rounds[i];
       r.push(x?.placement ?? "", x ? x.killScore : "", x ? x.score : "");
     }
-    r.push(s.killScore, s.kills, s.penalty, s.total);
+    r.push(s.wins, s.rankScore, s.killScore, s.kills, s.penalty, s.total);
     return r;
   });
   return "﻿" + toCsv([head, ...rows]);

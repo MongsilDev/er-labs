@@ -3,7 +3,13 @@ import { fmt, fmt1 } from "@/lib/format";
 import type { Mode, Rules } from "@/lib/rules";
 import Bar, { Legend } from "./Bar";
 
-const TIE: Record<string, string> = { killScore: "동점, 킬 점수로 가름", kills: "동점, 킬 수로 가름", lastPlacement: "동점, 마지막 라운드 순위로 가름" };
+const TIE: Record<string, string> = {
+  killScore: "동점, 킬 점수로 가름",
+  kills: "동점, 킬 수로 가름",
+  rankScore: "동점, 순위 점수로 가름",
+  wins: "동점, 1위 횟수로 가름",
+  lastPlacement: "동점, 마지막 라운드 순위로 가름",
+};
 
 export function Delta({ d }: { d: number }) {
   if (d > 0) return <span className="up" aria-label={`${d}계단 상승`}>▲{d}</span>;
@@ -33,6 +39,8 @@ export default function Standings({ result, rules, mode, label }: { result: Grou
             <th scope="col" className="c-bar">
               <Legend rounds={played} advance={advance} />
             </th>
+            <th scope="col" className="r c-extra" title="1위 횟수">1위</th>
+            <th scope="col" className="r c-extra">순위 점수</th>
             <th scope="col" className="r c-ks">{killLabel}</th>
             <th scope="col" className="r">총점</th>
           </tr>
@@ -58,6 +66,8 @@ export default function Standings({ result, rules, mode, label }: { result: Grou
                 <td className="c-bar">
                   <Bar s={s} max={max} rounds={played} />
                 </td>
+                <td className="r c-extra num">{s.wins || ""}</td>
+                <td className="r c-extra num">{fmt(s.rankScore)}</td>
                 <td className="r c-ks num">{rules.tiebreak === "kills" ? fmt(s.kills) : fmt1(s.killScore)}</td>
                 <td className="r tot num">
                   {fmt1(s.total)}

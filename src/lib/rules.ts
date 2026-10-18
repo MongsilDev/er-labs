@@ -1,12 +1,21 @@
 export type Mode = "points" | "checkpoint" | "double";
 export type Preset = "masters" | "kel" | "custom";
 
+export type Tiebreak = "killScore" | "kills" | "rankScore" | "wins";
+
+export const TIEBREAK_LABEL: Record<Tiebreak, string> = {
+  killScore: "킬 점수가 높은 팀",
+  kills: "킬 수가 많은 팀",
+  rankScore: "순위 점수 합이 높은 팀",
+  wins: "1위를 많이 한 팀",
+};
+
 export type Rules = {
   preset: Preset;
   scoreSource: "csv" | "table";
   placementPoints: number[];
   killMultiplier: number;
-  tiebreak: "killScore" | "kills";
+  tiebreak: Tiebreak;
   deathPenalty: boolean;
   bans: boolean;
   subWeather: boolean;
@@ -92,7 +101,7 @@ export function clampRules(input: Partial<Rules> | undefined, preset: Preset): R
     scoreSource: input.scoreSource === "table" ? "table" : preset === "custom" ? "table" : "csv",
     placementPoints: points.length ? points : base.placementPoints,
     killMultiplier: num(input.killMultiplier, 0, 10, 1),
-    tiebreak: input.tiebreak === "kills" ? "kills" : "killScore",
+    tiebreak: (["killScore", "kills", "rankScore", "wins"] as const).includes(input.tiebreak as Tiebreak) ? (input.tiebreak as Tiebreak) : "killScore",
     deathPenalty: input.deathPenalty ?? base.deathPenalty,
     bans: input.bans ?? base.bans,
     subWeather: input.subWeather ?? base.subWeather,

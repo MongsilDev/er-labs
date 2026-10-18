@@ -52,7 +52,7 @@ export default function Details({ result, rules }: { result: GroupResult; rules:
                 <tr key={s.key}>
                   <th scope="row" className="l sticky">{s.name}</th>
                   {s.rounds.slice(0, played).map((r, i) => [
-                    <td key={`p${i}`} className="rs">{r?.placement ?? "-"}</td>,
+                    <td key={`p${i}`} className={r?.placement === 1 ? "rs win" : "rs"}>{r?.placement ?? "-"}</td>,
                     <td key={`k${i}`}>{r ? fmt(r.killScore) : "-"}</td>,
                     <td key={`s${i}`}>{r ? fmt(r.score) : "-"}</td>,
                   ])}
