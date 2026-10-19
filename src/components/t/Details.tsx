@@ -37,7 +37,7 @@ export default function Details({ result, rules }: { result: GroupResult; rules:
                   </th>
                 ))}
                 <th scope="col" rowSpan={2} className="rs">감점</th>
-                <th scope="col" rowSpan={2} className="rs">총점</th>
+                <th scope="col" rowSpan={2} className="rs sticky-r">총점</th>
               </tr>
               <tr>
                 {Array.from({ length: played }, (_, i) => [
@@ -57,7 +57,7 @@ export default function Details({ result, rules }: { result: GroupResult; rules:
                     <td key={`s${i}`}>{r ? fmt(r.score) : "-"}</td>,
                   ])}
                   <td className="rs minus">{s.penalty > 0 ? `-${fmt(s.penalty)}` : ""}</td>
-                  <td className="rs strong">{fmt(s.total)}</td>
+                  <td className="rs strong sticky-r">{fmt(s.total)}</td>
                 </tr>
               ))}
             </tbody>

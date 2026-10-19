@@ -436,6 +436,10 @@ select.field {
   margin-right: 4px;
   vertical-align: -1px;
 }
+.legend i.ramp {
+  width: 48px;
+  margin: 0 5px;
+}
 
 .tabs {
   display: flex;

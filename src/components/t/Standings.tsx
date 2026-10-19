@@ -61,7 +61,7 @@ export default function Standings({ result, rules, mode, label }: { result: Grou
                 <td className="c-rank">
                   <span className={`rk ${cls}`}>{s.rank}</span> <Delta d={s.delta} />
                 </td>
-                <td>
+                <td className="c-name">
                   <div className="nm">
                     <span className="ellipsis">{s.name}</span>
                     {s.fixed && <span className="cp">{s.fixed}위 확정</span>}

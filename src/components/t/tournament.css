@@ -315,7 +315,12 @@
   font-weight: 700;
   min-width: 0;
 }
+.stand td.tot,
+.stand thead th:last-child {
+  padding-right: 18px;
+}
 .stand .tot {
+  position: relative;
   font-weight: 800;
   font-size: 20px;
   white-space: nowrap;
@@ -335,10 +340,9 @@
   white-space: nowrap;
 }
 .tie-mark {
-  display: inline-block;
-  width: 0;
-  overflow: visible;
-  margin-left: 2px;
+  position: absolute;
+  top: 8px;
+  right: 6px;
   font-size: 12px;
   font-weight: 700;
   color: var(--text-3);
@@ -355,7 +359,7 @@
   color: var(--text-3);
 }
 .stand-foot .tie-mark {
-  width: auto;
+  position: static;
   margin: 0 4px 0 0;
   vertical-align: baseline;
 }
@@ -419,6 +423,13 @@
 .rt .rs {
   border-left: 1px solid var(--line);
 }
+.rt .sticky-r {
+  position: sticky;
+  right: 0;
+  background: var(--surface);
+  z-index: 1;
+  box-shadow: inset 1px 0 var(--line);
+}
 .rt .minus {
   color: var(--minus);
 }
@@ -468,7 +479,7 @@
 }
 .pstats {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 }
 .pstats li {
   display: grid;
@@ -537,8 +548,7 @@
     margin-top: 4px;
   }
   .side {
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    align-items: start;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 @media (max-width: 760px) {
@@ -574,6 +584,10 @@
   .mini-bar {
     display: block !important;
     margin-top: 6px;
+  }
+  .stand td.c-name {
+    width: 100%;
+    max-width: 0;
   }
   .ks-mobile {
     display: block !important;

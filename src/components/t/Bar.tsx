@@ -37,12 +37,20 @@ export function Legend({ rounds, advance }: { rounds: number; advance: number })
           상위 {advance}팀 진출
         </span>
       )}
-      {Array.from({ length: rounds }, (_, i) => (
-        <span key={i}>
-          <i style={{ background: rampColor(i, rounds) }} />
-          {i + 1}R
+      {rounds > 4 ? (
+        <span>
+          1R
+          <i className="ramp" style={{ background: `linear-gradient(90deg, ${rampColor(0, rounds)}, ${rampColor(rounds - 1, rounds)})` }} />
+          {rounds}R
         </span>
-      ))}
+      ) : (
+        Array.from({ length: rounds }, (_, i) => (
+          <span key={i}>
+            <i style={{ background: rampColor(i, rounds) }} />
+            {i + 1}R
+          </span>
+        ))
+      )}
     </span>
   );
 }
