@@ -46,15 +46,11 @@ export default function RulesFields({ rules, mode, rounds, onChange }: { rules: 
           <input type="checkbox" checked={rules.subWeather} onChange={(e) => set("subWeather", e.target.checked)} />
           서브 날씨 후보 표시
         </label>
-        <label>
-          <input type="checkbox" checked={rules.scoreSource === "table"} onChange={(e) => set("scoreSource", e.target.checked ? "table" : "csv")} />
-          순위 점수표로 다시 계산
-        </label>
       </fieldset>
 
       {rules.scoreSource === "table" && (
         <fieldset>
-          <legend className="lbl">순위 점수</legend>
+          <legend className="lbl">순위별 점수</legend>
           <div className="pts">
             {rules.placementPoints.map((p, i) => (
               <label key={i}>

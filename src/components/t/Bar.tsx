@@ -1,5 +1,5 @@
 import { barTotal, type Standing } from "@/lib/engine";
-import { fmt, rampColor, rampHigh } from "@/lib/format";
+import { fmt, rampColor, rampDarkText } from "@/lib/format";
 
 export default function Bar({ s, max, rounds, height = 16, labels = true }: { s: Standing; max: number; rounds: number; height?: number; labels?: boolean }) {
   const scale = max > 0 ? 100 / max : 0;
@@ -9,7 +9,7 @@ export default function Bar({ s, max, rounds, height = 16, labels = true }: { s:
         r && r.score > 0 ? (
           <s
             key={i}
-            className={rampHigh(i, rounds) ? "hi" : undefined}
+            className={[rampDarkText(i, rounds, "dark") && "dk", rampDarkText(i, rounds, "light") && "dl"].filter(Boolean).join(" ") || undefined}
             style={{ width: `${r.score * scale}%`, background: rampColor(i, rounds) }}
             title={`${i + 1}라운드 ${fmt(r.score)}점`}
           >

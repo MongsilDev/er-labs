@@ -1,6 +1,6 @@
 import { toCsv } from "./csv";
 import { barTotal, type GroupResult } from "./engine";
-import { dateKo, fmt, fmt1 } from "./format";
+import { dateKo, fmt, fmt1, rampDarkText } from "./format";
 import { MODE_LABEL, PRESET_LABEL, type Mode, type Rules } from "./rules";
 
 const FONT = '"Pretendard Variable", Pretendard, system-ui, sans-serif';
@@ -29,7 +29,6 @@ function ramp(i: number, n: number) {
   const t = n <= 1 ? 1 : i / (n - 1);
   return `rgb(${a.map((v, k) => Math.round(v + (b[k] - v) * t)).join(",")})`;
 }
-const rampHigh = (i: number, n: number) => (n <= 1 ? true : i / (n - 1) >= 0.5);
 
 async function fonts(texts: string[]) {
   const all = texts.join("");
@@ -85,7 +84,7 @@ export async function boardImage(result: GroupResult, meta: BoardMeta): Promise<
   const n = Math.max(standings.length, 1);
   const title = ended ? "최종 순위" : `${played}라운드 종료 순위`;
   const event = meta.group ? `${meta.name} ${meta.group}조` : meta.name;
-  const metaLine = `${MODE_LABEL[meta.mode]}, ${PRESET_LABEL[meta.rules.preset]} 규칙`;
+  const metaLine = `${MODE_LABEL[meta.mode]}, ${meta.rules.preset === "custom" ? "직접 정한 순위 점수" : PRESET_LABEL.masters}`;
   const date = dateKo(Date.now());
   const killLabel = meta.rules.tiebreak === "kills" ? "킬" : "킬 점수";
   await fonts([title, event, metaLine, date, killLabel, "순위팀라운드별점수총점체크포인트위확정상위팀진출감점처치자불명사망회킬점1위er.mongsil.dev0123456789.R=-", ...standings.map((s) => s.name)]);
@@ -207,7 +206,7 @@ export async function boardImage(result: GroupResult, meta: BoardMeta): Promise<
       ctx.fillRect(x, mid - barH / 2, Math.max(0, w - 2), barH);
       if (w > 44 && scale > 0.6) {
         font(ctx, 700, 15 * scale);
-        ctx.fillStyle = rampHigh(j, played) ? C.bg : C.text;
+        ctx.fillStyle = rampDarkText(j, played, "dark") ? "#000" : "#fff";
         ctx.textAlign = "center";
         ctx.fillText(fmt(r.score), x + w / 2 - 1, mid + 5 * scale);
       }

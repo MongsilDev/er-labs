@@ -36,6 +36,16 @@ export function rampColor(i: number, n: number): string {
   return `color-mix(in srgb, var(--ramp-b) ${p}%, var(--ramp-a))`;
 }
 
-export const rampHigh = (i: number, n: number) => (n <= 1 ? true : i / (n - 1) >= 0.5);
+// globals.css의 --ramp-a, --ramp-b와 같은 값
+const RAMP = { dark: ["#0f5c66", "#26f1f6"], light: ["#6fd6dd", "#0a5f66"] } as const;
+
+// 흰 글자와 검은 글자 모두 대비 4.5 이상이 되는 경계가 상대 휘도 0.179
+export function rampDarkText(i: number, n: number, theme: keyof typeof RAMP): boolean {
+  const p = n <= 1 ? 1 : Math.round((i / (n - 1)) * 100) / 100;
+  const [a, b] = RAMP[theme].map((h) => [1, 3, 5].map((k) => parseInt(h.slice(k, k + 2), 16)));
+  const lin = (v: number) => (v / 255 <= 0.04045 ? v / 255 / 12.92 : ((v / 255 + 0.055) / 1.055) ** 2.4);
+  const lum = [0.2126, 0.7152, 0.0722].reduce((sum, w, k) => sum + w * lin(a[k] + (b[k] - a[k]) * p), 0);
+  return lum > 0.179;
+}
 
 export const byText = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);

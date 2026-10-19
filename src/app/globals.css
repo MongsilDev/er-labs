@@ -19,15 +19,13 @@
   --line-soft: #1d2431;
   --text: #e9edf3;
   --text-2: #a3acbd;
-  --text-3: #7a8497;
+  --text-3: #808a9d;
   --accent: #26f1f6;
   --gold: #ffd621;
   --gold-text: #ffd621;
   --minus: #ff6b6b;
   --ramp-a: #0f5c66;
   --ramp-b: #26f1f6;
-  --seg-lo: #ffffff;
-  --seg-hi: #0a0d14;
   --adv-bg: #26f1f6;
   --dim: rgba(5, 7, 11, 0.72);
 }
@@ -50,8 +48,6 @@
   --minus: #d93a3a;
   --ramp-a: #6fd6dd;
   --ramp-b: #0a5f66;
-  --seg-lo: #0a0d14;
-  --seg-hi: #ffffff;
   --adv-bg: #26f1f6;
   --dim: rgba(10, 13, 20, 0.45);
 }
@@ -429,10 +425,11 @@ select.field {
   justify-content: center;
   overflow: hidden;
   white-space: nowrap;
-  color: var(--seg-lo);
+  color: #fff;
 }
-.bar s.hi {
-  color: var(--seg-hi);
+:root[data-theme="dark"] .bar s.dk,
+:root[data-theme="light"] .bar s.dl {
+  color: #000;
 }
 .bar .pen {
   position: absolute;

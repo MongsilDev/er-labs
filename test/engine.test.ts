@@ -464,4 +464,9 @@ describe("규칙 정리", () => {
     expect(clampRules({ placementPoints: [12, 9] }, "custom").placementPoints).toEqual([12, 9, 0, 0, 0, 0, 0, 0]);
     expect(clampRules({ placementPoints: Array.from({ length: 20 }, () => 1) }, "custom").placementPoints).toHaveLength(8);
   });
+
+  it("점수표 계산 여부는 규칙 선택으로만 정해진다", () => {
+    expect(clampRules({ scoreSource: "table" }, "masters").scoreSource).toBe("csv");
+    expect(clampRules({ scoreSource: "csv" }, "custom").scoreSource).toBe("table");
+  });
 });

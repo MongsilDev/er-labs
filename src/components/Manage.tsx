@@ -228,7 +228,7 @@ function Settings({ view, onSaved, onError }: { view: TournamentView; onSaved: (
         <ModeSeg mode={mode} onChange={setMode} />
         <div className="three">
           <div>
-            <label className="lbl" htmlFor="s-rule">규칙</label>
+            <label className="lbl" htmlFor="s-rule">순위 점수</label>
             <select
               id="s-rule"
               className="field"

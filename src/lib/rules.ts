@@ -36,7 +36,7 @@ export const CHECKPOINT_SEQUENCE = [0, 0, 0, 0, 2, 3, 5, 7, 8];
 
 export const PRESET_LABEL: Record<Preset, string> = {
   masters: "공식 규정",
-  custom: "직접 입력",
+  custom: "직접 정하기",
 };
 
 export const MODE_LABEL: Record<Mode, string> = {
@@ -97,7 +97,7 @@ export function clampRules(input: Partial<Rules> | undefined, preset: Preset): R
   const cp = input.checkpoint ?? base.checkpoint;
   return {
     preset,
-    scoreSource: input.scoreSource === "table" ? "table" : preset === "custom" ? "table" : "csv",
+    scoreSource: preset === "custom" ? "table" : "csv",
     placementPoints: points,
     killMultiplier: num(input.killMultiplier, 0, 10, 1),
     tiebreak: (["killScore", "kills", "rankScore", "wins"] as const).includes(input.tiebreak as Tiebreak) ? (input.tiebreak as Tiebreak) : "killScore",

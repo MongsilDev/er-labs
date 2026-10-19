@@ -20,6 +20,7 @@ export default function CreateForm({ loggedIn, autoCreate }: { loggedIn: boolean
   const [groups, setGroups] = useState(1);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
 
   const input = (): CreateInput => ({ name, mode, preset, plannedRounds: rounds, groupCount: groups, rules });
 
@@ -96,7 +97,7 @@ export default function CreateForm({ loggedIn, autoCreate }: { loggedIn: boolean
       />
       <div className="three">
         <div>
-          <label className="lbl" htmlFor="c-rule">규칙</label>
+          <label className="lbl" htmlFor="c-rule">순위 점수</label>
           <select
             id="c-rule"
             className="field"
@@ -105,6 +106,7 @@ export default function CreateForm({ loggedIn, autoCreate }: { loggedIn: boolean
               const p = e.target.value as Preset;
               setPreset(p);
               setRules({ ...presetRules(p), advance: rules.advance });
+              if (p === "custom") setDetailsOpen(true);
             }}
           >
             {(Object.keys(PRESET_LABEL) as Preset[]).map((p) => (
@@ -123,16 +125,13 @@ export default function CreateForm({ loggedIn, autoCreate }: { loggedIn: boolean
           <input id="c-groups" className="field" type="number" inputMode="numeric" min={1} max={LIMITS.groups} value={groups} onChange={(e) => setGroups(Math.max(1, Math.min(LIMITS.groups, Number(e.target.value) || 1)))} />
         </div>
       </div>
-      <details>
+      <details open={detailsOpen} onToggle={(e) => setDetailsOpen(e.currentTarget.open)}>
         <summary>세부 규칙</summary>
         <RulesFields
           rules={rules}
           mode={mode}
           rounds={rounds}
-          onChange={(r) => {
-            setRules(r);
-            if (preset !== "custom" && (r.scoreSource === "table") !== (rules.scoreSource === "table")) setPreset("custom");
-          }}
+          onChange={setRules}
         />
       </details>
       {error && (
