@@ -272,3 +272,68 @@
 .profile > .search {
   max-width: 560px;
 }
+
+.with-icon {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.with-icon img {
+  object-fit: contain;
+}
+.list.achs li {
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+}
+.ach img,
+.ach-blank {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+.ach-text {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+.ach-text b {
+  font-weight: 600;
+}
+.ach-side {
+  display: grid;
+  justify-items: end;
+  gap: 1px;
+  text-align: right;
+}
+.ach-rarity {
+  font-weight: 700;
+  margin-right: 2px;
+}
+.ach.common .ach-rarity {
+  color: var(--text-3);
+}
+.ach.rare .ach-rarity {
+  color: #6aa7e8;
+}
+.ach.legendary .ach-rarity {
+  color: #e0a93b;
+}
+.ach.seasonal .ach-rarity {
+  color: var(--accent);
+}
+:root[data-theme="light"] .ach.rare .ach-rarity {
+  color: #2f6db0;
+}
+:root[data-theme="light"] .ach.legendary .ach-rarity {
+  color: #a06b00;
+}
+:root[data-theme="light"] .ach img {
+  filter: brightness(0.85);
+}
+.lvl-badge {
+  background: #2b2d28;
+  border-radius: 5px;
+  padding: 2px;
+}

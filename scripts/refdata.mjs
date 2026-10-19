@@ -1,4 +1,4 @@
-// json.tarkov.dev에서 레벨 표, 업적, 시즌 특성을 받아 src/data와 public/kord/perks에 저장
+// json.tarkov.dev에서 레벨 표, 업적, 시즌 특성을 받아 src/data에, 아이콘은 public/kord/perks와 public/img에 저장
 // 아이콘 축소에 macOS sips를 씀
 import { execFileSync } from "node:child_process";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
@@ -23,10 +23,34 @@ let total = 0;
 const levels = items.playerLevels.map((l) => (total += l.exp));
 writeFileSync("src/data/levels.json", JSON.stringify(levels) + "\n");
 
+const download = async (url, out) => {
+  const r = await fetch(url, { headers: UA });
+  if (!r.ok) throw new Error(`${url} ${r.status}`);
+  writeFileSync(out, Buffer.from(await r.arrayBuffer()));
+};
+const pool = async (jobs, n = 8) => {
+  const q = [...jobs];
+  await Promise.all(Array.from({ length: n }, async () => {
+    while (q.length) await q.shift()();
+  }));
+};
+for (const d of ["public/img/ach", "public/img/level", "public/img/prestige"]) {
+  rmSync(d, { recursive: true, force: true });
+  mkdirSync(d, { recursive: true });
+}
+const badges = items.playerLevels.map((l) => Number(/group-(\d+)/.exec(l.levelBadgeImageLink)?.[1] ?? 0));
+writeFileSync("src/data/level-badges.json", JSON.stringify(badges) + "\n");
+const jobs = [...new Set(badges)].map((g) => () => download(`https://assets.tarkov.dev/player-level-group-${g}.png`, `public/img/level/${g}.png`));
+for (const p of tasks.prestige) jobs.push(() => download(p.iconLink, `public/img/prestige/${p.prestigeLevel}.webp`));
+for (const a of Object.values(tasks.achievements)) if (a.imageLink) jobs.push(() => download(a.imageLink, `public/img/ach/${a.id}.webp`));
+await pool(jobs);
+
 const achievements = {};
 for (const a of Object.values(tasks.achievements)) {
   achievements[a.id] = {
     name: ko[`${a.id} name`] ?? a.normalizedName,
+    description: ko[`${a.id} description`] ?? "",
+    icon: Boolean(a.imageLink),
     rarity: a.normalizedRarity,
     percent: a.playersCompletedPercent,
     hidden: a.hidden,

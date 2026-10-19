@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import badges from "@/data/level-badges.json";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import Actions from "@/components/players/Actions";
@@ -136,6 +138,8 @@ function ArenaStats({ s }: { s: ArenaSummary }) {
   );
 }
 
+const RARITY: Record<string, string> = { common: "일반", rare: "희귀", legendary: "전설", seasonal: "시즌" };
+
 function Achievements({ s }: { s: Summary }) {
   if (!s.achievements.length) return null;
   // 시즌 업적은 달성 비율 자료가 없어 뒤로 보냄
@@ -144,10 +148,19 @@ function Achievements({ s }: { s: Summary }) {
     .filter((a) => a.info)
     .sort((a, b) => (a.info!.percent || 101) - (b.info!.percent || 101) || b.at - a.at);
   const row = (a: (typeof rows)[number]) => (
-    <li key={a.id}>
-      <span className="ellipsis">{a.info!.name}</span>
-      <span className="muted small num nowrap">{a.info!.percent ? `${dec(a.info!.percent, 2)}%` : "시즌 업적"}</span>
-      <span className="muted small num nowrap">{date(a.at * 1000)}</span>
+    <li key={a.id} className={`ach ${a.info!.rarity}`}>
+      {a.info!.icon ? <Image src={`/img/ach/${a.id}.webp`} alt="" width={36} height={36} unoptimized /> : <span className="ach-blank" />}
+      <span className="ach-text">
+        <b className="ellipsis">{a.info!.name}</b>
+        {a.info!.description && <span className="ellipsis muted small">{a.info!.description}</span>}
+      </span>
+      <span className="ach-side">
+        <span className="small nowrap">
+          <b className="ach-rarity">{RARITY[a.info!.rarity] ?? a.info!.rarity}</b>
+          {a.info!.percent ? <span className="muted num"> {dec(a.info!.percent, 2)}%</span> : null}
+        </span>
+        <span className="muted small num nowrap">{date(a.at * 1000)}</span>
+      </span>
     </li>
   );
   return (
@@ -158,11 +171,11 @@ function Achievements({ s }: { s: Summary }) {
       {rows.length > 0 ? (
         <>
           <p className="sub">달성한 사람이 적은 순서입니다. 숫자는 tarkov.dev가 집계한 달성 비율입니다.</p>
-          <ul className="panel list">{rows.slice(0, 8).map(row)}</ul>
+          <ul className="panel list achs">{rows.slice(0, 8).map(row)}</ul>
           {rows.length > 8 && (
             <details className="more">
               <summary>나머지 {rows.length - 8}개 보기</summary>
-              <ul className="panel list">{rows.slice(8).map(row)}</ul>
+              <ul className="panel list achs">{rows.slice(8).map(row)}</ul>
             </details>
           )}
         </>
@@ -332,13 +345,19 @@ export default async function Profile({ params, searchParams }: Props) {
             {eft && (
               <div>
                 <dt>레벨</dt>
-                <dd className="num">{eft.level ?? "-"}</dd>
+                <dd className="num with-icon">
+                  {eft.level && badges[eft.level - 1] ? <Image className="lvl-badge" src={`/img/level/${badges[eft.level - 1]}.png`} alt="" width={22} height={22} unoptimized /> : null}
+                  {eft.level ?? "-"}
+                </dd>
               </div>
             )}
             {eft?.prestige ? (
               <div>
                 <dt>프레스티지</dt>
-                <dd className="num">{eft.prestige}</dd>
+                <dd className="num with-icon">
+                  {eft.prestige <= 6 && <Image src={`/img/prestige/${eft.prestige}.webp`} alt="" width={22} height={22} unoptimized />}
+                  {eft.prestige}
+                </dd>
               </div>
             ) : null}
             <div>

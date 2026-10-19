@@ -3,7 +3,7 @@ import levels from "@/data/levels.json";
 
 // players.tarkov.dev 프로필 JSON에서 화면과 판정에 쓰는 숫자만 뽑음. 없는 필드는 null
 
-type Achievement = { name: string; rarity: string; percent: number; hidden: boolean };
+type Achievement = { name: string; description: string; icon: boolean; rarity: string; percent: number; hidden: boolean };
 const ACHIEVEMENTS = achievementsData as Record<string, Achievement>;
 
 export const FLAGS = { developer: 1, eod: 2, moderator: 32, sherpa: 256, emissary: 512, unheard: 1024 } as const;

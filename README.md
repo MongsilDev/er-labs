@@ -53,7 +53,7 @@ pnpm build
 ## 데이터
 
 - 전적은 [tarkov.dev](https://tarkov.dev)가 공개하는 `players.tarkov.dev` JSON에서 받습니다. 이름 목록은 하루 한 번, 판정 비교군은 최근 30일 안에 갱신된 계정을 초당 1건씩 받습니다. Battlestate Games 서버에는 접속하지 않습니다.
-- `src/data/levels.json`, `src/data/achievements.json`, `src/data/season.json`은 tarkov.dev JSON API의 레벨 표, 업적, 시즌 특성입니다. 특성의 이름, 효과, 포인트, 함께 고를 수 없는 관계는 게임 데이터의 한국어 번역 그대로입니다. `pnpm refdata`로 다시 만들고, 이때 특성 아이콘도 `public/kord/perks`에 받습니다. 아이콘을 줄이는 데 macOS `sips`를 씁니다.
+- `src/data/levels.json`, `src/data/achievements.json`, `src/data/season.json`은 tarkov.dev JSON API의 레벨 표, 업적, 시즌 특성입니다. 특성의 이름, 효과, 포인트, 함께 고를 수 없는 관계는 게임 데이터의 한국어 번역 그대로입니다. `pnpm refdata`로 다시 만들고, 이때 특성 아이콘은 `public/kord/perks`에, 업적 아이콘과 레벨, 프레스티지 배지는 `public/img`에 받습니다. 아이콘을 줄이는 데 macOS `sips`를 씁니다.
 - `test/fixtures`는 실제 프로필 세 개에서 장비와 아이템을 빼고 닉네임과 계정 번호를 바꾼 것입니다.
 - 계정 주인이 삭제를 요청하면 `node scripts/hide.mjs <계정 번호>`로 기록을 지우고 이후 표시하지 않습니다.
 - 글꼴은 [Pretendard](https://github.com/orioncactus/pretendard)이며 SIL Open Font License를 따릅니다.
