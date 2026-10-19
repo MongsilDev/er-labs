@@ -231,6 +231,19 @@ describe("화면 점검", () => {
     await page.context().close();
   });
 
+  it("시즌 프로필은 고른 특성을 보여주고 시뮬레이터로 연다", async () => {
+    const { page } = await open(SCREENS[2], 1440, "dark");
+    await page.goto(`${base}/players/1001?mode=season`, { waitUntil: "networkidle" });
+    await page.getByRole("heading", { name: /고른 시즌 특성/ }).waitFor();
+    await page.getByRole("heading", { name: "스캐브 레이드" }).waitFor();
+    const n = await page.locator(".perks li").count();
+    await page.getByRole("link", { name: "시뮬레이터에서 열기" }).click();
+    await page.waitForURL(/\/kord-breach\?b=/);
+    await page.locator(".kb-left dd").waitFor();
+    await expect(page.locator('.kb-card[aria-pressed="true"]').count()).resolves.toBe(n);
+    await page.context().close();
+  });
+
   it("키보드로 옮긴 초점이 화면에 표시된다", async () => {
     const { page } = await open(SCREENS[2], 1440, "dark");
     const missing: string[] = [];

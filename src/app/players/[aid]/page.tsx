@@ -11,6 +11,7 @@ import { date, dateTime, dec, div, hours, int, pct } from "@/lib/format";
 import { arenaModeLabel, memberChips, sideLabel } from "@/lib/labels";
 import { MODES, pickMode, tarkovDevUrl } from "@/lib/modes";
 import { toSample } from "@/lib/sample";
+import { PERK, encodeBuild, type Perk } from "@/lib/kord";
 import { achievementInfo, type ArenaSummary, type EftSummary, type Summary } from "@/lib/summary";
 import { verdict } from "@/server/baseline";
 import { isHidden } from "@/server/db";
@@ -110,7 +111,7 @@ function ArenaStats({ s }: { s: ArenaSummary }) {
                   <th>헤드샷</th>
                   <th>최다 킬</th>
                   <th>연속 킬</th>
-                  <th>팀킬</th>
+                  <th className="opt">팀킬</th>
                 </tr>
               </thead>
               <tbody>
@@ -123,7 +124,7 @@ function ArenaStats({ s }: { s: ArenaSummary }) {
                     <td className="num">{pct(div(m.stats.headshots, m.stats.kills), 0)}</td>
                     <td className="num">{int(m.stats.maxGameKills)}</td>
                     <td className="num">{int(m.stats.killStreak)}</td>
-                    <td className="num">{int(m.stats.teamKills)}</td>
+                    <td className="num opt">{int(m.stats.teamKills)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -137,31 +138,82 @@ function ArenaStats({ s }: { s: ArenaSummary }) {
 
 function Achievements({ s }: { s: Summary }) {
   if (!s.achievements.length) return null;
-  // 아레나 업적은 공개된 이름 자료가 없어 개수만 표시
+  // 시즌 업적은 달성 비율 자료가 없어 뒤로 보냄
   const rows = s.achievements
     .map((a) => ({ ...a, info: achievementInfo(a.id) }))
     .filter((a) => a.info)
-    .sort((a, b) => a.info!.percent - b.info!.percent)
-    .slice(0, 8);
+    .sort((a, b) => (a.info!.percent || 101) - (b.info!.percent || 101) || b.at - a.at);
+  const row = (a: (typeof rows)[number]) => (
+    <li key={a.id}>
+      <span className="ellipsis">{a.info!.name}</span>
+      <span className="muted small num nowrap">{a.info!.percent ? `${dec(a.info!.percent, 2)}%` : "시즌 업적"}</span>
+      <span className="muted small num nowrap">{date(a.at * 1000)}</span>
+    </li>
+  );
   return (
     <section className="block">
       <h2 className="h2">
         업적 <span className="muted num">{s.achievements.length}</span>
       </h2>
-      {rows.length > 0 && (
+      {rows.length > 0 ? (
         <>
-          <p className="sub">달성한 사람이 적은 순서입니다.</p>
-          <ul className="panel list">
-            {rows.map((a) => (
-              <li key={a.id}>
-                <span className="ellipsis">{a.info!.name}</span>
-                <span className="muted small num nowrap">{dec(a.info!.percent, 2)}%</span>
-                <span className="muted small num nowrap">{date(a.at * 1000)}</span>
-              </li>
-            ))}
-          </ul>
+          <p className="sub">달성한 사람이 적은 순서입니다. 숫자는 tarkov.dev가 집계한 달성 비율입니다.</p>
+          <ul className="panel list">{rows.slice(0, 8).map(row)}</ul>
+          {rows.length > 8 && (
+            <details className="more">
+              <summary>나머지 {rows.length - 8}개 보기</summary>
+              <ul className="panel list">{rows.slice(8).map(row)}</ul>
+            </details>
+          )}
         </>
+      ) : (
+        <p className="sub">아레나 업적은 공개된 이름 자료가 없어 개수만 표시합니다.</p>
       )}
+    </section>
+  );
+}
+
+function Scav({ s }: { s: EftSummary }) {
+  const v = s.scav;
+  if (!v) return null;
+  return (
+    <section className="block">
+      <h2 className="h2">스캐브 레이드</h2>
+      <div className="tiles">
+        <Tile label="레이드" value={int(v.raids)} />
+        <Tile label="생존율" value={pct(div(v.survived, v.raids))} />
+        <Tile label="킬" value={int(v.kills)} />
+        <Tile label="PMC 킬" value={int(v.pmcKills)} />
+      </div>
+    </section>
+  );
+}
+
+function SeasonPerks({ ids }: { ids: string[] }) {
+  const picked = ids.map((id) => PERK.get(id)).filter((p): p is Perk => p != null && p.points != null);
+  if (!picked.length) return null;
+  picked.sort((a, b) => a.points! - b.points!);
+  const left = -picked.reduce((a, p) => a + p.points!, 0);
+  return (
+    <section className="block">
+      <div className="block-head">
+        <h2 className="h2">
+          고른 시즌 특성 <span className="muted num">{picked.length}</span>
+        </h2>
+        <Link className="link small" href={`/kord-breach?b=${encodeBuild(picked.map((p) => p.id))}`}>
+          시뮬레이터에서 열기
+        </Link>
+      </div>
+      <ul className="perks">
+        {picked.map((p) => (
+          <li key={p.id} className={p.points! < 0 ? "pos" : "neg"} title={p.effects.join("\n")}>
+            <span className="perk-icon" style={{ WebkitMaskImage: `url(/kord/perks/${p.id}.png)`, maskImage: `url(/kord/perks/${p.id}.png)` }} aria-hidden="true" />
+            <span>{p.name}</span>
+            <b className="num">{p.points! > 0 ? `+${p.points}` : p.points}</b>
+          </li>
+        ))}
+      </ul>
+      <p className="sub">남은 포인트 {left}</p>
     </section>
   );
 }
@@ -336,6 +388,8 @@ export default async function Profile({ params, searchParams }: Props) {
           <>
             {v && <Verdict v={v} mode={mode.key} official={chips.some((c) => c.official)} />}
             {s.kind === "eft" ? <EftStats s={s} /> : <ArenaStats s={s} />}
+            {eft?.perks?.length ? <SeasonPerks ids={eft.perks} /> : null}
+            {eft && <Scav s={eft} />}
             <Achievements s={s} />
           </>
         )}

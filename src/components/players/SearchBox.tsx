@@ -2,10 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
+import { date } from "@/lib/format";
 
 type Hit = { aid: number; name: string; last: number | null };
 
-const DAY = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" });
 
 export default function SearchBox({ autoFocus, compact }: { autoFocus?: boolean; compact?: boolean }) {
   const router = useRouter();
@@ -125,9 +125,12 @@ export default function SearchBox({ autoFocus, compact }: { autoFocus?: boolean;
             >
               <b className="ellipsis" translate="no">{h.name}</b>
               <span className="muted small num">#{h.aid}</span>
-              {h.last && <span className="muted small num hit-date">{DAY.format(new Date(h.last))}</span>}
+              {h.last && <span className="muted small num hit-date">{date(h.last)}</span>}
             </li>
           ))}
+          <li className="hits-note" role="presentation" aria-hidden="true">
+            날짜는 tarkov.dev 기록이 마지막으로 갱신된 날입니다
+          </li>
         </ul>
       )}
       {msg && (

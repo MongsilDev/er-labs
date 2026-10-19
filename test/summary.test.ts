@@ -14,6 +14,13 @@ describe("EFT 프로필", () => {
     expect(s.seconds).toBe(8843228);
     expect(s.achievements).toHaveLength(22);
   });
+  it("시즌 프로필의 스캐브 전적과 고른 특성을 읽음", () => {
+    const s = parseEft(fx("pvp-season", 1002));
+    expect(s.scav).toEqual({ raids: 30, survived: 14, kia: 16, kills: 8, pmcKills: 3 });
+    expect(s.perks).toHaveLength(17);
+    expect(parseEft(fx("pvp-season", 1003)).scav).toBeNull();
+  });
+
   it("레벨은 tarkov.dev 화면과 같음", () => {
     // 9706 계정을 tarkov.dev에서 열었을 때 레벨 29
     expect(parseEft(fx("profile", 1003)).level).toBe(29);

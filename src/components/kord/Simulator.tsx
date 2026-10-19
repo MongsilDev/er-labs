@@ -1,15 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import season from "@/data/season.json";
+import { COMMON, PERK as BY_ID, PERSONAL, decodeBuild as decode, encodeBuild as encode, type Perk } from "@/lib/kord";
 
-type Perk = { id: string; name: string; en: string; effects: string[]; points?: number; exclusive?: string[] };
-
-const COMMON = season.common as Perk[];
-const PERSONAL = season.personal as Perk[];
 const POSITIVE = PERSONAL.filter((p) => (p.points ?? 0) < 0).sort((a, b) => b.points! - a.points!);
 const NEGATIVE = PERSONAL.filter((p) => (p.points ?? 0) > 0).sort((a, b) => a.points! - b.points!);
-const BY_ID = new Map(PERSONAL.map((p) => [p.id, p]));
 
 // 데이터에 한쪽만 적힌 배타 관계도 양쪽으로 맞춤
 const EXCLUSIVE = (() => {
@@ -25,16 +20,6 @@ const EXCLUSIVE = (() => {
   }
   return m;
 })();
-
-// 주소에는 선택 여부를 비트로 묶어 36진수로 넣음. id 앞부분이 생성 시각이라 새 특성은 뒤 비트에 붙음, 53개까지
-const ORDER = PERSONAL.map((p) => p.id).sort();
-
-const encode = (sel: Set<string>) => ORDER.reduce((n, id, i) => (sel.has(id) ? n + 2 ** i : n), 0).toString(36);
-
-function decode(raw: string) {
-  const n = /^[0-9a-z]{1,10}$/.test(raw) ? parseInt(raw, 36) : 0;
-  return ORDER.filter((_, i) => Math.floor(n / 2 ** i) % 2 === 1);
-}
 
 const signed = (n: number) => (n > 0 ? `+${n}` : String(n));
 

@@ -33,6 +33,9 @@ export type EftSummary = Base & {
   deaths: number | null;
   streak: number | null;
   lastActive: number | null;
+  // 예전 스냅숏에는 없는 필드
+  scav?: { raids: number; survived: number; kia: number; kills: number; pmcKills: number } | null;
+  perks?: string[];
 };
 
 export type ArenaModeStats = {
@@ -92,13 +95,19 @@ export function parseEft(raw: unknown): EftSummary {
   const p = obj(raw);
   const info = obj(p.info);
   const eft = obj(obj(p.pmcStats).eft);
-  const counters = new Map<string, number>();
-  for (const it of arr(obj(eft.overAllCounters).Items)) {
-    const o = obj(it);
-    const v = num(o.Value);
-    if (Array.isArray(o.Key) && v != null) counters.set(o.Key.join("/"), v);
-  }
-  const c = (k: string) => counters.get(k) ?? null;
+  const counters = (side: string) => {
+    const m = new Map<string, number>();
+    for (const it of arr(obj(obj(obj(p[side]).eft).overAllCounters).Items)) {
+      const o = obj(it);
+      const v = num(o.Value);
+      if (Array.isArray(o.Key) && v != null) m.set(o.Key.join("/"), v);
+    }
+    return m;
+  };
+  const pmc = counters("pmcStats");
+  const c = (k: string) => pmc.get(k) ?? null;
+  const scav = counters("scavStats");
+  const sc = (k: string) => scav.get(k) ?? 0;
   const b = base(p);
 
   let last = 0;
@@ -122,6 +131,10 @@ export function parseEft(raw: unknown): EftSummary {
     deaths: c("Deaths"),
     streak: c("LongestWinStreak/Pmc"),
     lastActive: last > 0 ? last : null,
+    scav: sc("Sessions/Scav") > 0
+      ? { raids: sc("Sessions/Scav"), survived: sc("ExitStatus/Survived/Scav"), kia: sc("ExitStatus/Killed/Scav"), kills: sc("Kills"), pmcKills: sc("KilledPmc") }
+      : null,
+    perks: arr(p.selectedSeasonalPerkIds).filter((x): x is string => typeof x === "string"),
   };
 }
 
