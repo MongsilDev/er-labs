@@ -73,6 +73,14 @@ describe("판정", () => {
   it("비교군 중간이면 특이점 없음", () => {
     expect(judge("eft", { ...base, kills: 400 }, peers, 0.1).state).toBe("clear");
   });
+  it("함께 움직이는 지표는 하나로 셈", () => {
+    // 사망이 적으면 K/D, 레이드당 킬, 생존율이 같이 오름
+    const v = judge("eft", { ...base, kills: 575, deaths: 252, survived: 146 }, peers, 0.1);
+    const high = v.state === "none" ? [] : v.metrics.filter((m) => m.level >= 1);
+    expect(high.length).toBeGreaterThanOrEqual(2);
+    expect(new Set(high.map((m) => m.family))).toEqual(new Set(["combat"]));
+    expect(v.state).toBe("warn");
+  });
   it("여러 지표가 상위 1%를 넘으면 이상 수치", () => {
     const v = judge("eft", { ...base, kills: 4000, deaths: 40, survived: 360, streak: 60 }, peers, 0.1);
     expect(v.state).toBe("alert");

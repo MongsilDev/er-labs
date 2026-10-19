@@ -32,10 +32,13 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   const acc = account(aid);
   const mode = pickMode(acc?.modes ?? null, (await searchParams).mode);
   const name = acc?.name ?? `#${aid}`;
+  const image = { url: `/players/${aid}/og?mode=${mode.key}`, width: 1200, height: 630 };
   return {
     title: `${name} ${mode.label}`,
     description: `${name}의 Escape from Tarkov ${mode.label} 전적`,
     robots: { index: false, follow: true },
+    openGraph: { images: [image] },
+    twitter: { card: "summary_large_image", images: [image] },
   };
 }
 

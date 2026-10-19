@@ -22,22 +22,23 @@ export const ALERT = 0.99;
 
 type Typical = { kpn: number; dpn: number; spn: number; hpn: number; hsr: number };
 
-type Metric = { key: string; label: string; value: (s: Sample, t: Typical) => number | null; digits: number };
+// 같은 family 지표는 같은 사망 수에서 나와 함께 움직이므로 판정에서 하나로 셈
+type Metric = { key: string; label: string; family: string; value: (s: Sample, t: Typical) => number | null; digits: number };
 
 const div = (a: number, b: number) => (b > 0 ? a / b : 0);
 
 export const METRICS: Record<Kind, Metric[]> = {
   eft: [
-    { key: "kd", label: "PMC K/D", digits: 2, value: (s, t) => div(s.kills + PRIOR * t.kpn, Math.max(1, s.deaths + PRIOR * t.dpn)) },
-    { key: "kpr", label: "레이드당 PMC 킬", digits: 2, value: (s, t) => div(s.kills + PRIOR * t.kpn, s.n + PRIOR) },
-    { key: "surv", label: "생존율", digits: 3, value: (s, t) => div(s.survived + PRIOR * t.spn, s.n + PRIOR) },
-    { key: "streak", label: "최장 연속 생존", digits: 0, value: (s) => s.streak },
+    { key: "kd", label: "PMC K/D", family: "combat", digits: 2, value: (s, t) => div(s.kills + PRIOR * t.kpn, Math.max(1, s.deaths + PRIOR * t.dpn)) },
+    { key: "kpr", family: "combat", label: "레이드당 PMC 킬", digits: 2, value: (s, t) => div(s.kills + PRIOR * t.kpn, s.n + PRIOR) },
+    { key: "surv", family: "combat", label: "생존율", digits: 3, value: (s, t) => div(s.survived + PRIOR * t.spn, s.n + PRIOR) },
+    { key: "streak", family: "streak", label: "최장 연속 생존", digits: 0, value: (s) => s.streak },
   ],
   arena: [
-    { key: "kd", label: "K/D", digits: 2, value: (s, t) => div(s.kills + PRIOR * t.kpn, Math.max(1, s.deaths + PRIOR * t.dpn)) },
-    { key: "hs", label: "헤드샷 비율", digits: 3, value: (s, t) => div(s.headshots + 100 * t.hsr, s.kills + 100) },
-    { key: "kph", label: "시간당 킬", digits: 1, value: (s, t) => div(s.kills + PRIOR * t.kpn, s.hours + PRIOR * t.hpn) },
-    { key: "maxkills", label: "한 경기 최다 킬", digits: 0, value: (s) => s.maxGameKills },
+    { key: "kd", label: "K/D", family: "kill", digits: 2, value: (s, t) => div(s.kills + PRIOR * t.kpn, Math.max(1, s.deaths + PRIOR * t.dpn)) },
+    { key: "hs", family: "hs", label: "헤드샷 비율", digits: 3, value: (s, t) => div(s.headshots + 100 * t.hsr, s.kills + 100) },
+    { key: "kph", family: "kill", label: "시간당 킬", digits: 1, value: (s, t) => div(s.kills + PRIOR * t.kpn, s.hours + PRIOR * t.hpn) },
+    { key: "maxkills", family: "maxkills", label: "한 경기 최다 킬", digits: 0, value: (s) => s.maxGameKills },
   ],
 };
 
@@ -68,7 +69,7 @@ export function typical(peers: Sample[]): Typical {
   };
 }
 
-export type MetricResult = { key: string; label: string; digits: number; value: number; p90: number; p99: number; mean: number; level: 0 | 1 | 2 };
+export type MetricResult = { key: string; label: string; family: string; digits: number; value: number; p90: number; p99: number; mean: number; level: 0 | 1 | 2 };
 
 export type Verdict =
   | { state: "none"; reason: "few" | "peers" | "missing" }
@@ -87,11 +88,11 @@ export function judge(kind: Kind, player: Sample, peers: Sample[], width: number
     const p90 = quantile(vals, WARN);
     const p99 = quantile(vals, ALERT);
     const level = v > p99 && p99 > 0 ? 2 : v > p90 && p90 > 0 ? 1 : 0;
-    metrics.push({ key: m.key, label: m.label, digits: m.digits, value: v, p90, p99, mean: trimmedMean(vals), level });
+    metrics.push({ key: m.key, label: m.label, family: m.family, digits: m.digits, value: v, p90, p99, mean: trimmedMean(vals), level });
   }
   if (!metrics.length) return { state: "none", reason: "missing" };
   const alerts = metrics.filter((m) => m.level === 2).length;
-  const warns = metrics.filter((m) => m.level >= 1).length;
+  const warns = new Set(metrics.filter((m) => m.level >= 1).map((m) => m.family)).size;
   const state = alerts >= 1 || warns >= 2 ? "alert" : warns === 1 ? "warn" : "clear";
   return { state, peers: peers.length, width, metrics };
 }
