@@ -181,7 +181,7 @@ describe("화면 점검", () => {
 
   it("프로필에 판정과 닉네임 변경이 표시된다", async () => {
     const { page } = await open(SCREENS.find((s) => s.name === "프로필 PvP")!, 1440, "dark");
-    await expect(page.locator(".badge").first().textContent()).resolves.toMatch(/특이점 없음|확인 필요|이상 수치/);
+    await expect(page.locator(".badge").first().textContent()).resolves.toMatch(/특이점 없음|높은 수치|이상 수치/);
     await expect(page.getByText("아주아주긴옛날닉네임_Long_Old_Name").count()).resolves.toBe(1);
     await page.context().close();
   });

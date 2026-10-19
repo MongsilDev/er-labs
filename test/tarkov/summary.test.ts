@@ -122,7 +122,7 @@ describe("판정", () => {
     expect(new Set(high.map((m) => m.family))).toEqual(new Set(["combat"]));
     expect(v.state).toBe("clear");
   });
-  it("상위 1%를 넘은 지표가 하나뿐이면 확인 필요", () => {
+  it("상위 1%를 넘은 지표가 하나뿐이면 높은 수치", () => {
     const v = judge("eft", { ...base, kills: 600 }, peers, 0.1);
     expect(v.state === "none" ? [] : v.metrics.filter((m) => m.level === 2).map((m) => m.family)).toContain("combat");
     expect(v.state === "none" ? [] : v.metrics.filter((m) => m.far)).toEqual([]);

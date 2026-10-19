@@ -113,7 +113,7 @@ export function judge(kind: Kind, player: Sample, peers: Sample[], width: number
     metrics.push({ key: m.key, label: m.label, family: m.family, digits: m.digits, value: v, p90, p99, mean: trimmedMean(vals), level, pair: p95 > 0 && v > p95, far });
   }
   if (!metrics.length) return { state: "none", reason: "missing" };
-  // 운영 비교군 전체에 적용해 이상 수치가 3% 안팎, 확인 필요가 6% 안팎이 되도록 정한 규칙
+  // 운영 비교군 전체에 적용해 이상 수치가 3% 안팎, 높은 수치가 6% 안팎이 되도록 정한 규칙
   const families = (pick: (m: MetricResult) => boolean) => new Set(metrics.filter(pick).map((m) => m.family)).size;
   const top1 = metrics.some((m) => m.level === 2);
   const alert = (top1 && families((m) => m.pair) >= 2) || metrics.some((m) => m.far);
@@ -121,4 +121,4 @@ export function judge(kind: Kind, player: Sample, peers: Sample[], width: number
   return { state: alert ? "alert" : warn ? "warn" : "clear", peers: peers.length, width, metrics };
 }
 
-export const VERDICT_LABEL = { clear: "특이점 없음", warn: "확인 필요", alert: "이상 수치", none: "판정 불가" } as const;
+export const VERDICT_LABEL = { clear: "특이점 없음", warn: "높은 수치", alert: "이상 수치", none: "판정 불가" } as const;

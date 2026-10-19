@@ -230,7 +230,7 @@ export default function Criteria() {
                 <td className="nowrap">
                   <span className="badge sm alert">{VERDICT_LABEL.alert}</span>
                 </td>
-                <td>이상 수치인 모드가 있고, 판정한 모드가 모두 확인 필요 이상</td>
+                <td>이상 수치인 모드가 있고, 판정한 모드가 모두 높은 수치나 이상 수치</td>
               </tr>
               <tr>
                 <td className="nowrap">
@@ -239,7 +239,7 @@ export default function Criteria() {
                 <td>
                   이상 수치인 모드가 있음
                   <br />
-                  또는 판정한 모드의 절반 넘게 확인 필요 이상
+                  또는 판정한 모드의 절반 넘게 높은 수치나 이상 수치
                 </td>
               </tr>
               <tr>
