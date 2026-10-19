@@ -514,9 +514,21 @@ export function applyOp(code: string, user: User, op: Op): OpResult {
 
 export function myTournaments(user: User): MyTournament[] {
   const rows = db()
-    .prepare("SELECT t.code, t.name, m.role, t.updated_at FROM members m JOIN tournaments t ON t.id = m.tournament_id WHERE m.user_id = ? ORDER BY t.updated_at DESC")
-    .all(user.id) as { code: string; name: string; role: "owner" | "operator"; updated_at: number }[];
-  return rows.map((r) => ({ code: r.code, name: r.name, role: r.role, expiresAt: r.updated_at + RETENTION_MS }));
+    .prepare(
+      `SELECT t.code, t.name, m.role, t.updated_at, t.mode, t.group_count,
+        (SELECT COALESCE(MAX(r.round_no), 0) FROM rounds r WHERE r.tournament_id = t.id AND r.deleted_at IS NULL) AS played
+       FROM members m JOIN tournaments t ON t.id = m.tournament_id WHERE m.user_id = ? ORDER BY t.updated_at DESC`,
+    )
+    .all(user.id) as { code: string; name: string; role: "owner" | "operator"; updated_at: number; mode: Mode; group_count: number; played: number }[];
+  return rows.map((r) => ({
+    code: r.code,
+    name: r.name,
+    role: r.role,
+    expiresAt: r.updated_at + RETENTION_MS,
+    mode: r.mode,
+    groupCount: r.group_count,
+    played: r.played,
+  }));
 }
 
 function requireOwner(code: string, user: User): TRow {

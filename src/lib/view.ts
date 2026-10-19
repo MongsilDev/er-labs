@@ -70,6 +70,14 @@ export type OpResult = { ok: boolean; version: number; notices: string[]; errors
 
 export type MemberRow = { id: string; name: string; avatar: string | null; role: "owner" | "operator"; joinedAt: number };
 export type InviteRow = { token: string; createdAt: number };
-export type MyTournament = { code: string; name: string; role: "owner" | "operator"; expiresAt: number };
+export type MyTournament = {
+  code: string;
+  name: string;
+  role: "owner" | "operator";
+  expiresAt: number;
+  mode: Mode;
+  groupCount: number;
+  played: number;
+};
 
 export const RETENTION_MS = 24 * 60 * 60 * 1000;
