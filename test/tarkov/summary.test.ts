@@ -128,7 +128,7 @@ describe("판정", () => {
     expect(v.state === "none" ? [] : v.metrics.filter((m) => m.far)).toEqual([]);
     expect(v.state).toBe("warn");
   });
-  it("아레나는 경기당 킬과 최고 연속 킬로 판정하고 모드별 판정 중 가장 높은 단계를 씀", () => {
+  it("아레나는 경기당 킬과 최고 연속 킬로 판정하고 모드별 판정을 일관성 있게 합침", () => {
     const arenaBase: Sample = { hours: 0, n: 200, kills: 6000, deaths: 5000, survived: 100, streak: 10, headshots: 2500, maxGameKills: 50 };
     const arenaPeers = Array.from({ length: 200 }, (_, i) => ({ ...arenaBase, kills: 5000 + i * 10, maxGameKills: 40 + (i % 20), streak: 6 + (i % 8) }));
     const calm = judge("arena", arenaBase, arenaPeers, 0.1);
@@ -136,12 +136,14 @@ describe("판정", () => {
     expect(calm.state === "none" ? [] : calm.metrics.map((m) => m.key)).toEqual(["kd", "kpm", "hs", "maxkills", "streak"]);
     const hot = judge("arena", { ...arenaBase, maxGameKills: 200 }, arenaPeers, 0.1);
     expect(hot.state).toBe("alert");
-    const v = combine([
-      { key: "UnrankedCheckPoint", games: 200, v: calm },
-      { key: "UnrankedLastHero", games: 200, v: hot },
-      { key: "UnrankedTeamFight", games: 40, v: { state: "none", reason: "peers" } },
-    ]);
-    expect(v.state).toBe("alert");
+    const none = { state: "none", reason: "peers" } as const;
+    expect(combine([{ key: "UnrankedLastHero", games: 200, v: hot }, { key: "UnrankedTeamFight", games: 40, v: none }]).state).toBe("alert");
+    expect(combine([{ key: "UnrankedCheckPoint", games: 200, v: calm }, { key: "UnrankedLastHero", games: 200, v: hot }]).state).toBe("warn");
+    if (calm.state === "none") throw new Error("calm");
+    const warm = { ...calm, state: "warn" as const };
+    expect(combine([{ key: "UnrankedCheckPoint", games: 200, v: warm }, { key: "UnrankedLastHero", games: 200, v: hot }]).state).toBe("alert");
+    expect(combine([{ key: "a", games: 50, v: warm }, { key: "b", games: 50, v: calm }]).state).toBe("clear");
+    expect(combine([{ key: "a", games: 50, v: warm }, { key: "b", games: 50, v: warm }, { key: "c", games: 50, v: calm }]).state).toBe("warn");
     expect(combine([{ key: "UnrankedTeamFight", games: 40, v: { state: "none", reason: "peers" } }])).toEqual({ state: "none", reason: "peers" });
     expect(combine([])).toEqual({ state: "none", reason: "few" });
   });

@@ -78,17 +78,18 @@ export type MetricResult = { key: string; label: string; family: string; digits:
 
 export type Judged = { state: "clear" | "warn" | "alert"; peers: number; width: number; metrics: MetricResult[] };
 export type Unjudged = { state: "none"; reason: "few" | "peers" | "missing" };
-// 아레나는 parts에 모드별 판정이 들어가고 state는 그중 가장 높은 단계
+// 아레나는 parts에 모드별 판정이 들어감
 export type VerdictPart = { key: string; games: number; v: Judged | Unjudged };
 export type Verdict = Unjudged | (Judged & { parts?: VerdictPart[] });
 
-const RANK = { none: 0, clear: 1, warn: 2, alert: 3 } as const;
-
+// 가장 높은 단계를 쓰면 모드가 많을수록 우연히 걸려 이상 수치가 6.6%였음. 부정행위는 모든 모드에 같이 나타나므로 일관성을 요구
 export function combine(parts: VerdictPart[]): Verdict {
   const judged = parts.filter((p): p is VerdictPart & { v: Judged } => p.v.state !== "none");
   if (!judged.length) return { state: "none", reason: parts.length ? "peers" : "few" };
-  const worst = judged.reduce((a, p) => (RANK[p.v.state] > RANK[a] ? p.v.state : a), "clear" as Judged["state"]);
-  return { state: worst, peers: judged.reduce((a, p) => a + p.v.peers, 0), width: Math.max(...judged.map((p) => p.v.width)), metrics: [], parts };
+  const alerts = judged.filter((p) => p.v.state === "alert").length;
+  const flagged = judged.filter((p) => p.v.state !== "clear").length;
+  const state = alerts && flagged === judged.length ? "alert" : alerts || flagged * 2 > judged.length ? "warn" : "clear";
+  return { state, peers: judged.reduce((a, p) => a + p.v.peers, 0), width: Math.max(...judged.map((p) => p.v.width)), metrics: [], parts };
 }
 
 export function judge(kind: Kind, player: Sample, peers: Sample[], width: number): Judged | Unjudged {
