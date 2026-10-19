@@ -11,7 +11,7 @@ export default function InviteAccept({ token, loggedIn }: { token: string; logge
   const [busy, setBusy] = useState(false);
   if (!loggedIn) {
     return (
-      <a className="btn discord lg block" href={`/auth/login?next=${encodeURIComponent(`/i/${token}`)}`}>
+      <a className="btn discord lg w-full" href={`/auth/login?next=${encodeURIComponent(`/i/${token}`)}`}>
         디스코드로 로그인하고 수락
       </a>
     );
@@ -19,13 +19,13 @@ export default function InviteAccept({ token, loggedIn }: { token: string; logge
   return (
     <>
       {error && (
-        <p className="err" role="alert">
+        <p className="text-[13px] text-minus" role="alert">
           <Lines text={error} />
         </p>
       )}
       <button
         type="button"
-        className="btn primary lg block"
+        className="btn primary lg w-full"
         disabled={busy}
         onClick={async () => {
           setBusy(true);

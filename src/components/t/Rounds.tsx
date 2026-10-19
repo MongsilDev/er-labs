@@ -24,31 +24,33 @@ export default function Rounds({ group, result, mode, planned, multi, editable, 
   const rows = new Map(group.rounds.map((r) => [r.roundNo, r]));
   const { rounds, next, ended, played } = result;
 
+  const drop = editable && played === 0;
+
   return (
-    <div className="rounds">
+    <div className={`grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] items-start gap-2.5 max-[760px]:grid-cols-2 ${drop ? "mt-2 w-full" : "mb-4"}`}>
       {rounds.map((r) => {
         const row = rows.get(r.roundNo);
         return (
-          <section key={r.roundNo} className="panel slot" aria-label={`${r.roundNo}라운드`}>
-            <div className="slot-hd">
-              <span className="sw" style={{ background: rampColor(r.roundNo - 1, played) }} />
-              <b>{r.roundNo}라운드</b>
-              {r.source === "manual" ? <span className="chip dashed">직접 입력</span> : <span className="gid muted">{r.gameId}</span>}
+          <section key={r.roundNo} className="panel flex min-w-0 flex-col gap-2 px-3.5 py-3" aria-label={`${r.roundNo}라운드`}>
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="size-3 flex-none rounded-[2px]" style={{ background: rampColor(r.roundNo - 1, played) }} />
+              <b className="text-[15px] font-extrabold whitespace-nowrap">{r.roundNo}라운드</b>
+              {r.source === "manual" ? <span className="chip dashed">직접 입력</span> : <span className="ml-auto text-[12px] text-fg-3 max-[760px]:hidden">{r.gameId}</span>}
             </div>
             {row ? (
               <>
-                <div className="wx">
+                <div className="flex flex-wrap gap-1.5">
                   <span className="chip">{r.main}</span>
                   {r.sub && <span className="chip">{r.sub}</span>}
                 </div>
                 {r.winner && (
-                  <div className="slot-kv">
-                    <span className="muted">1위</span>
-                    <span className="ellipsis">{r.winner}</span>
+                  <div className="grid grid-cols-[34px_minmax(0,1fr)] gap-2 text-[13px]">
+                    <span className="text-fg-3">1위</span>
+                    <span className="min-w-0 truncate">{r.winner}</span>
                   </div>
                 )}
                 {editable && (
-                  <div className="slot-acts">
+                  <div className="mt-auto flex flex-wrap gap-x-3 gap-y-1 max-[760px]:*:min-h-8">
                     <button type="button" className="link" onClick={() => setWeatherFor(r.roundNo)}>날씨</button>
                     <button type="button" className="link" onClick={() => pickFiles(r.roundNo)}>CSV 교체</button>
                     <button type="button" className="link" onClick={() => openManual(r.roundNo)}>직접 입력</button>
@@ -57,10 +59,10 @@ export default function Rounds({ group, result, mode, planned, multi, editable, 
                 )}
               </>
             ) : (
-              <div className="muted slot-missing">
+              <div className="text-[13px] text-fg-3">
                 기록 없음
                 {editable && (
-                  <div className="slot-acts">
+                  <div className="mt-auto flex flex-wrap gap-x-3 gap-y-1 max-[760px]:*:min-h-8">
                     <button type="button" className="link" onClick={() => pickFiles(r.roundNo)}>CSV 올리기</button>
                     <button type="button" className="link" onClick={() => openManual(r.roundNo)}>직접 입력</button>
                   </div>
@@ -83,13 +85,13 @@ export default function Rounds({ group, result, mode, planned, multi, editable, 
       })}
 
       {next && (
-        <section className="panel slot next" aria-label={`${next.roundNo}라운드 다음 경기`}>
-          <div className="slot-hd">
-            <span className="sw" style={{ background: "var(--line)" }} />
-            <b>{next.roundNo}라운드</b>
+        <section className="panel flex min-w-0 flex-col gap-2 px-3.5 py-3 col-span-2 border-line-strong max-[760px]:-order-1 max-[760px]:col-span-full" aria-label={`${next.roundNo}라운드 다음 경기`}>
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="size-3 flex-none rounded-[2px]" style={{ background: "var(--line)" }} />
+            <b className="text-[15px] font-extrabold whitespace-nowrap">{next.roundNo}라운드</b>
             <span className="chip strong">다음 경기</span>
           </div>
-          <dl className="kv">
+          <dl className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 gap-y-2 text-[13px] [&>dd]:min-w-0 [&>dt]:whitespace-nowrap [&>dt]:text-fg-3">
             <dt>{editable ? <label htmlFor={`mw-${group.idx}`}>메인 날씨</label> : "메인 날씨"}</dt>
             <dd>
               {editable ? (
@@ -106,7 +108,7 @@ export default function Rounds({ group, result, mode, planned, multi, editable, 
               ) : (
                 next.main
               )}
-              {next.weatherPick && <span className="muted wx-pick">{next.weatherPick} 선택</span>}
+              {next.weatherPick && <span className="ml-2 text-[12px] whitespace-nowrap text-fg-3">{next.weatherPick} 선택</span>}
             </dd>
             <dt>{editable ? "서브 날씨" : next.sub ? "서브 날씨" : "서브 날씨 후보"}</dt>
             <dd>
@@ -134,7 +136,7 @@ export default function Rounds({ group, result, mode, planned, multi, editable, 
               )}
             </dd>
             <dt>금지 실험체</dt>
-            <dd className={next.bans.length ? "chars" : undefined}>{next.bans.length ? next.bans.map((b) => <Char key={b} name={b} />) : "없음"}</dd>
+            <dd className={next.bans.length ? "flex flex-wrap gap-x-2.5 gap-y-1" : undefined}>{next.bans.length ? next.bans.map((b) => <Char key={b} name={b} />) : "없음"}</dd>
             {mode !== "points" && (
               <>
                 <dt>체크포인트</dt>
@@ -143,7 +145,7 @@ export default function Rounds({ group, result, mode, planned, multi, editable, 
             )}
           </dl>
           {editable && (
-            <div className="slot-acts">
+            <div className="mt-auto flex flex-wrap gap-x-3 gap-y-1 max-[760px]:*:min-h-8">
               <button type="button" className="link" onClick={() => pickFiles(next.roundNo)}>CSV 올리기</button>
               <button type="button" className="link" onClick={() => openManual(next.roundNo)}>직접 입력</button>
             </div>
@@ -152,21 +154,21 @@ export default function Rounds({ group, result, mode, planned, multi, editable, 
       )}
 
       {ended && (
-        <section className="panel slot done" aria-label={multi ? `${group.label}조 경기 종료` : "대회 종료"}>
-          <div className="slot-hd">
-            <b>{multi ? `${group.label}조 경기 종료` : "대회 종료"}</b>
+        <section className="panel flex min-w-0 flex-col gap-2 px-3.5 py-3 border-gold max-[760px]:-order-1 max-[760px]:col-span-full" aria-label={multi ? `${group.label}조 경기 종료` : "대회 종료"}>
+          <div className="flex min-w-0 items-center gap-2">
+            <b className="text-[15px] font-extrabold whitespace-nowrap">{multi ? `${group.label}조 경기 종료` : "대회 종료"}</b>
           </div>
           {result.standings.slice(0, 3).map((s) => (
-            <div key={s.key} className="slot-kv">
-              <span className="muted">{s.rank}위</span>
-              <span className="ellipsis">{s.name}</span>
-              <span className="num">{fmt1(s.total)}</span>
+            <div key={s.key} className="grid grid-cols-[34px_minmax(0,1fr)_auto] gap-2 text-[13px]">
+              <span className="text-fg-3">{s.rank}위</span>
+              <span className="min-w-0 truncate">{s.name}</span>
+              <span className="tabular-nums">{fmt1(s.total)}</span>
             </div>
           ))}
         </section>
       )}
 
-      {!next && !ended && played >= planned && <p className="muted">정한 라운드를 모두 치렀습니다.</p>}
+      {!next && !ended && played >= planned && <p className="text-fg-3">정한 라운드를 모두 치렀습니다.</p>}
     </div>
   );
 }
@@ -175,7 +177,7 @@ function WeatherEdit({ main, sub, onSave, onClose }: { main: string; sub: string
   const [m, setM] = useState(main);
   const [s, setS] = useState(sub ?? "");
   return (
-    <div className="weather-edit">
+    <div className="grid gap-1.5 border-t border-line-soft pt-2">
       <select className="field sm" aria-label="메인 날씨" value={m} onChange={(e) => setM(e.target.value)}>
         {MAIN_WEATHERS.map((w) => (
           <option key={w}>{w}</option>
@@ -187,7 +189,7 @@ function WeatherEdit({ main, sub, onSave, onClose }: { main: string; sub: string
           <option key={w}>{w}</option>
         ))}
       </select>
-      <div className="row-acts">
+      <div className="flex flex-wrap justify-end gap-2">
         <button type="button" className="btn sm" onClick={onClose}>취소</button>
         <button type="button" className="btn sm primary" onClick={() => onSave(m, s || null)}>저장</button>
       </div>

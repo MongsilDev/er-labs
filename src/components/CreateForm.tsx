@@ -73,7 +73,7 @@ export default function CreateForm({ loggedIn, autoCreate }: { loggedIn: boolean
   };
 
   return (
-    <form className="panel create" onSubmit={submit} noValidate>
+    <form className="panel grid gap-[18px] p-[22px]" onSubmit={submit} noValidate>
       <div>
         <label className="lbl" htmlFor="c-name">대회 이름</label>
         <input
@@ -96,8 +96,8 @@ export default function CreateForm({ loggedIn, autoCreate }: { loggedIn: boolean
           if (m === "points" && rounds === 12) setRounds(4);
         }}
       />
-      <div className="three">
-        <div>
+      <div className="grid grid-cols-[1.4fr_1fr_1fr] gap-3 max-[760px]:grid-cols-[1fr_1fr]">
+        <div className="max-[760px]:col-span-full">
           <label className="lbl" htmlFor="c-rule">순위 점수</label>
           <select
             id="c-rule"
@@ -127,7 +127,7 @@ export default function CreateForm({ loggedIn, autoCreate }: { loggedIn: boolean
         </div>
       </div>
       <details open={detailsOpen} onToggle={(e) => setDetailsOpen(e.currentTarget.open)}>
-        <summary>세부 규칙</summary>
+        <summary className="w-max cursor-pointer text-[14px] font-semibold text-fg-2">세부 규칙</summary>
         <RulesFields
           rules={rules}
           mode={mode}
@@ -136,14 +136,14 @@ export default function CreateForm({ loggedIn, autoCreate }: { loggedIn: boolean
         />
       </details>
       {error && (
-        <p className="err" role="alert">
+        <p className="text-[13px] text-minus" role="alert">
           <Lines text={error} />
         </p>
       )}
-      <button className={`btn lg block ${loggedIn ? "primary" : "discord"}`} disabled={busy}>
+      <button className={`btn lg w-full ${loggedIn ? "primary" : "discord"}`} disabled={busy}>
         {busy ? "만드는 중" : loggedIn ? "대회 만들기" : "디스코드로 로그인하고 만들기"}
       </button>
-      <p className="keep muted">마지막 수정 24시간 뒤 자동 삭제</p>
+      <p className="-mt-1.5 text-center text-[13px] text-fg-3">마지막 수정 24시간 뒤 자동 삭제</p>
     </form>
   );
 }

@@ -10,7 +10,6 @@ import { remaining } from "@/lib/format";
 import { useNow } from "@/lib/useNow";
 import { LIMITS, MODE_LABEL, PRESET_LABEL } from "@/lib/rules";
 import type { Op, TournamentView } from "@/lib/view";
-import "./tournament.css";
 import Details from "./Details";
 import ManualRound from "./ManualRound";
 import Rounds from "./Rounds";
@@ -198,9 +197,9 @@ export default function TournamentApp({ initial, groupIdx, basePath, created = f
   if (gone) {
     return (
       <main id="main" className="wrap slim">
-        <section className="panel gone">
-          <h1>없거나 지워진 대회입니다</h1>
-          <p className="muted">마지막 수정 24시간 뒤 대회는 자동으로 지워집니다.</p>
+        <section className="panel mt-6 grid justify-items-start gap-2.5 p-7">
+          <h1 className="text-[22px]">없거나 지워진 대회입니다</h1>
+          <p className="text-fg-3">마지막 수정 24시간 뒤 대회는 자동으로 지워집니다.</p>
           <Link className="btn primary" href="/score">
             새 대회 만들기
           </Link>
@@ -210,15 +209,15 @@ export default function TournamentApp({ initial, groupIdx, basePath, created = f
   }
 
   return (
-    <main id="main" className="wrap wide t-main">
+    <main id="main" className="wrap wide pt-[18px]">
       {operator || (preview && view.role) ? (
-        <div className="opbar" role="region" aria-label="운영 도구">
-          <span className="state">
-            <i aria-hidden="true" />
+        <div className="mb-[18px] flex flex-wrap items-center gap-2.5 rounded-lg border border-line bg-surface px-3.5 py-2.5" role="region" aria-label="운영 도구">
+          <span className="flex items-center gap-2 text-[13px] text-fg-2">
+            <i className="size-[7px] rounded-full bg-accent" aria-hidden="true" />
             {preview ? "참가자 화면 미리 보기" : view.role === "owner" ? "개최자" : "운영자"}
             {now !== null && `, ${remaining(view.expiresAt, now)}`}
           </span>
-          <div className="opbar-acts">
+          <div className="ml-auto flex flex-wrap gap-2 max-[760px]:ml-0">
             {!preview && (
               <>
                 <button type="button" className="btn sm" onClick={() => copy(`${origin}/t/${view.code}`, "보기 링크를 복사했습니다.")}>
@@ -237,13 +236,13 @@ export default function TournamentApp({ initial, groupIdx, basePath, created = f
       ) : null}
 
       {welcome && operator && (
-        <section className="panel welcome" aria-labelledby="welcome-h">
-          <h2 className="h2" id="welcome-h">대회를 만들었습니다</h2>
-          <div className="welcome-code">
-            <span className="muted">대회 코드</span>
-            <b translate="no">{view.code}</b>
+        <section className="panel mb-[18px] grid gap-3 border-accent px-5 py-[18px]" aria-labelledby="welcome-h">
+          <h2 className="text-[15px] font-bold" id="welcome-h">대회를 만들었습니다</h2>
+          <div className="flex items-baseline gap-3">
+            <span className="text-fg-3">대회 코드</span>
+            <b className="text-[30px] font-extrabold tracking-[4px]" translate="no">{view.code}</b>
           </div>
-          <div className="row-acts left">
+          <div className="flex flex-wrap justify-start gap-2">
             <button type="button" className="btn primary" onClick={() => copy(`${origin}/t/${view.code}`, "보기 링크를 복사했습니다.")}>
               보기 링크 복사
             </button>
@@ -264,18 +263,18 @@ export default function TournamentApp({ initial, groupIdx, basePath, created = f
         </section>
       )}
 
-      <div className="t-head">
-        <div className="t-title">
-          <h1>
+      <div className="mb-3.5 flex flex-wrap items-end gap-4">
+        <div>
+          <h1 className="flex flex-wrap items-center gap-2.5 text-[26px] font-extrabold tracking-[-0.4px]">
             {view.name}
             {example && <span className="chip dashed">예시</span>}
           </h1>
-          <p className="sub">
+          <p className="text-[14px] text-fg-3">
             {MODE_LABEL[view.mode]} {view.mode === "points" ? `${view.plannedRounds}라운드` : `최대 ${view.plannedRounds}라운드`}, {view.rules.preset === "custom" ? "직접 정한 순위 점수" : PRESET_LABEL.masters}
             {!example && (
               <>
                 ,{" "}
-                <span className="nowrap">
+                <span className="whitespace-nowrap">
                   대회 코드 <b translate="no">{view.code}</b>
                 </span>
               </>
@@ -290,7 +289,7 @@ export default function TournamentApp({ initial, groupIdx, basePath, created = f
             )}
           </p>
         </div>
-        <div className="t-acts">
+        <div className="ml-auto flex flex-wrap gap-2 max-[760px]:ml-0 max-[760px]:w-full max-[760px]:*:flex-1">
           {operator && (
             <button type="button" className="btn" onClick={() => pickFiles()}>
               CSV 추가
@@ -306,7 +305,7 @@ export default function TournamentApp({ initial, groupIdx, basePath, created = f
       </div>
 
       {view.groupCount > 1 && (
-        <div className="gbar">
+        <div className="mb-3.5 flex flex-wrap items-center gap-3">
           <nav className="tabs groups" aria-label="조">
             {view.groups.map((g) => (
               <Link key={g.idx} href={`${basePath}/${g.label.toLowerCase()}`} aria-current={g.idx === groupIdx ? "page" : undefined} scroll={false}>
@@ -314,16 +313,16 @@ export default function TournamentApp({ initial, groupIdx, basePath, created = f
               </Link>
             ))}
           </nav>
-          <span className="sub">
+          <span className="text-[14px] text-fg-3">
             {group.label}조 {status}
           </span>
         </div>
       )}
 
       {operator && result.played === 0 ? (
-        <section className="panel dropzone">
-          <p className="h2">CSV 파일 끌어 놓기</p>
-          <div className="row-acts">
+        <section className="panel mb-4 grid justify-items-start gap-3 border-[1.5px] border-dashed p-5">
+          <p className="text-[15px] font-bold">CSV 파일 끌어 놓기</p>
+          <div className="flex flex-wrap justify-start gap-2">
             <button type="button" className="btn primary" onClick={() => pickFiles()}>
               파일 선택
             </button>
@@ -339,13 +338,13 @@ export default function TournamentApp({ initial, groupIdx, basePath, created = f
         <Rounds group={group} result={result} mode={view.mode} planned={view.plannedRounds} multi={view.groupCount > 1} editable={operator} run={run} pickFiles={pickFiles} openManual={setManual} />
       )}
 
-      <div className={operator ? "cols" : "cols single"}>
-        <div className="main-col">
+      <div className={`grid items-start gap-4 ${operator ? "cols grid-cols-[minmax(0,1fr)_340px] max-[1100px]:grid-cols-[minmax(0,1fr)]" : "grid-cols-[minmax(0,1fr)]"}`}>
+        <div className="min-w-0 max-[1100px]:contents">
           <Standings result={result} rules={view.rules} mode={view.mode} label={label} />
           <Details result={result} rules={view.rules} />
         </div>
         {operator && (
-          <div className="side">
+          <div className="grid min-w-0 gap-3 max-[1100px]:order-1 max-[1100px]:grid-cols-[minmax(0,1fr)]">
             <Penalties group={group} result={result} rules={view.rules} run={run} />
             <Teams group={group} result={result} mode={view.mode} rules={view.rules} run={run} />
             {view.logs && <Logs logs={view.logs} now={now} />}
@@ -433,8 +432,8 @@ function ExportMenu({ disabled, hasPlayers, onBoard, onPlayers, onCsv }: { disab
     }
   };
   return (
-    <div className="menu" ref={ref}>
-      <button type="button" className="btn primary" aria-haspopup="menu" aria-expanded={open} disabled={disabled || busy} onClick={() => setOpen(!open)}>
+    <div className="relative" ref={ref}>
+      <button type="button" className="btn primary max-[760px]:w-full" aria-haspopup="menu" aria-expanded={open} disabled={disabled || busy} onClick={() => setOpen(!open)}>
         {busy ? "만드는 중" : "내보내기"}
       </button>
       {open && (

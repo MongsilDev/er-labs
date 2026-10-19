@@ -19,10 +19,10 @@ export default function UserMenu({ name, avatar }: { name: string; avatar: strin
     };
   }, [open]);
   return (
-    <div className="menu" ref={ref}>
-      <button type="button" className="me" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)}>
+    <div className="relative" ref={ref}>
+      <button type="button" className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-[18px] border border-line bg-surface pr-3 pl-1.5 text-[13px] font-semibold" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)}>
         <Avatar name={name} src={avatar} />
-        <span className="ellipsis" style={{ maxWidth: 120 }}>{name}</span>
+        <span className="min-w-0 truncate" style={{ maxWidth: 120 }}>{name}</span>
       </button>
       {open && (
         <div className="menu-pop panel" role="menu">

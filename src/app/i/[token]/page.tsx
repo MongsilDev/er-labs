@@ -18,12 +18,12 @@ export default async function Page({ params }: { params: Promise<{ token: string
     <>
       <Header user={user} login={false} />
       <main id="main" className="wrap slim">
-        <section className="panel invite">
+        <section className="panel mx-auto my-10 grid max-w-[460px] gap-3 p-[26px]">
           {info ? (
             <>
-              <p className="muted">{info.inviter}님의 초대</p>
-              <h1>{info.name} 운영자</h1>
-              <dl>
+              <p className="text-fg-3">{info.inviter}님의 초대</p>
+              <h1 className="text-[21px] font-extrabold">{info.name} 운영자</h1>
+              <dl className="grid grid-cols-[auto_1fr] gap-x-3.5 gap-y-1.5 rounded-md border border-line-soft p-3.5 text-[14px] [&>dt]:text-fg-3">
                 <dt>대회 코드</dt>
                 <dd translate="no">{info.code}</dd>
                 <dt>진행 방식</dt>
@@ -44,8 +44,8 @@ export default async function Page({ params }: { params: Promise<{ token: string
             </>
           ) : (
             <>
-              <h1>쓸 수 없는 초대 링크입니다</h1>
-              <p className="muted">
+              <h1 className="text-[21px] font-extrabold">쓸 수 없는 초대 링크입니다</h1>
+              <p className="text-fg-3">
                 <Lines text="인원이 다 찼거나 취소된 링크입니다. 개최자에게 새 링크를 요청해주세요." />
               </p>
             </>

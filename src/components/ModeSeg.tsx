@@ -1,5 +1,4 @@
 import { MODE_LABEL, type Mode } from "@/lib/rules";
-import "./rules.css";
 
 const MODES: [Mode, string][] = [
   ["points", "라운드 수 고정"],

@@ -10,8 +10,12 @@ import type { InviteRow, MemberRow, TournamentView } from "@/lib/view";
 import Avatar from "./Avatar";
 import ModeSeg from "./ModeSeg";
 import RulesFields from "./RulesFields";
-import "./manage.css";
 import Lines from "./Lines";
+
+const BOX = "panel px-5 py-[18px] [section+&]:mt-3.5";
+const H2 = "flex flex-wrap items-baseline gap-2 text-[15px] font-bold";
+const LI = "flex min-w-0 items-center gap-2.5 border-t border-line-soft py-[11px] text-[14px] max-[760px]:flex-wrap";
+const ACTS = "ml-auto flex gap-1.5 max-[760px]:w-full";
 
 export default function Manage({ view, me, initialMembers, initialInvites }: { view: TournamentView; me: string; initialMembers: MemberRow[]; initialInvites: InviteRow[] }) {
   const router = useRouter();
@@ -47,31 +51,31 @@ export default function Manage({ view, me, initialMembers, initialInvites }: { v
   };
 
   return (
-    <main id="main" className="wrap slim manage">
-      <Link className="back muted" href={`/t/${view.code}/a`}>
+    <main id="main" className="wrap slim">
+      <Link className="text-[13px] text-fg-3 no-underline" href={`/t/${view.code}/a`}>
         대회 화면으로 돌아가기
       </Link>
-      <h1 className="page-h1">운영자{owner ? "와 설정" : ""}</h1>
-      <p className="sub">
+      <h1 className="mt-1.5 mb-0.5 text-[28px] font-extrabold tracking-[-0.5px]">운영자{owner ? "와 설정" : ""}</h1>
+      <p className="mb-[18px] text-[14px] text-fg-3">
         {view.name}, 대회 코드 <b translate="no">{view.code}</b>
       </p>
       {msg && (
-        <p className={`panel notice${msg.bad ? " bad" : ""}`} role={msg.bad ? "alert" : "status"}>
+        <p className={`panel mb-3.5 border-minus px-4 py-3${msg.bad ? " text-minus" : ""}`} role={msg.bad ? "alert" : "status"}>
           <Lines text={msg.text} />
         </p>
       )}
 
-      <section className="panel box" aria-labelledby="m-h">
-        <h2 className="h2" id="m-h">
-          운영자 <span className="muted">{list.length}명, 최대 {LIMITS.operators + 1}명</span>
+      <section className={BOX} aria-labelledby="m-h">
+        <h2 className={H2} id="m-h">
+          운영자 <span className="text-[13px] font-medium text-fg-3">{list.length}명, 최대 {LIMITS.operators + 1}명</span>
         </h2>
-        <ul className="ul">
+        <ul className="mt-2.5 list-none">
           {list.map((m) => (
-            <li key={m.id} className="li">
+            <li key={m.id} className={LI}>
               <Avatar name={m.name} src={m.avatar} />
-              <b className="ellipsis">{m.name}</b>
-              {m.role === "owner" ? <span className="chip">개최자</span> : <span className="muted small nowrap">{timeKo(m.joinedAt)} 참여</span>}
-              <span className="acts">
+              <b className="min-w-0 truncate">{m.name}</b>
+              {m.role === "owner" ? <span className="chip">개최자</span> : <span className="text-[13px] whitespace-nowrap text-fg-3">{timeKo(m.joinedAt)} 참여</span>}
+              <span className={`${ACTS} max-[760px]:ml-[34px]`}>
                 {owner && m.role === "operator" && (
                   <>
                     <button type="button" className="btn sm" onClick={() => setConfirm({ kind: "transfer", user: m })}>
@@ -101,19 +105,19 @@ export default function Manage({ view, me, initialMembers, initialInvites }: { v
       </section>
 
       {owner && (
-        <section className="panel box" aria-labelledby="i-h">
-          <h2 className="h2" id="i-h">
-            초대 링크 <span className="muted">정한 인원만큼 쓸 수 있고, 대회가 지워지면 함께 만료</span>
+        <section className={BOX} aria-labelledby="i-h">
+          <h2 className={H2} id="i-h">
+            초대 링크 <span className="text-[13px] font-medium text-fg-3">정한 인원만큼 쓸 수 있고, 대회가 지워지면 함께 만료</span>
           </h2>
           {invites.length > 0 && (
-            <ul className="ul">
+            <ul className="mt-2.5 list-none">
               {invites.map((i) => (
-                <li key={i.token} className="li inv">
-                  <code className="ellipsis" translate="no">
+                <li key={i.token} className={LI}>
+                  <code className="min-w-0 flex-1 truncate text-fg-2 [font:inherit]" translate="no">
                     {inviteUrl(i.token).replace(/^https?:\/\//, "")}
                   </code>
-                  <span className="left nowrap">남은 {i.usesLeft}명</span>
-                  <span className="acts">
+                  <span className="text-[13px] whitespace-nowrap text-fg-2">남은 {i.usesLeft}명</span>
+                  <span className={`${ACTS} max-[760px]:ml-0`}>
                     <button
                       type="button"
                       className="btn sm"
@@ -137,8 +141,8 @@ export default function Manage({ view, me, initialMembers, initialInvites }: { v
             </ul>
           )}
           {slots > 0 ? (
-            <div className="inv-new">
-              <label className="lbl" htmlFor="inv-uses">
+            <div className="mt-3.5 grid grid-cols-[auto_96px_auto] items-center justify-start gap-2.5">
+              <label className="lbl m-0" htmlFor="inv-uses">
                 인원
               </label>
               <select id="inv-uses" className="field" value={pick} onChange={(e) => setUses(Number(e.target.value))}>
@@ -168,7 +172,7 @@ export default function Manage({ view, me, initialMembers, initialInvites }: { v
               </button>
             </div>
           ) : (
-            <p className="muted small" style={{ marginTop: 12 }}>
+            <p className="text-[13px] text-fg-3" style={{ marginTop: 12 }}>
               <Lines text={`운영자 자리 ${LIMITS.operators}개가 모두 찼습니다. 더 초대하려면 쓰지 않을 링크를 취소하거나 운영자를 빼주세요.`} />
             </p>
           )}
@@ -178,9 +182,9 @@ export default function Manage({ view, me, initialMembers, initialInvites }: { v
       {owner && <Settings view={view} onSaved={(t) => setMsg({ text: t })} onError={(t) => setMsg({ text: t, bad: true })} />}
 
       {owner && (
-        <section className="panel box" aria-labelledby="d-h">
-          <h2 className="h2" id="d-h">대회 삭제</h2>
-          <p className="muted small" style={{ marginTop: 6 }}>
+        <section className={BOX} aria-labelledby="d-h">
+          <h2 className={H2} id="d-h">대회 삭제</h2>
+          <p className="text-[13px] text-fg-3" style={{ marginTop: 6 }}>
             순위, CSV, 변경 기록이 모두 지워지고 되돌릴 수 없습니다.
           </p>
           <button type="button" className="btn danger" style={{ marginTop: 12 }} onClick={() => setConfirm({ kind: "delete" })}>
@@ -226,10 +230,10 @@ function Settings({ view, onSaved, onError }: { view: TournamentView; onSaved: (
   const [groups, setGroups] = useState(view.groupCount);
   const [busy, setBusy] = useState(false);
   return (
-    <section className="panel box" aria-labelledby="s-h">
-      <h2 className="h2" id="s-h">대회 설정</h2>
+    <section className={BOX} aria-labelledby="s-h">
+      <h2 className={H2} id="s-h">대회 설정</h2>
       <form
-        className="settings"
+        className="mt-3 grid gap-3.5"
         onSubmit={async (e) => {
           e.preventDefault();
           setBusy(true);
@@ -249,8 +253,8 @@ function Settings({ view, onSaved, onError }: { view: TournamentView; onSaved: (
           <input id="s-name" className="field" maxLength={LIMITS.nameLength} value={name} onChange={(e) => setName(e.target.value)} autoComplete="off" />
         </div>
         <ModeSeg mode={mode} onChange={setMode} />
-        <div className="three">
-          <div>
+        <div className="grid grid-cols-[1.4fr_1fr_1fr] gap-3 max-[760px]:grid-cols-[1fr_1fr]">
+          <div className="max-[760px]:col-span-full">
             <label className="lbl" htmlFor="s-rule">순위 점수</label>
             <select
               id="s-rule"
@@ -279,7 +283,7 @@ function Settings({ view, onSaved, onError }: { view: TournamentView; onSaved: (
           </div>
         </div>
         <RulesFields rules={rules} mode={mode} rounds={rounds} onChange={setRules} />
-        <div className="row-acts">
+        <div className="flex flex-wrap justify-end gap-2">
           <button className="btn primary" disabled={busy}>
             설정 저장
           </button>
@@ -325,7 +329,7 @@ function Confirm({
         }}
       >
         <h2 id="cf-h">{title}</h2>
-        <p className="muted small">{body}</p>
+        <p className="text-[13px] text-fg-3">{body}</p>
         {confirm.kind === "delete" && (
           <input className="field" style={{ marginTop: 12 }} aria-label="대회 이름" placeholder={name} value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" autoFocus />
         )}

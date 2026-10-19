@@ -49,13 +49,13 @@ export function Penalties({ group, result, rules, run }: { group: GroupView; res
   };
 
   return (
-    <section className="panel side-box" aria-labelledby={`pen-${group.idx}`}>
-      <h2 className="h2" id={`pen-${group.idx}`}>감점</h2>
+    <section className="panel min-w-0 p-4" aria-labelledby={`pen-${group.idx}`}>
+      <h2 className="text-[15px] font-bold" id={`pen-${group.idx}`}>감점</h2>
       {teams.length === 0 ? (
-        <p className="muted small">경기 결과가 올라오면 감점을 넣을 수 있습니다.</p>
+        <p className="text-[13px] text-fg-3">경기 결과가 올라오면 감점을 넣을 수 있습니다.</p>
       ) : (
-        <form className="pf" onSubmit={submit}>
-          <div className="full">
+        <form className="mt-3 grid grid-cols-2 gap-2.5 *:min-w-0" onSubmit={submit}>
+          <div className="col-span-full">
             <label className="lbl" htmlFor={`pt-${group.idx}`}>팀</label>
             <select id={`pt-${group.idx}`} className="field sm" value={selectedTeam} onChange={(e) => setTeam(e.target.value)}>
               {teams.map((t) => (
@@ -65,7 +65,7 @@ export function Penalties({ group, result, rules, run }: { group: GroupView; res
               ))}
             </select>
           </div>
-          <div className="full">
+          <div className="col-span-full">
             <label className="lbl" htmlFor={`pr-${group.idx}`}>사유</label>
             <select
               id={`pr-${group.idx}`}
@@ -87,7 +87,7 @@ export function Penalties({ group, result, rules, run }: { group: GroupView; res
             </select>
           </div>
           {reason === CUSTOM && (
-            <div className="full">
+            <div className="col-span-full">
               <label className="lbl" htmlFor={`pc-${group.idx}`}>사유 내용</label>
               <input id={`pc-${group.idx}`} className="field sm" maxLength={40} value={custom} onChange={(e) => setCustom(e.target.value)} autoComplete="off" />
             </div>
@@ -116,7 +116,7 @@ export function Penalties({ group, result, rules, run }: { group: GroupView; res
               onChange={(e) => setAmount(e.target.value)}
             />
           </div>
-          <button className="btn primary full" disabled={busy}>
+          <button className="btn primary col-span-full" disabled={busy}>
             {death ? `${Number(amount) || 1}점 감점` : `${fmt(Number(amount) || 0)}점 감점`}
           </button>
         </form>
@@ -126,7 +126,7 @@ export function Penalties({ group, result, rules, run }: { group: GroupView; res
           {group.penalties.map((p) => (
             <li key={p.id}>
               <span className="chip">{p.roundNo ? `${p.roundNo}R` : "전체"}</span>
-              <span className="ellipsis">
+              <span className="min-w-0 flex-1 truncate">
                 {result.displayOf[normalize(p.team)] ?? p.team} {p.kind === "death" ? `처치자 불명 사망 ${p.count}회` : p.reason}
               </span>
               {result.orphanPenalties.includes(p.id) && (
@@ -153,13 +153,13 @@ export function Teams({ group, result, mode, rules, run }: { group: GroupView; r
   const next = result.next;
 
   return (
-    <section className="panel side-box" aria-labelledby={`teams-${group.idx}`}>
-      <h2 className="h2" id={`teams-${group.idx}`}>팀 정리</h2>
+    <section className="panel min-w-0 p-4" aria-labelledby={`teams-${group.idx}`}>
+      <h2 className="text-[15px] font-bold" id={`teams-${group.idx}`}>팀 정리</h2>
       {raw.length === 0 ? (
-        <p className="muted small">경기 결과가 올라오면 팀 이름을 정리할 수 있습니다.</p>
+        <p className="text-[13px] text-fg-3">경기 결과가 올라오면 팀 이름을 정리할 수 있습니다.</p>
       ) : (
         <form
-          className="pf"
+          className="mt-3 grid grid-cols-2 gap-2.5 *:min-w-0"
           onSubmit={async (e) => {
             e.preventDefault();
             if (!source || !to.trim()) return;
@@ -168,7 +168,7 @@ export function Teams({ group, result, mode, rules, run }: { group: GroupView; r
             setTo("");
           }}
         >
-          <div className="full">
+          <div className="col-span-full">
             <label className="lbl" htmlFor={`rf-${group.idx}`}>팀</label>
             <select id={`rf-${group.idx}`} className="field sm" value={source} onChange={(e) => setFrom(e.target.value)}>
               {raw.map((n) => (
@@ -176,7 +176,7 @@ export function Teams({ group, result, mode, rules, run }: { group: GroupView; r
               ))}
             </select>
           </div>
-          <div className="full">
+          <div className="col-span-full">
             <label className="lbl" htmlFor={`rt-${group.idx}`}>바꿀 이름</label>
             <input
               id={`rt-${group.idx}`}
@@ -194,7 +194,7 @@ export function Teams({ group, result, mode, rules, run }: { group: GroupView; r
               ))}
             </datalist>
           </div>
-          <button className="btn full">이름 바꾸기</button>
+          <button className="btn col-span-full">이름 바꾸기</button>
         </form>
       )}
       {Object.keys(group.aliases).length > 0 && (
@@ -206,7 +206,7 @@ export function Teams({ group, result, mode, rules, run }: { group: GroupView; r
             }, {}),
           ).map(([to, froms]) => (
             <li key={to}>
-              <span className="ellipsis">
+              <span className="min-w-0 flex-1 truncate">
                 {(() => {
                   const own = froms.filter((f) => normalize(f) !== normalize(to));
                   const records = own.filter((f) => normalize(f) in result.displayOf);
@@ -229,14 +229,14 @@ export function Teams({ group, result, mode, rules, run }: { group: GroupView; r
       )}
       {mode !== "points" && next && result.standings.length > 0 && (
         <details
-          className="cp-edit"
+          className="mt-4"
           open={
             next.checkpoint.length > 0 ||
             Object.keys(group.overrides).some((k) => k.startsWith(`${next.roundNo}:`)) ||
             (rules.checkpoint.type === "sequential" && (rules.checkpoint.sequence[next.roundNo - 1] ?? 0) > 0)
           }
         >
-          <summary className="lbl">{next.roundNo}라운드 체크포인트 조정</summary>
+          <summary className="lbl mb-0 list-item w-max cursor-pointer">{next.roundNo}라운드 체크포인트 조정</summary>
           <ul className="plist">
             {result.standings.map((s) => {
               const own = s.bases.length ? s.bases.map((b) => b.base) : [s.base];
@@ -245,7 +245,7 @@ export function Teams({ group, result, mode, rules, run }: { group: GroupView; r
               const value = manual === undefined ? "auto" : manual ? "on" : "off";
               return (
                 <li key={s.key}>
-                  <span className="ellipsis">{s.name}</span>
+                  <span className="min-w-0 flex-1 truncate">{s.name}</span>
                   {s.checkpoint && <span className="cp">체크포인트</span>}
                   <select
                     aria-label={`${s.name} 체크포인트`}
@@ -278,13 +278,13 @@ export function Teams({ group, result, mode, rules, run }: { group: GroupView; r
 export function Logs({ logs, now }: { logs: LogRow[]; now: number | null }) {
   if (logs.length === 0) return null;
   return (
-    <section className="panel side-box" aria-labelledby="logs-h">
-      <h2 className="h2" id="logs-h">변경 기록</h2>
-      <ul className="log">
+    <section className="panel min-w-0 p-4" aria-labelledby="logs-h">
+      <h2 className="text-[15px] font-bold" id="logs-h">변경 기록</h2>
+      <ul className="mt-2 list-none">
         {logs.slice(0, 20).map((l) => (
-          <li key={l.id}>
-            <span className="ellipsis">{l.text}</span>
-            <span className="muted nowrap">
+          <li key={l.id} className="flex gap-2.5 border-b border-line-soft py-[7px] text-[13px] last:border-b-0">
+            <span className="min-w-0 flex-1 truncate">{l.text}</span>
+            <span className="text-[12px] whitespace-nowrap text-fg-3">
               {l.userName}
               {now !== null && `, ${ago(l.at, now)}`}
             </span>

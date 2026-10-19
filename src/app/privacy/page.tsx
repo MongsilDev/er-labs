@@ -11,8 +11,8 @@ export default async function Privacy() {
     <>
       <Header user={user} />
       <main id="main" className="wrap slim doc">
-        <h1 className="page-h1">개인정보 처리방침</h1>
-        <p className="sub">2026년 10월 19일 시행</p>
+        <h1 className="mt-3 mb-[18px] text-[28px] font-extrabold tracking-[-0.5px]">개인정보 처리방침</h1>
+        <p className="text-[14px] text-fg-3">2026년 10월 19일 시행</p>
         <p>
           er.mongsil.dev ER Labs가 처리하는 개인정보를 개인정보 보호법 제30조에 따라 공개합니다. 개인이 운영하는 무료 서비스입니다.
         </p>
@@ -72,7 +72,7 @@ export default async function Privacy() {
             <thead>
               <tr>
                 <th scope="col">받는 곳</th>
-                <th scope="col" className="nowrap">국가</th>
+                <th scope="col" className="whitespace-nowrap">국가</th>
                 <th scope="col">업무와 항목</th>
               </tr>
             </thead>
@@ -81,18 +81,18 @@ export default async function Privacy() {
                 <td>
                   Sentry
                   <br />
-                  <span className="nowrap">compliance@sentry.io</span>
+                  <span className="whitespace-nowrap">compliance@sentry.io</span>
                 </td>
-                <td className="nowrap">미국</td>
+                <td className="whitespace-nowrap">미국</td>
                 <td>서버 오류 기록. 오류가 난 페이지 주소와 오류 내용이 서버 오류가 날 때 전송됨. 접속 IP 주소, 쿠키, 요청 내용은 보내지 않음. 보유 기간은 Sentry 보관 정책을 따름</td>
               </tr>
               <tr>
                 <td>
                   Cloudflare
                   <br />
-                  <span className="nowrap">dpo@cloudflare.com</span>
+                  <span className="whitespace-nowrap">dpo@cloudflare.com</span>
                 </td>
-                <td className="nowrap">미국</td>
+                <td className="whitespace-nowrap">미국</td>
                 <td>사이트 접속 중계와 방문 통계. 접속 IP 주소, 요청 정보, 방문한 페이지 주소, 브라우저 종류가 접속할 때마다 전송됨. 방문 통계는 쿠키를 쓰지 않음. 보유 기간은 Cloudflare 정책을 따름</td>
               </tr>
             </tbody>

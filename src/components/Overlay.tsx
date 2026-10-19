@@ -7,7 +7,6 @@ import type { TournamentView } from "@/lib/view";
 import { barTotal } from "@/lib/engine";
 import Bar from "./t/Bar";
 import { useResult } from "./t/TournamentApp";
-import "./overlay.css";
 
 export default function Overlay({
   initial,

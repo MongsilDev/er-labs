@@ -50,9 +50,9 @@ export default function ManualRound({
 
   return (
     <div className="dim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <form className="panel dialog wide-dialog" role="dialog" aria-modal="true" aria-labelledby="manual-h" onSubmit={save}>
+      <form className="panel dialog max-w-[520px]" role="dialog" aria-modal="true" aria-labelledby="manual-h" onSubmit={save}>
         <h2 id="manual-h">{round}라운드 직접 입력</h2>
-        <table className="manual">
+        <table className="manual mt-3">
           <thead>
             <tr>
               <th scope="col">팀</th>
@@ -90,7 +90,7 @@ export default function ManualRound({
           </button>
         )}
         {error && (
-          <p className="err" role="alert">
+          <p className="text-[13px] text-minus" role="alert">
             <Lines text={error} />
           </p>
         )}

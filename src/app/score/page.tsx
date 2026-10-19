@@ -9,7 +9,6 @@ import { barTotal, computeGroup } from "@/lib/engine";
 import { exampleView } from "@/lib/example";
 import { currentUser } from "@/server/auth";
 import { myTournaments } from "@/server/tournament";
-import "./score.css";
 import Lines from "@/components/Lines";
 
 export const metadata: Metadata = {
@@ -41,35 +40,35 @@ export default async function ScorePage({ searchParams }: { searchParams: Promis
       <Header user={user} crumb="점수 계산" next="/score" />
       <main id="main" className="wrap">
         {q.login === "failed" && (
-          <p className="panel notice" role="alert">
+          <p className="panel mb-4 border-minus px-4 py-3" role="alert">
             <Lines text="디스코드 로그인을 마치지 못했습니다. 다시 시도해주세요." />
           </p>
         )}
-        <div className="score-grid">
+        <div className="grid grid-cols-[minmax(0,460px)_minmax(0,1fr)] items-start gap-10 max-[900px]:grid-cols-[minmax(0,1fr)] max-[900px]:gap-6">
           <section aria-labelledby="new-h">
-            <h1 className="page-h1" id="new-h">
+            <h1 className="mt-3 mb-[18px] text-[28px] font-extrabold tracking-[-0.5px]" id="new-h">
               새 대회
             </h1>
             <CreateForm loggedIn={Boolean(user)} autoCreate={q.create === "1"} />
           </section>
-          <div className="rightcol">
+          <div className="mt-[72px] grid grid-cols-[minmax(0,1fr)] gap-4 max-[900px]:contents">
             <OpenCode mine={mine} />
-            <section className="panel ex" aria-labelledby="ex-h">
-              <div className="ex-hd">
-                <b id="ex-h" className="ellipsis">{ex.name}</b>
-                <span className="muted">{res.played}라운드 종료</span>
+            <section className="panel px-5 py-[18px]" aria-labelledby="ex-h">
+              <div className="mb-1.5 flex items-center gap-2">
+                <b id="ex-h" className="min-w-0 truncate text-[15px]">{ex.name}</b>
+                <span className="ml-auto text-[13px] text-fg-3">{res.played}라운드 종료</span>
               </div>
               {top.map((s, i) => (
-                <div key={s.key} className="pl">
+                <div key={s.key} className="grid grid-cols-[34px_minmax(0,1fr)_60px] items-center gap-2.5 border-t border-line-soft py-[9px]">
                   <span className={`rk ${i === 0 ? "first" : ""}`}>{s.rank}</span>
                   <div>
-                    <div className="ellipsis pl-nm">{s.name}</div>
+                    <div className="mb-[5px] min-w-0 truncate text-[14px] font-bold">{s.name}</div>
                     <Bar s={s} max={max} rounds={res.played} height={10} labels={false} />
                   </div>
-                  <span className="pl-tt num">{s.total.toFixed(1)}</span>
+                  <span className="text-right text-[18px] font-extrabold tabular-nums">{s.total.toFixed(1)}</span>
                 </div>
               ))}
-              <div className="ex-ft">
+              <div className="mt-3 flex justify-end">
                 <Link className="btn sm" href="/example/a">
                   예시 대회 열기
                 </Link>

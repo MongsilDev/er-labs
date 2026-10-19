@@ -12,8 +12,8 @@ const TIE: Record<string, string> = {
 };
 
 export function Delta({ d }: { d: number }) {
-  if (d > 0) return <span className="up" aria-label={`${d}계단 상승`}>▲{d}</span>;
-  if (d < 0) return <span className="down" aria-label={`${-d}계단 하락`}>▼{-d}</span>;
+  if (d > 0) return <span className="text-[12px] font-bold whitespace-nowrap text-accent" aria-label={`${d}계단 상승`}>▲{d}</span>;
+  if (d < 0) return <span className="text-[12px] font-bold whitespace-nowrap text-minus" aria-label={`${-d}계단 하락`}>▼{-d}</span>;
   return null;
 }
 
@@ -31,13 +31,13 @@ export default function Standings({ result, rules, mode, label }: { result: Grou
   );
   if (standings.length === 0) {
     return (
-      <section className="panel stand-empty" aria-label={`${label} 순위표`}>
-        <p className="muted">아직 올라온 경기 결과가 없습니다.</p>
+      <section className="panel overflow-x-auto p-7 text-center" aria-label={`${label} 순위표`}>
+        <p className="text-fg-3">아직 올라온 경기 결과가 없습니다.</p>
       </section>
     );
   }
   return (
-    <section className="panel" aria-label={`${label} 순위표`}>
+    <section className="panel overflow-x-auto" aria-label={`${label} 순위표`}>
       <table className="stand">
         <thead>
           <tr>
@@ -63,7 +63,7 @@ export default function Standings({ result, rules, mode, label }: { result: Grou
                 </td>
                 <td className="c-name">
                   <div className="nm">
-                    <span className="ellipsis">{s.name}</span>
+                    <span className="min-w-0 truncate">{s.name}</span>
                     {s.fixed && <span className="cp">{s.fixed}위 확정</span>}
                     {mode !== "points" && s.checkpoint && <span className="cp">체크포인트</span>}
                   </div>
@@ -74,20 +74,20 @@ export default function Standings({ result, rules, mode, label }: { result: Grou
                 <td className="c-bar">
                   <Bar s={s} max={max} rounds={played} />
                 </td>
-                <td className={s.wins ? "r c-extra num" : "r c-extra num muted"}>{s.wins}</td>
-                <td className="r c-extra num">{fmt(s.rankScore)}</td>
-                <td className="r c-ks num">{rules.tiebreak === "kills" ? fmt(s.kills) : fmt1(s.killScore)}</td>
-                {anyPenalty && <td className="r c-pen num">{s.penalty > 0 ? `-${fmt(s.penalty)}` : ""}</td>}
-                <td className="r tot num">
+                <td className="r c-extra tabular-nums">{s.wins}</td>
+                <td className="r c-extra tabular-nums">{fmt(s.rankScore)}</td>
+                <td className="r c-ks tabular-nums">{rules.tiebreak === "kills" ? fmt(s.kills) : fmt1(s.killScore)}</td>
+                {anyPenalty && <td className="r c-pen tabular-nums">{s.penalty > 0 ? `-${fmt(s.penalty)}` : ""}</td>}
+                <td className="r tot tabular-nums">
                   {fmt1(s.total)}
                   {s.tiedBy && (
                     <span className="tie-mark" title={`동점, ${TIE[s.tiedBy]}`} aria-label={`동점, ${TIE[s.tiedBy]}`}>
                       =
                     </span>
                   )}
-                  <small className="ks-mobile muted">
+                  <small className="ks-mobile text-fg-3">
                     {killLabel} {rules.tiebreak === "kills" ? fmt(s.kills) : fmt(s.killScore)}
-                    {s.penalty > 0 && <span className="pen-note">, 감점 {fmt(s.penalty)}</span>}
+                    {s.penalty > 0 && <span className="text-minus">, 감점 {fmt(s.penalty)}</span>}
                   </small>
                 </td>
               </tr>
