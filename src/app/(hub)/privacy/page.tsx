@@ -15,7 +15,7 @@ export default function Privacy() {
       </SiteHeader>
       <main id="main" className="wrap slim doc">
         <h1 className="mt-3 mb-[18px] text-[28px] font-extrabold tracking-[-0.5px]">개인정보 처리방침</h1>
-        <p className="text-[14px] text-fg-3">2026년 10월 19일 시행</p>
+        <p className="text-[14px] text-fg-3">2026년 10월 20일 시행</p>
         <p>
           labs.mongsil.dev가 처리하는 개인정보를 개인정보 보호법 제30조에 따라 공개합니다.<br />개인이 운영하는 무료 서비스이며, 이터널 리턴 도구와 Escape from Tarkov 도구가
           있습니다.<br />로그인은 이터널 리턴 대회 운영자만 씁니다.
@@ -112,6 +112,11 @@ export default function Privacy() {
                 <td>사이트에 접속할 때</td>
                 <td>요청 횟수 제한에만 쓰고 저장하지 않음.<br />서버 메모리에서 1시간 안에 지워짐</td>
               </tr>
+              <tr>
+                <td>방문한 페이지 주소, 브라우저와 기기 정보, 방문 통계 쿠키 식별자</td>
+                <td>페이지를 조작하거나 10초 넘게 볼 때</td>
+                <td>수집일로부터 14개월</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -157,6 +162,15 @@ export default function Privacy() {
                 <td className="whitespace-nowrap">미국</td>
                 <td>사이트 접속 중계와 방문 통계.<br />접속 IP 주소, 요청 정보, 방문한 페이지 주소, 브라우저 종류가 접속할 때마다 전송됨.<br />방문 통계는 쿠키를 쓰지 않음.<br />보유 기간은 Cloudflare 정책을 따름</td>
               </tr>
+              <tr>
+                <td>
+                  Google LLC
+                  <br />
+                  <span className="whitespace-nowrap">googlekrsupport@google.com</span>
+                </td>
+                <td className="whitespace-nowrap">미국</td>
+                <td>Google 애널리틱스 방문 통계 분석.<br />쿠키 식별자, 방문한 페이지 주소, 브라우저와 기기 정보, 접속 IP 주소가 페이지를 조작하거나 10초 넘게 볼 때 전송됨.<br />보유 기간은 수집일로부터 14개월</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -169,10 +183,12 @@ export default function Privacy() {
         <ul>
           <li>__Host-er_session: 이터널 리턴 운영자 로그인 유지, 최대 7일</li>
           <li>__Host-er_state: 디스코드 로그인 중 위조 요청 방지, 10분</li>
+          <li>_ga, _ga_JBT8KDS281: Google 애널리틱스 방문자 구분, 최대 2년</li>
           <li>브라우저 저장소: 화면 테마, 이 브라우저에서 연 대회 목록, 로그인 전에 입력한 새 대회 설정, 최근 본 Escape from Tarkov 계정 8개</li>
         </ul>
         <p>
-          광고나 추적 쿠키는 쓰지 않고, 브라우저 저장소의 내용은 서버로 보내지 않습니다.<br />쿠키를 막으면 운영자로 로그인할 수 없지만 대회 보기와 계정 조회는 그대로 쓸 수
+          광고 쿠키는 쓰지 않고, 브라우저 저장소의 내용은 서버로 보내지 않습니다.<br />Google 애널리틱스의 수집만 거부하려면{" "}
+          <a href="https://tools.google.com/dlpage/gaoptout">Google 애널리틱스 차단 브라우저 부가기능</a>을 설치하면 됩니다.<br />쿠키를 막으면 운영자로 로그인할 수 없지만 대회 보기와 계정 조회는 그대로 쓸 수
           있습니다.<br />최근 본 계정은 계정 조회 화면의 기록 지우기로 바로 지울 수 있습니다.
         </p>
 
