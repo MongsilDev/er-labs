@@ -1,6 +1,6 @@
 import { type ChildProcess, spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import { cpSync, existsSync, mkdtempSync } from "node:fs";
+import { cpSync, existsSync, mkdtempSync, readdirSync, rmSync } from "node:fs";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -84,6 +84,8 @@ beforeAll(async () => {
 afterAll(async () => {
   await browser?.close();
   server?.kill();
+  rmSync(DATA, { recursive: true, force: true });
+  if (readdirSync(SHOTS).length === 0) rmSync(SHOTS, { recursive: true });
 });
 
 type Screen = { name: string; path: () => string; login?: boolean; tab?: string; status?: number };
