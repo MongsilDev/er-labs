@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import Footer from "@/er/components/Footer";
+import Footer from "@/components/SiteFooter";
 import Header from "@/er/components/Header";
 import InviteAccept from "@/er/components/InviteAccept";
 import { MODE_LABEL } from "@/er/lib/rules";
 import { currentUser } from "@/er/server/auth";
 import { inviteInfo } from "@/er/server/tournament";
-import Lines from "@/er/components/Lines";
+import Lines from "@/components/Lines";
 
 export const metadata: Metadata = { title: "운영자 초대", robots: { index: false } };
 export const dynamic = "force-dynamic";

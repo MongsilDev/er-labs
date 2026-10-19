@@ -10,7 +10,7 @@ import type { InviteRow, MemberRow, TournamentView } from "@/er/lib/view";
 import Avatar from "./Avatar";
 import ModeSeg from "./ModeSeg";
 import RulesFields from "./RulesFields";
-import Lines from "./Lines";
+import Lines from "@/components/Lines";
 
 const BOX = "panel px-5 py-[18px] [section+&]:mt-3.5";
 const H2 = "flex flex-wrap items-baseline gap-2 text-[15px] font-bold";

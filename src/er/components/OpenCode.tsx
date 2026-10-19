@@ -8,7 +8,7 @@ import { remaining } from "@/er/lib/format";
 import { MODE_LABEL } from "@/er/lib/rules";
 import { useNow } from "@/er/lib/useNow";
 import type { MyTournament } from "@/er/lib/view";
-import Lines from "./Lines";
+import Lines from "@/components/Lines";
 
 const ITEM = "grid min-w-0 gap-1.5 rounded-lg border border-line px-4 py-3.5 no-underline hover:border-line-strong hover:bg-field";
 

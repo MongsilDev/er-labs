@@ -15,7 +15,7 @@ import ManualRound from "./ManualRound";
 import Rounds from "./Rounds";
 import { Logs, Penalties, Teams } from "./Side";
 import Standings from "./Standings";
-import Lines from "../Lines";
+import Lines from "@/components/Lines";
 
 type Toast = { id: number; text: string; bad?: boolean; undo?: Op; undoLabel?: string };
 
@@ -220,7 +220,7 @@ export default function TournamentApp({ initial, groupIdx, basePath, created = f
           <div className="ml-auto flex flex-wrap gap-2 max-[760px]:ml-0">
             {!preview && (
               <>
-                <button type="button" className="btn sm" onClick={() => copy(`${origin}/t/${view.code}`, "보기 링크를 복사했습니다.")}>
+                <button type="button" className="btn sm" onClick={() => copy(`${origin}/er/t/${view.code}`, "보기 링크를 복사했습니다.")}>
                   보기 링크 복사
                 </button>
                 <Link className="btn sm" href={`/er/t/${view.code}/manage`}>
@@ -243,7 +243,7 @@ export default function TournamentApp({ initial, groupIdx, basePath, created = f
             <b className="text-[30px] font-extrabold tracking-[4px]" translate="no">{view.code}</b>
           </div>
           <div className="flex flex-wrap justify-start gap-2">
-            <button type="button" className="btn primary" onClick={() => copy(`${origin}/t/${view.code}`, "보기 링크를 복사했습니다.")}>
+            <button type="button" className="btn primary" onClick={() => copy(`${origin}/er/t/${view.code}`, "보기 링크를 복사했습니다.")}>
               보기 링크 복사
             </button>
             <Link className="btn" href={`/er/t/${view.code}/manage`}>
@@ -296,7 +296,7 @@ export default function TournamentApp({ initial, groupIdx, basePath, created = f
             </button>
           )}
           {!example && (
-            <button type="button" className="btn" onClick={() => copy(`${origin}/t/${view.code}/${group.label.toLowerCase()}/overlay`, "방송 화면 주소를 복사했습니다. OBS 브라우저 소스에 붙여 넣어주세요.")}>
+            <button type="button" className="btn" onClick={() => copy(`${origin}/er/t/${view.code}/${group.label.toLowerCase()}/overlay`, "방송 화면 주소를 복사했습니다. OBS 브라우저 소스에 붙여 넣어주세요.")}>
               방송 화면 주소 복사
             </button>
           )}

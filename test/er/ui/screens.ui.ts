@@ -92,7 +92,6 @@ type Screen = { name: string; path: () => string; login?: boolean; tab?: string;
 
 const SCREENS: Screen[] = [
   { name: "Labs", path: () => "/" },
-  { name: "홈", path: () => "/er" },
   { name: "점수 계산", path: () => "/er/score" },
   { name: "점수 계산 로그인", path: () => "/er/score", login: true },
   { name: "처리방침", path: () => "/privacy" },

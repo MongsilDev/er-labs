@@ -37,7 +37,7 @@ export default function ThemeToggle() {
         try {
           localStorage.setItem("labs-theme", next);
         } catch {}
-        document.querySelector('meta[name="theme-color"]')?.setAttribute("content", next === "light" ? "#f1f2ee" : "#0b0d0c");
+        document.querySelector('meta[name="theme-color"]')?.setAttribute("content", next === "light" ? "#eef1f5" : "#0a0d14");
       }}
     >
       {theme === "light" ? (

@@ -5,6 +5,8 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   async redirects() {
     return [
+      { source: "/er", destination: "/", permanent: false },
+      { source: "/tarkov", destination: "/", permanent: false },
       { source: "/er/privacy", destination: "/privacy", permanent: true },
       { source: "/tarkov/privacy", destination: "/privacy", permanent: true },
     ];

@@ -512,6 +512,8 @@ export function applyOp(code: string, user: User, op: Op): OpResult {
   return { ok: errors.length === 0, version: versionOf(t.id), notices, errors, undo };
 }
 
+export const tournamentCount = () => (db().prepare("SELECT COUNT(*) AS n FROM tournaments").get() as { n: number }).n;
+
 export function myTournaments(user: User): MyTournament[] {
   const rows = db()
     .prepare(

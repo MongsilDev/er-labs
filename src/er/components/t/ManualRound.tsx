@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Lines from "../Lines";
+import Lines from "@/components/Lines";
 
 type Row = { team: string; placement: string; killScore: string };
 

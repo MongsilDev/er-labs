@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import Lines from "@/components/Lines";
 
 export default function Actions({ aid, mode, tarkovDev }: { aid: number; mode: string; tarkovDev: string }) {
   const router = useRouter();
@@ -59,7 +60,7 @@ export default function Actions({ aid, mode, tarkovDev }: { aid: number; mode: s
       </button>
       {msg && (
         <span className="small muted" role="status">
-          {msg}
+          <Lines text={msg} />
         </span>
       )}
     </div>

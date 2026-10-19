@@ -1,6 +1,6 @@
-export const HUB_ACCENT = "#5ac8fa";
+export const LABS_ACCENT = "#5ac8fa";
 
-export function MarkSvg({ accent = HUB_ACCENT, className }: { accent?: string; className?: string }) {
+export function MarkSvg({ accent = LABS_ACCENT, className }: { accent?: string; className?: string }) {
   return (
     <svg className={className} viewBox="0 0 64 64" aria-hidden="true">
       <rect width="64" height="64" rx="15" fill="#000" />

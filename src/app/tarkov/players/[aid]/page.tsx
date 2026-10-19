@@ -6,7 +6,7 @@ import badges from "@/tarkov/data/level-badges.json";
 import itemsData from "@/tarkov/data/items.json";
 import masteringData from "@/tarkov/data/mastering.json";
 import skillsData from "@/tarkov/data/skills.json";
-import Footer from "@/tarkov/components/Footer";
+import Footer from "@/components/SiteFooter";
 import Header from "@/tarkov/components/Header";
 import AchievementList, { type AchievementRow } from "@/tarkov/components/players/AchievementList";
 import Actions from "@/tarkov/components/players/Actions";
@@ -556,7 +556,7 @@ export default async function Profile({ params, searchParams }: Props) {
         {!s && !res.error && (
           <section className="panel empty">
             <p>tarkov.dev에서 이 계정의 {mode.label} 기록을 아직 조회한 적이 없습니다.</p>
-            <p className="sub">tarkov.dev에서 한 번 열면 기록이 생깁니다. 열고 돌아오면 자동으로 다시 불러옵니다.</p>
+            <p className="sub">tarkov.dev에서 한 번 열면 기록이 생깁니다.<br />열고 돌아오면 자동으로 다시 불러옵니다.</p>
           </section>
         )}
 

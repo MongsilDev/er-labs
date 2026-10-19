@@ -98,7 +98,6 @@ afterAll(async () => {
 type Screen = { name: string; path: string; status?: number };
 
 const SCREENS: Screen[] = [
-  { name: "홈", path: "/tarkov" },
   { name: "계정 조회", path: "/tarkov/players" },
   { name: "프로필 PvP", path: "/tarkov/players/1001?mode=pvp" },
   { name: "프로필 시즌", path: "/tarkov/players/1001?mode=season" },
@@ -178,14 +177,14 @@ describe("화면 점검", () => {
   }
 
   it("프로필에 판정과 닉네임 변경이 표시된다", async () => {
-    const { page } = await open(SCREENS[2], 1440, "dark");
+    const { page } = await open(SCREENS.find((s) => s.name === "프로필 PvP")!, 1440, "dark");
     await expect(page.locator(".badge").first().textContent()).resolves.toMatch(/특이점 없음|확인 필요|이상 수치/);
     await expect(page.getByText("아주아주긴옛날닉네임_Long_Old_Name").count()).resolves.toBe(1);
     await page.context().close();
   });
 
   it("검색어를 넣으면 후보가 뜨고 고르면 프로필로 이동한다", async () => {
-    const { page } = await open(SCREENS[1], 390, "dark");
+    const { page } = await open(SCREENS.find((s) => s.name === "계정 조회")!, 390, "dark");
     await page.getByRole("combobox").fill("fixture");
     await page.getByRole("option").first().waitFor();
     const names = await page.getByRole("option").allTextContents();
@@ -225,14 +224,14 @@ describe("화면 점검", () => {
   });
 
   it("프로필을 열면 계정 조회 화면에 최근 본 계정이 나온다", async () => {
-    const { page } = await open(SCREENS[2], 1440, "dark");
+    const { page } = await open(SCREENS.find((s) => s.name === "프로필 PvP")!, 1440, "dark");
     await page.goto(`${base}/tarkov/players`, { waitUntil: "networkidle" });
     await page.getByRole("link", { name: "Fixture-Alpha" }).waitFor();
     await page.context().close();
   });
 
   it("시즌 프로필은 고른 특성을 보여주고 시뮬레이터로 연다", async () => {
-    const { page } = await open(SCREENS[2], 1440, "dark");
+    const { page } = await open(SCREENS.find((s) => s.name === "프로필 PvP")!, 1440, "dark");
     await page.goto(`${base}/tarkov/players/1001?mode=season`, { waitUntil: "networkidle" });
     await page.getByRole("heading", { name: /고른 시즌 특성/ }).waitFor();
     await page.getByRole("heading", { name: "스캐브 레이드" }).waitFor();
@@ -246,7 +245,7 @@ describe("화면 점검", () => {
   });
 
   it("시즌 진행과 아레나 배틀패스를 보여준다", async () => {
-    const { page } = await open(SCREENS[2], 1440, "dark");
+    const { page } = await open(SCREENS.find((s) => s.name === "프로필 PvP")!, 1440, "dark");
     await page.goto(`${base}/tarkov/players/1001?mode=season`, { waitUntil: "networkidle" });
     const progs = page.locator(".prog");
     await expect(progs.allInnerTexts()).resolves.toEqual([
@@ -265,7 +264,7 @@ describe("화면 점검", () => {
   });
 
   it("업적은 최근 획득순이 기본이고 정렬을 바꿀 수 있다", async () => {
-    const { page } = await open(SCREENS[2], 1440, "dark");
+    const { page } = await open(SCREENS.find((s) => s.name === "프로필 PvP")!, 1440, "dark");
     await page.goto(`${base}/tarkov/players/1001?mode=pvp`, { waitUntil: "networkidle" });
     await expect(page.locator("nav.tabs a").allTextContents()).resolves.toEqual(["시즌", "PvP", "PvE", "아레나"]);
     const dates = async () => (await page.locator(".ach-side .num.nowrap").allTextContents()).filter((t) => /^\d{4}\./.test(t));
@@ -278,7 +277,7 @@ describe("화면 점검", () => {
   });
 
   it("키보드로 옮긴 초점이 화면에 표시된다", async () => {
-    const { page } = await open(SCREENS[2], 1440, "dark");
+    const { page } = await open(SCREENS.find((s) => s.name === "프로필 PvP")!, 1440, "dark");
     const missing: string[] = [];
     for (let i = 0; i < 40; i++) {
       await page.keyboard.press("Tab");

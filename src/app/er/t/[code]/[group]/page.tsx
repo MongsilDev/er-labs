@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
-import Footer from "@/er/components/Footer";
+import Footer from "@/components/SiteFooter";
 import Header from "@/er/components/Header";
 import TournamentApp from "@/er/components/t/TournamentApp";
 import { currentUser } from "@/er/server/auth";

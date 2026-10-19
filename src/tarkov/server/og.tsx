@@ -13,7 +13,7 @@ export const OG_SIZE = { width: 1200, height: 630 };
 const font = (w: string) => readFile(join(process.cwd(), `assets/fonts/Pretendard-${w}.otf`));
 const fonts = Promise.all([font("Medium"), font("Bold"), font("ExtraBold")]);
 
-const C = { bg: "#0b0d0c", panel: "#151816", line: "#2a302b", text: "#e8ebe6", text2: "#a9b0a8", text3: "#7f877e", warn: "#f0b429", alert: "#ff6b6b" };
+const C = { bg: "#0a0d14", panel: "#121722", line: "#232a38", text: "#e8edf5", text2: "#aab3c5", text3: "#7c879c", warn: "#f0b429", alert: "#ff6b6b" };
 
 const Mark = ({ size }: { size: number }) => (
   <svg width={size} height={size} viewBox="0 0 64 64">

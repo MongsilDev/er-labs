@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Footer from "@/tarkov/components/Footer";
+import Footer from "@/components/SiteFooter";
 import Header from "@/tarkov/components/Header";
 
 export default function NotFound() {

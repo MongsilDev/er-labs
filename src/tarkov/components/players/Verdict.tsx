@@ -28,7 +28,12 @@ export default function Verdict({ v, mode, official }: { v: V; mode: string; off
         <>
           <p className="sub">
             {unit}가 ±{Math.round(v.width * 100)}% 안인 계정 {v.peers.toLocaleString("en-US")}명과 비교했습니다.
-            {v.width > WIDTHS[0] && " 비슷한 계정이 적어 범위를 넓혔습니다."}
+            {v.width > WIDTHS[0] && (
+              <>
+                <br />
+                비슷한 계정이 적어 범위를 넓혔습니다.
+              </>
+            )}
           </p>
           <div className="table-scroll">
             <table className="grid-table vtable">

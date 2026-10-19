@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/er/lib/client";
-import Lines from "./Lines";
+import Lines from "@/components/Lines";
 
 export default function InviteAccept({ token, loggedIn }: { token: string; loggedIn: boolean }) {
   const router = useRouter();

@@ -114,3 +114,5 @@ function prefix(lc: string, limit: number) {
     .all(lc, lc + "￿", lc, limit) as { aid: number; name: string; last: number }[];
   return rows.map((r) => ({ ...r, last: r.last || null }));
 }
+
+export const nameChangeCount = () => (db().prepare("SELECT COUNT(*) AS n FROM names").get() as { n: number }).n;

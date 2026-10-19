@@ -2,12 +2,15 @@
 
 게임 도구를 모아 둔 사이트입니다. [labs.mongsil.dev](https://labs.mongsil.dev)에서 쓸 수 있습니다.
 
-| 주소 | 도구 |
-|---|---|
-| `/er` | 이터널 리턴 커뮤니티 대회 점수 계산 |
-| `/tarkov` | Escape from Tarkov 계정 전적 조회, KORD BREACH 특성 시뮬레이터 |
+| 주소 | 게임 | 도구 |
+|---|---|---|
+| `/er/score` | 이터널 리턴 | 커뮤니티 대회 점수 계산 |
+| `/tarkov/players` | Escape from Tarkov | 계정 전적 조회 |
+| `/tarkov/kord-breach` | Escape from Tarkov | KORD BREACH 특성 시뮬레이터 |
 
 ## 이터널 리턴
+
+### 점수 계산
 
 - 게임에서 내보낸 결과 CSV를 여러 개 한 번에 올리면 경기 순서대로 라운드에 들어갑니다. 같은 경기는 한 번만 들어갑니다.
 - 포인트제, 체크포인트, 더블 체크포인트 진행 방식을 고를 수 있고, 순위 점수는 공식 규정을 쓰거나 직접 정할 수 있습니다.

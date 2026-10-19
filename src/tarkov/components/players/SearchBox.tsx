@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { date } from "@/tarkov/lib/format";
+import Lines from "@/components/Lines";
 
 type Hit = { aid: number; name: string; last: number | null };
 
@@ -135,7 +136,7 @@ export default function SearchBox({ autoFocus, compact }: { autoFocus?: boolean;
       )}
       {msg && (
         <p className="err" role="status">
-          {msg}
+          <Lines text={msg} />
         </p>
       )}
     </div>

@@ -7,7 +7,7 @@ import { LIMITS, PRESET_LABEL, presetRules, type Mode, type Preset, type Rules }
 import type { CreateInput } from "@/er/lib/view";
 import ModeSeg from "./ModeSeg";
 import RulesFields from "./RulesFields";
-import Lines from "./Lines";
+import Lines from "@/components/Lines";
 
 const DRAFT = "er-draft";
 

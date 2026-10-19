@@ -6,10 +6,8 @@ export const dynamic = "force-dynamic";
 const PATHS = [
   "",
   "/privacy",
-  "/er",
   "/er/score",
   "/er/example/a",
-  "/tarkov",
   "/tarkov/players",
   "/tarkov/kord-breach",
   "/tarkov/criteria",

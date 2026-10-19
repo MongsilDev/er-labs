@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Footer from "@/er/components/Footer";
+import Footer from "@/components/SiteFooter";
 import Header from "@/er/components/Header";
 import { currentUser } from "@/er/server/auth";
 
