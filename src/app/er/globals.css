@@ -600,14 +600,15 @@
       border-bottom: 0;
     }
     .doc-table.cards td {
-      display: grid;
-      grid-template-columns: 72px minmax(0, 1fr);
-      gap: 10px;
-      padding: 3px 0;
+      display: block;
+      position: relative;
+      padding: 3px 0 3px 82px;
       border: 0;
     }
     .doc-table.cards td::before {
       content: attr(data-label);
+      position: absolute;
+      left: 0;
       color: var(--text-3);
       font-size: 13px;
     }
