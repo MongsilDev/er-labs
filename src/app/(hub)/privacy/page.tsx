@@ -85,8 +85,8 @@ export default function Privacy() {
               </tr>
               <tr>
                 <td>전적 숫자, 진영, 레벨, 계정 등급, 업적 달성 시각, 플레이 시간</td>
-                <td>tarkov.dev가 공개하는 계정 기록. 누군가 이 사이트에서 조회할 때와 판정 비교군을 만들 때</td>
-                <td>삭제 요청이 있을 때까지. 장비와 아이템 정보는 저장하지 않음</td>
+                <td>tarkov.dev가 공개하는 계정 기록.<br />누군가 이 사이트에서 조회할 때와 판정 비교군을 만들 때</td>
+                <td>삭제 요청이 있을 때까지.<br />장비와 아이템 정보는 저장하지 않음</td>
               </tr>
             </tbody>
           </table>
@@ -110,7 +110,7 @@ export default function Privacy() {
               <tr>
                 <td>접속 IP 주소</td>
                 <td>사이트에 접속할 때</td>
-                <td>요청 횟수 제한에만 쓰고 저장하지 않음. 서버 메모리에서 1시간 안에 지워짐</td>
+                <td>요청 횟수 제한에만 쓰고 저장하지 않음.<br />서버 메모리에서 1시간 안에 지워짐</td>
               </tr>
             </tbody>
           </table>
@@ -146,7 +146,7 @@ export default function Privacy() {
                   <span className="whitespace-nowrap">compliance@sentry.io</span>
                 </td>
                 <td className="whitespace-nowrap">미국</td>
-                <td>서버 오류 기록. 오류가 난 페이지 주소와 오류 내용이 서버 오류가 날 때 전송됨. 접속 IP 주소, 쿠키, 요청 내용은 보내지 않음. 보유 기간은 Sentry 보관 정책을 따름</td>
+                <td>서버 오류 기록.<br />오류가 난 페이지 주소와 오류 내용이 서버 오류가 날 때 전송됨.<br />접속 IP 주소, 쿠키, 요청 내용은 보내지 않음.<br />보유 기간은 Sentry 보관 정책을 따름</td>
               </tr>
               <tr>
                 <td>
@@ -155,7 +155,7 @@ export default function Privacy() {
                   <span className="whitespace-nowrap">dpo@cloudflare.com</span>
                 </td>
                 <td className="whitespace-nowrap">미국</td>
-                <td>사이트 접속 중계와 방문 통계. 접속 IP 주소, 요청 정보, 방문한 페이지 주소, 브라우저 종류가 접속할 때마다 전송됨. 방문 통계는 쿠키를 쓰지 않음. 보유 기간은 Cloudflare 정책을 따름</td>
+                <td>사이트 접속 중계와 방문 통계.<br />접속 IP 주소, 요청 정보, 방문한 페이지 주소, 브라우저 종류가 접속할 때마다 전송됨.<br />방문 통계는 쿠키를 쓰지 않음.<br />보유 기간은 Cloudflare 정책을 따름</td>
               </tr>
             </tbody>
           </table>
