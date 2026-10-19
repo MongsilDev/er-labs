@@ -8,6 +8,7 @@ import { remaining } from "@/lib/format";
 import { MODE_LABEL } from "@/lib/rules";
 import { useNow } from "@/lib/useNow";
 import type { MyTournament } from "@/lib/view";
+import Lines from "./Lines";
 
 export default function OpenCode({ mine }: { mine: MyTournament[] }) {
   const router = useRouter();
@@ -81,7 +82,7 @@ export default function OpenCode({ mine }: { mine: MyTournament[] }) {
           </div>
           {error && (
             <p className="err" role="alert">
-              {error}
+              <Lines text={error} />
             </p>
           )}
         </form>

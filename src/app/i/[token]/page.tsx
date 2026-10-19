@@ -5,6 +5,7 @@ import InviteAccept from "@/components/InviteAccept";
 import { MODE_LABEL } from "@/lib/rules";
 import { currentUser } from "@/server/auth";
 import { inviteInfo } from "@/server/tournament";
+import Lines from "@/components/Lines";
 
 export const metadata: Metadata = { title: "운영자 초대", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -44,7 +45,9 @@ export default async function Page({ params }: { params: Promise<{ token: string
           ) : (
             <>
               <h1>쓸 수 없는 초대 링크입니다</h1>
-              <p className="muted">인원이 다 찼거나 취소된 링크입니다. 개최자에게 새 링크를 요청해주세요.</p>
+              <p className="muted">
+                <Lines text="인원이 다 찼거나 취소된 링크입니다. 개최자에게 새 링크를 요청해주세요." />
+              </p>
             </>
           )}
         </section>

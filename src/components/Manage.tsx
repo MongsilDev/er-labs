@@ -11,6 +11,7 @@ import Avatar from "./Avatar";
 import ModeSeg from "./ModeSeg";
 import RulesFields from "./RulesFields";
 import "./manage.css";
+import Lines from "./Lines";
 
 export default function Manage({ view, me, initialMembers, initialInvites }: { view: TournamentView; me: string; initialMembers: MemberRow[]; initialInvites: InviteRow[] }) {
   const router = useRouter();
@@ -56,7 +57,7 @@ export default function Manage({ view, me, initialMembers, initialInvites }: { v
       </p>
       {msg && (
         <p className={`panel notice${msg.bad ? " bad" : ""}`} role={msg.bad ? "alert" : "status"}>
-          {msg.text}
+          <Lines text={msg.text} />
         </p>
       )}
 
@@ -168,7 +169,7 @@ export default function Manage({ view, me, initialMembers, initialInvites }: { v
             </div>
           ) : (
             <p className="muted small" style={{ marginTop: 12 }}>
-              운영자 자리 {LIMITS.operators}개가 모두 찼습니다. 더 초대하려면 쓰지 않을 링크를 취소하거나 운영자를 빼주세요.
+              <Lines text={`운영자 자리 ${LIMITS.operators}개가 모두 찼습니다. 더 초대하려면 쓰지 않을 링크를 취소하거나 운영자를 빼주세요.`} />
             </p>
           )}
         </section>

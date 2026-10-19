@@ -10,6 +10,7 @@ import { exampleView } from "@/lib/example";
 import { currentUser } from "@/server/auth";
 import { myTournaments } from "@/server/tournament";
 import "./score.css";
+import Lines from "@/components/Lines";
 
 export const metadata: Metadata = {
   title: "점수 계산",
@@ -41,7 +42,7 @@ export default async function ScorePage({ searchParams }: { searchParams: Promis
       <main id="main" className="wrap">
         {q.login === "failed" && (
           <p className="panel notice" role="alert">
-            디스코드 로그인을 마치지 못했습니다. 다시 시도해주세요.
+            <Lines text="디스코드 로그인을 마치지 못했습니다. 다시 시도해주세요." />
           </p>
         )}
         <div className="score-grid">

@@ -16,6 +16,7 @@ import ManualRound from "./ManualRound";
 import Rounds from "./Rounds";
 import { Logs, Penalties, Teams } from "./Side";
 import Standings from "./Standings";
+import Lines from "../Lines";
 
 type Toast = { id: number; text: string; bad?: boolean; undo?: Op; undoLabel?: string };
 
@@ -385,7 +386,9 @@ export default function TournamentApp({ initial, groupIdx, basePath, created = f
       <div className="toast-area" aria-live="polite">
         {toasts.map((t) => (
           <div key={t.id} className={`toast${t.bad ? " bad" : ""}`} role={t.bad ? "alert" : "status"}>
-            <span>{t.text}</span>
+            <span>
+              <Lines text={t.text} />
+            </span>
             {t.undo && (
               <button
                 type="button"

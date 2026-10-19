@@ -7,6 +7,7 @@ import { LIMITS, PRESET_LABEL, presetRules, type Mode, type Preset, type Rules }
 import type { CreateInput } from "@/lib/view";
 import ModeSeg from "./ModeSeg";
 import RulesFields from "./RulesFields";
+import Lines from "./Lines";
 
 const DRAFT = "er-draft";
 
@@ -136,7 +137,7 @@ export default function CreateForm({ loggedIn, autoCreate }: { loggedIn: boolean
       </details>
       {error && (
         <p className="err" role="alert">
-          {error}
+          <Lines text={error} />
         </p>
       )}
       <button className={`btn lg block ${loggedIn ? "primary" : "discord"}`} disabled={busy}>

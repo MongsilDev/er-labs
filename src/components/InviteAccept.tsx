@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/lib/client";
+import Lines from "./Lines";
 
 export default function InviteAccept({ token, loggedIn }: { token: string; loggedIn: boolean }) {
   const router = useRouter();
@@ -19,7 +20,7 @@ export default function InviteAccept({ token, loggedIn }: { token: string; logge
     <>
       {error && (
         <p className="err" role="alert">
-          {error}
+          <Lines text={error} />
         </p>
       )}
       <button

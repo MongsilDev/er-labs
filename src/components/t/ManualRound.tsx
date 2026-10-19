@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Lines from "../Lines";
 
 type Row = { team: string; placement: string; killScore: string };
 
@@ -90,7 +91,7 @@ export default function ManualRound({
         )}
         {error && (
           <p className="err" role="alert">
-            {error}
+            <Lines text={error} />
           </p>
         )}
         <div className="acts">
