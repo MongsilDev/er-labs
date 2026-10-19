@@ -1,11 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { BASE_URL, SESSION_COOKIE, cookieOptions, deleteSession, sameOrigin } from "@/server/auth";
+import { BASE_URL, SESSION_COOKIE, cookieOptions, deleteSession, sameOrigin } from "@/er/server/auth";
 
 export async function POST(req: NextRequest) {
   if (!(await sameOrigin())) return new NextResponse(null, { status: 403 });
   const sid = req.cookies.get(SESSION_COOKIE)?.value;
   if (sid) deleteSession(sid);
-  const res = NextResponse.redirect(`${BASE_URL}/score`, 303);
+  const res = NextResponse.redirect(`${BASE_URL}/er/score`, 303);
   res.cookies.set(SESSION_COOKIE, "", cookieOptions(0));
   return res;
 }

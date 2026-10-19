@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { BASE_URL, SESSION_COOKIE, STATE_COOKIE, cookieOptions, createSession, exchange, safeEqual, safeNext } from "@/server/auth";
+import { BASE_URL, SESSION_COOKIE, STATE_COOKIE, cookieOptions, createSession, exchange, safeEqual, safeNext } from "@/er/server/auth";
 
 export async function GET(req: NextRequest) {
   const saved = req.cookies.get(STATE_COOKIE)?.value ?? "";
@@ -13,14 +13,14 @@ export async function GET(req: NextRequest) {
   };
   if (q.get("error")) return back(next);
   const code = q.get("code");
-  if (!state || !code || !safeEqual(state, q.get("state") ?? "")) return back("/score?login=failed");
+  if (!state || !code || !safeEqual(state, q.get("state") ?? "")) return back("/er/score?login=failed");
   let user = null;
   try {
     user = await exchange(code);
   } catch (e) {
     console.warn("[로그인] 디스코드 요청 실패", e instanceof Error ? e.name : e);
   }
-  if (!user) return back("/score?login=failed");
+  if (!user) return back("/er/score?login=failed");
   const session = createSession(user);
   const res = back(next);
   res.cookies.set(SESSION_COOKIE, session.id, cookieOptions(session.maxAge));

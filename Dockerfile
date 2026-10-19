@@ -4,7 +4,8 @@ RUN npm i -g pnpm@12.11.2
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 COPY . .
-ENV NEXT_TELEMETRY_DISABLED=1
+# 미리 만드는 정적 페이지의 미리보기 이미지 주소와 통계 비콘용
+ENV NEXT_TELEMETRY_DISABLED=1 BASE_URL=https://labs.mongsil.dev
 RUN pnpm build
 
 FROM node:24-slim
@@ -14,6 +15,7 @@ COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
 COPY --from=build /app/public ./public
 COPY --from=build /app/assets ./assets
+COPY --from=build /app/scripts/tarkov/hide.mjs /app/scripts/tarkov/backup.mjs ./scripts/tarkov/
 RUN mkdir -p /data && chown node:node /data
 USER node
 EXPOSE 3000

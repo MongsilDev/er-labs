@@ -1,7 +1,7 @@
-import { allow } from "@/server/limits";
-import { createTournament } from "@/server/tournament";
-import { fail, guardWrite, handle, json, readJson } from "@/server/http";
-import type { CreateInput } from "@/lib/view";
+import { allow } from "@/er/server/limits";
+import { createTournament } from "@/er/server/tournament";
+import { fail, guardWrite, handle, json, readJson } from "@/er/server/http";
+import type { CreateInput } from "@/er/lib/view";
 
 export async function POST(req: Request) {
   return handle(async () => {

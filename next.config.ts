@@ -14,7 +14,7 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        source: "/((?!t/[^/]+/[^/]+/overlay).*)",
+        source: "/((?!er/t/[^/]+/[^/]+/overlay).*)",
         headers: [{ key: "X-Frame-Options", value: "DENY" }],
       },
       {

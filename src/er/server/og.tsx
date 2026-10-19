@@ -1,0 +1,131 @@
+import "server-only";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
+import { ImageResponse } from "next/og";
+import { computeGroup, type GroupResult } from "@/er/lib/engine";
+import { fmt1 } from "@/er/lib/format";
+import type { TournamentView } from "@/er/lib/view";
+
+export const OG_SIZE = { width: 1200, height: 630 };
+
+const font = (w: string) => readFile(join(process.cwd(), `assets/fonts/Pretendard-${w}.otf`));
+const fonts = Promise.all([font("Medium"), font("Bold"), font("ExtraBold")]);
+
+const C = { bg: "#0a0d14", panel: "#121722", line: "#232a38", text: "#e8edf5", text2: "#aab3c5", text3: "#7c879c", accent: "#26f1f6", gold: "#ffd621" };
+
+export function groupResult(view: TournamentView, idx: number): GroupResult {
+  const g = view.groups[idx];
+  return computeGroup({
+    mode: view.mode,
+    rules: view.rules,
+    plannedRounds: view.plannedRounds,
+    rounds: g.rounds,
+    penalties: g.penalties,
+    weather: g.weather,
+    aliases: g.aliases,
+    overrides: g.overrides,
+  });
+}
+
+export function summary(view: TournamentView, idx: number): string {
+  const res = groupResult(view, idx);
+  const where = view.groupCount > 1 ? `${view.groups[idx].label}조 ` : "";
+  if (res.played === 0) return `${where}경기 전`;
+  const top = res.standings[0];
+  const state = res.ended ? "경기 종료" : `${res.played}라운드 진행`;
+  return `${where}${state}, 1위 ${top.name} ${fmt1(top.total)}점`;
+}
+
+const Mark = () => (
+  <svg width="44" height="44" viewBox="0 0 64 64">
+    <rect width="64" height="64" rx="15" fill="#000" />
+    <rect x=".5" y=".5" width="63" height="63" rx="14.5" fill="none" stroke="#fff" strokeOpacity=".14" />
+    <path d="M15 21l11 11-11 11" fill="none" stroke="#f5f5f7" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M33 44h17" stroke="#26f1f6" strokeWidth="7" strokeLinecap="round" />
+  </svg>
+);
+
+async function options() {
+  const [medium, bold, extra] = await fonts;
+  return {
+    ...OG_SIZE,
+    fonts: [
+      { name: "Pretendard", data: medium, weight: 500 as const },
+      { name: "Pretendard", data: bold, weight: 700 as const },
+      { name: "Pretendard", data: extra, weight: 800 as const },
+    ],
+  };
+}
+
+export async function siteImage({ sub = "이터널 리턴 도구 모음", url = "labs.mongsil.dev/er", accent = C.accent } = {}) {
+  return new ImageResponse(
+    (
+      <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", width: "100%", height: "100%", background: C.bg, color: C.text, fontFamily: "Pretendard", padding: "0 96px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
+          <svg width="120" height="120" viewBox="0 0 64 64">
+            <rect width="64" height="64" rx="15" fill="#000" />
+            <rect x=".5" y=".5" width="63" height="63" rx="14.5" fill="none" stroke="#fff" strokeOpacity=".14" />
+            <path d="M15 21l11 11-11 11" fill="none" stroke="#f5f5f7" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M33 44h17" stroke={accent} strokeWidth="7" strokeLinecap="round" />
+          </svg>
+          <span style={{ fontSize: 96, fontWeight: 800 }}>Labs</span>
+        </div>
+        <span style={{ fontSize: 36, fontWeight: 500, color: C.text2, marginTop: 36 }}>{sub}</span>
+        <span style={{ fontSize: 28, fontWeight: 500, color: C.text3, marginTop: 14 }}>{url}</span>
+      </div>
+    ),
+    await options(),
+  );
+}
+
+export async function boardImage(view: TournamentView | null, idx: number) {
+  const res = view ? groupResult(view, idx) : null;
+  const rows = res ? res.standings.slice(0, 8) : [];
+  const meta = view ? summary(view, idx).split(", 1위")[0] : "";
+
+  return new ImageResponse(
+    (
+      <div style={{ display: "flex", flexDirection: "column", width: "100%", height: "100%", background: C.bg, color: C.text, fontFamily: "Pretendard", padding: "48px 64px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <Mark />
+          <span style={{ fontSize: 26, fontWeight: 700, color: C.text2 }}>Labs</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 26, gap: 24 }}>
+          <span style={{ fontSize: 52, fontWeight: 800, maxWidth: 820, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
+            {view ? view.name : "없거나 지워진 대회"}
+          </span>
+          <span style={{ fontSize: 26, fontWeight: 500, color: C.text3, whiteSpace: "nowrap" }}>{meta}</span>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", marginTop: 24, borderTop: `1px solid ${C.line}` }}>
+          {rows.length === 0 && view && <span style={{ fontSize: 28, color: C.text3, marginTop: 40 }}>아직 올라온 경기 결과가 없습니다.</span>}
+          {rows.map((s) => (
+            <div key={s.key} style={{ display: "flex", alignItems: "center", height: rows.length > 6 ? 42 : 52, borderBottom: `1px solid ${C.line}`, gap: 20 }}>
+              <span
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: 40,
+                  height: 32,
+                  borderRadius: 6,
+                  fontSize: 20,
+                  fontWeight: 800,
+                  background: s.rank === 1 ? C.gold : C.panel,
+                  color: s.rank === 1 ? "#111" : C.text,
+                }}
+              >
+                {s.rank}
+              </span>
+              <span style={{ flex: 1, fontSize: 26, fontWeight: 700, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{s.name}</span>
+              {s.checkpoint && view?.mode !== "points" && (
+                <span style={{ fontSize: 17, fontWeight: 700, color: C.gold, border: `1.5px solid ${C.gold}`, borderRadius: 5, padding: "2px 8px" }}>체크포인트</span>
+              )}
+              <span style={{ fontSize: 30, fontWeight: 800, width: 130, textAlign: "right", justifyContent: "flex-end", display: "flex" }}>{fmt1(s.total)}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    ),
+    await options(),
+  );
+}

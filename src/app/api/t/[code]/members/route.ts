@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
-import { currentUser } from "@/server/auth";
-import { cancelInvite, createInvite, members, removeMember, transferOwner } from "@/server/tournament";
-import { fail, guardWrite, handle, json, readJson } from "@/server/http";
+import { currentUser } from "@/er/server/auth";
+import { cancelInvite, createInvite, members, removeMember, transferOwner } from "@/er/server/tournament";
+import { fail, guardWrite, handle, json, readJson } from "@/er/server/http";
 
 type Ctx = { params: Promise<{ code: string }> };
 

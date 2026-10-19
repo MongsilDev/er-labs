@@ -20,7 +20,7 @@ export async function register() {
       },
     });
   }
-  const { cleanup } = await import("./server/tournament");
+  const { cleanup } = await import("./er/server/tournament");
   const run = () => {
     try {
       const r = cleanup();
@@ -32,10 +32,24 @@ export async function register() {
   };
   run();
   setInterval(run, 10 * 60 * 1000).unref();
+
+  if (process.env.JOBS === "0") return;
+  const { runIndex } = await import("./tarkov/server/indexer");
+  const { crawl } = await import("./tarkov/server/baseline");
+  // If-Modified-Since로 확인해 바뀐 색인만 받음
+  const tick = async () => {
+    await runIndex();
+    await crawl();
+  };
+  setTimeout(tick, 5_000).unref();
+  setInterval(tick, 30 * 60 * 1000).unref();
 }
+
+const toolOf = (path: string) =>
+  /^\/(er|auth|api\/(t|i|me))(\/|$)/.test(path) ? "er" : /^\/(tarkov|api\/(search|players|icon))(\/|$)/.test(path) ? "tarkov" : "labs";
 
 export const onRequestError: Instrumentation.onRequestError = async (err, request, context) => {
   if (process.env.NEXT_RUNTIME !== "nodejs" || !process.env.SENTRY_DSN) return;
   const Sentry = await import("@sentry/node");
-  Sentry.captureException(err, { tags: { route: context.routePath, kind: context.routeType }, extra: { method: request.method } });
+  Sentry.captureException(err, { tags: { route: context.routePath, kind: context.routeType, tool: toolOf(context.routePath) }, extra: { method: request.method } });
 };

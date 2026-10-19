@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
-import { acceptInvite } from "@/server/tournament";
-import { guardWrite, handle, json } from "@/server/http";
+import { acceptInvite } from "@/er/server/tournament";
+import { guardWrite, handle, json } from "@/er/server/http";
 
 export async function POST(_req: NextRequest, ctx: { params: Promise<{ token: string }> }) {
   return handle(async () => {

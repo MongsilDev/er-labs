@@ -4,5 +4,4 @@ data
 .env*
 .git
 test
-scripts
 *.md

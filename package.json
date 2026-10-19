@@ -1,5 +1,5 @@
 {
-  "name": "er-labs",
+  "name": "labs",
   "version": "0.1.0",
   "private": true,
   "engines": {
@@ -10,7 +10,8 @@
     "build": "next build",
     "lint": "eslint",
     "test": "vitest run",
-    "test:ui": "next build && vitest run --config vitest.ui.config.mts"
+    "test:ui": "next build && vitest run --config vitest.ui.config.mts",
+    "refdata": "node scripts/tarkov/refdata.mjs"
   },
   "dependencies": {
     "@sentry/node": "11.8.0",

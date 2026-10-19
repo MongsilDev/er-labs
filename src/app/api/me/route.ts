@@ -1,6 +1,6 @@
-import { avatarUrl, currentUser } from "@/server/auth";
-import { myTournaments } from "@/server/tournament";
-import { handle, json } from "@/server/http";
+import { avatarUrl, currentUser } from "@/er/server/auth";
+import { myTournaments } from "@/er/server/tournament";
+import { handle, json } from "@/er/server/http";
 
 export async function GET() {
   return handle(async () => {
