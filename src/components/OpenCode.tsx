@@ -42,7 +42,7 @@ export default function OpenCode({ mine }: { mine: MyTournament[] }) {
             autoCapitalize="characters"
             spellCheck={false}
             maxLength={6}
-            placeholder="K7QM2X"
+            placeholder="ABC123"
             value={code}
             onChange={(e) => {
               setCode(e.target.value.toUpperCase());

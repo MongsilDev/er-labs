@@ -4,11 +4,11 @@ import type { Mode, Rules } from "@/lib/rules";
 import Bar, { Legend } from "./Bar";
 
 const TIE: Record<string, string> = {
-  killScore: "동점, 킬 점수로 가름",
-  kills: "동점, 킬 수로 가름",
-  rankScore: "동점, 순위 점수로 가름",
-  wins: "동점, 1위 횟수로 가름",
-  lastPlacement: "동점, 마지막 라운드 순위로 가름",
+  killScore: "킬 점수로 가름",
+  kills: "킬 수로 가름",
+  rankScore: "순위 점수로 가름",
+  wins: "1위 횟수로 가름",
+  lastPlacement: "마지막 라운드 순위로 가름",
 };
 
 export function Delta({ d }: { d: number }) {
@@ -22,6 +22,13 @@ export default function Standings({ result, rules, mode, label }: { result: Grou
   const max = Math.max(1, ...standings.map(barTotal));
   const advance = rules.advance;
   const killLabel = rules.tiebreak === "kills" ? "킬" : "킬 점수";
+  const anyPenalty = standings.some((s) => s.penalty > 0);
+  const ties = Object.entries(
+    standings.reduce<Record<string, string[]>>((acc, s) => {
+      if (s.tiedBy) (acc[s.tiedBy] ??= []).push(s.name);
+      return acc;
+    }, {}),
+  );
   if (standings.length === 0) {
     return (
       <section className="panel stand-empty" aria-label={`${label} 순위표`}>
@@ -42,6 +49,7 @@ export default function Standings({ result, rules, mode, label }: { result: Grou
             <th scope="col" className="r c-extra" title="1위 횟수">1위</th>
             <th scope="col" className="r c-extra">순위 점수</th>
             <th scope="col" className="r c-ks">{killLabel}</th>
+            {anyPenalty && <th scope="col" className="r c-pen">감점</th>}
             <th scope="col" className="r">총점</th>
           </tr>
         </thead>
@@ -69,17 +77,33 @@ export default function Standings({ result, rules, mode, label }: { result: Grou
                 <td className="r c-extra num">{s.wins || ""}</td>
                 <td className="r c-extra num">{fmt(s.rankScore)}</td>
                 <td className="r c-ks num">{rules.tiebreak === "kills" ? fmt(s.kills) : fmt1(s.killScore)}</td>
+                {anyPenalty && <td className="r c-pen num">{s.penalty > 0 ? `-${fmt(s.penalty)}` : ""}</td>}
                 <td className="r tot num">
                   {fmt1(s.total)}
-                  {s.penalty > 0 && <small className="pen-note">감점 {fmt(s.penalty)}</small>}
-                  {s.tiedBy && <small className="tie-note">{TIE[s.tiedBy]}</small>}
-                  <small className="ks-mobile muted">{killLabel} {rules.tiebreak === "kills" ? fmt(s.kills) : fmt(s.killScore)}</small>
+                  {s.tiedBy && (
+                    <span className="tie-mark" title={`동점, ${TIE[s.tiedBy]}`} aria-label={`동점, ${TIE[s.tiedBy]}`}>
+                      =
+                    </span>
+                  )}
+                  <small className="ks-mobile muted">
+                    {killLabel} {rules.tiebreak === "kills" ? fmt(s.kills) : fmt(s.killScore)}
+                    {s.penalty > 0 && <span className="pen-note">, 감점 {fmt(s.penalty)}</span>}
+                  </small>
                 </td>
               </tr>
             );
           })}
         </tbody>
       </table>
+      {ties.length > 0 && (
+        <p className="stand-foot">
+          {ties.map(([by, names]) => (
+            <span key={by}>
+              <span className="tie-mark">=</span> 동점인 {names.join(", ")}: {TIE[by]}
+            </span>
+          ))}
+        </p>
+      )}
     </section>
   );
 }
