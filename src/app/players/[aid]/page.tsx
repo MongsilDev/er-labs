@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import badges from "@/data/level-badges.json";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
+import AchievementList, { type AchievementRow } from "@/components/players/AchievementList";
 import Actions from "@/components/players/Actions";
 import { Remember } from "@/components/players/Recent";
 import SearchBox from "@/components/players/SearchBox";
@@ -138,50 +139,19 @@ function ArenaStats({ s }: { s: ArenaSummary }) {
   );
 }
 
-const RARITY: Record<string, string> = { common: "일반", rare: "희귀", legendary: "전설", seasonal: "시즌" };
-
 function Achievements({ s }: { s: Summary }) {
   if (!s.achievements.length) return null;
-  // 시즌 업적은 달성 비율 자료가 없어 뒤로 보냄
-  const rows = s.achievements
-    .map((a) => ({ ...a, info: achievementInfo(a.id) }))
-    .filter((a) => a.info)
-    .sort((a, b) => (a.info!.percent || 101) - (b.info!.percent || 101) || b.at - a.at);
-  const row = (a: (typeof rows)[number]) => (
-    <li key={a.id} className={`ach ${a.info!.rarity}`}>
-      {a.info!.icon ? <Image src={`/img/ach/${a.id}.webp`} alt="" width={36} height={36} unoptimized /> : <span className="ach-blank" />}
-      <span className="ach-text">
-        <b className="ellipsis">{a.info!.name}</b>
-        {a.info!.description && <span className="ellipsis muted small">{a.info!.description}</span>}
-      </span>
-      <span className="ach-side">
-        <span className="small nowrap">
-          <b className="ach-rarity">{RARITY[a.info!.rarity] ?? a.info!.rarity}</b>
-          {a.info!.percent ? <span className="muted num"> {dec(a.info!.percent, 2)}%</span> : null}
-        </span>
-        <span className="muted small num nowrap">{date(a.at * 1000)}</span>
-      </span>
-    </li>
-  );
+  const rows: AchievementRow[] = [];
+  for (const a of s.achievements) {
+    const info = achievementInfo(a.id);
+    if (info) rows.push({ id: a.id, at: a.at, name: info.name, description: info.description, icon: info.icon, rarity: info.rarity, percent: info.percent });
+  }
   return (
     <section className="block">
       <h2 className="h2">
         업적 <span className="muted num">{s.achievements.length}</span>
       </h2>
-      {rows.length > 0 ? (
-        <>
-          <p className="sub">달성한 사람이 적은 순서입니다. 숫자는 tarkov.dev가 집계한 달성 비율입니다.</p>
-          <ul className="panel list achs">{rows.slice(0, 8).map(row)}</ul>
-          {rows.length > 8 && (
-            <details className="more">
-              <summary>나머지 {rows.length - 8}개 보기</summary>
-              <ul className="panel list achs">{rows.slice(8).map(row)}</ul>
-            </details>
-          )}
-        </>
-      ) : (
-        <p className="sub">아레나 업적은 공개된 이름 자료가 없어 개수만 표시합니다.</p>
-      )}
+      {rows.length > 0 ? <AchievementList rows={rows} /> : <p className="sub">아레나 업적은 공개된 이름 자료가 없어 개수만 표시합니다.</p>}
     </section>
   );
 }

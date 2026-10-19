@@ -12,7 +12,7 @@ export default function Home() {
           <li>
             <Link className="panel tool" href="/players">
               <b>계정 조회</b>
-              <span className="muted">닉네임으로 PvP, 시즌, PvE, 아레나 전적과 판정 배지 확인</span>
+              <span className="muted">닉네임으로 시즌, PvP, PvE, 아레나 전적과 판정 배지 확인</span>
             </Link>
           </li>
           <li>

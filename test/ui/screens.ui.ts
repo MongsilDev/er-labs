@@ -244,6 +244,19 @@ describe("화면 점검", () => {
     await page.context().close();
   });
 
+  it("업적은 최근 획득순이 기본이고 정렬을 바꿀 수 있다", async () => {
+    const { page } = await open(SCREENS[2], 1440, "dark");
+    await page.goto(`${base}/players/1001?mode=pvp`, { waitUntil: "networkidle" });
+    await expect(page.locator("nav.tabs a").allTextContents()).resolves.toEqual(["시즌", "PvP", "PvE", "아레나"]);
+    const dates = async () => (await page.locator(".ach-side .num.nowrap").allTextContents()).filter((t) => /^\d{4}\./.test(t));
+    const recent = await dates();
+    expect(recent).toEqual([...recent].sort().reverse());
+    await page.getByRole("button", { name: "오래된 순" }).click();
+    const old = await dates();
+    expect(old).toEqual([...old].sort());
+    await page.context().close();
+  });
+
   it("키보드로 옮긴 초점이 화면에 표시된다", async () => {
     const { page } = await open(SCREENS[2], 1440, "dark");
     const missing: string[] = [];

@@ -1,6 +1,6 @@
 export const MODES = [
-  { key: "pvp", folder: "profile", label: "PvP", web: "regular" },
   { key: "season", folder: "pvp-season", label: "시즌", web: "pvp-season" },
+  { key: "pvp", folder: "profile", label: "PvP", web: "regular" },
   { key: "pve", folder: "pve", label: "PvE", web: "pve" },
   { key: "arena", folder: "arena", label: "아레나", web: "arena" },
 ] as const;

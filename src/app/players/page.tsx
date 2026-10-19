@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "계정 조회",
-  description: "Escape from Tarkov 닉네임으로 PvP, 시즌, PvE, 아레나 전적 조회",
+  description: "Escape from Tarkov 닉네임으로 시즌, PvP, PvE, 아레나 전적 조회",
 };
 
 export default function Players() {

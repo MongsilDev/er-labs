@@ -81,7 +81,7 @@ export default function Criteria() {
 
         <h2>지표</h2>
         <ul>
-          <li>PvP, 시즌, PvE: PMC K/D, 레이드당 PMC 킬, 생존율, 최장 연속 생존</li>
+          <li>시즌, PvP, PvE: PMC K/D, 레이드당 PMC 킬, 생존율, 최장 연속 생존</li>
           <li>아레나: K/D, 헤드샷 비율, 시간당 킬, 한 경기 최다 킬</li>
         </ul>
         <p>
@@ -94,7 +94,7 @@ export default function Criteria() {
           잘라낸 평균입니다.
         </p>
         <p>
-          EFT 플레이 시간은 PvP, 시즌, PvE를 합친 계정 전체 값입니다. 그래서 EFT 모드에는 시간당 킬을 쓰지 않습니다. 이 방식은 tarkovstats.online이 공개한 계산 방식을
+          EFT 플레이 시간은 시즌, PvP, PvE를 합친 계정 전체 값입니다. 그래서 EFT 모드에는 시간당 킬을 쓰지 않습니다. 이 방식은 tarkovstats.online이 공개한 계산 방식을
           참고했습니다.
         </p>
 
