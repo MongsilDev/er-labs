@@ -62,6 +62,9 @@ async function seed() {
   for (let i = 0; i < 200; i++) {
     b.run("pvp", 50_000 + i, t, 2456 * (0.95 + (i % 10) / 100), 1055 + (i % 40) - 20, 150 + i, 560 + (i % 30), 400 + (i % 80), 4 + (i % 9), 0, 0);
     b.run("arena", 50_000 + i, t, 100 * (0.95 + (i % 10) / 100), 21 + (i % 3), 300 + i, 500 + (i % 50), 10 + (i % 5), 10 + (i % 15), 120 + (i % 60), 30 + (i % 20));
+    // 1003의 LastHero 211경기, CheckPoint 195경기와 비슷한 모드별 행
+    b.run("arena/UnrankedLastHero", 50_000 + i, t, 0, 205 + (i % 12), 8000 + i * 20, 5000 + (i % 50), 100 + (i % 60), 8 + (i % 10), 3500 + (i % 400), 50 + (i % 30));
+    b.run("arena/UnrankedCheckPoint", 50_000 + i, t, 0, 190 + (i % 12), 5000 + i * 10, 3000 + (i % 50), 110 + (i % 40), 8 + (i % 12), 2000 + (i % 300), 45 + (i % 30));
   }
   conn.prepare("INSERT INTO meta (key, value) VALUES ('indexed_at', ?), ('accounts', '4')").run(String(t));
 }
@@ -242,6 +245,16 @@ describe("화면 점검", () => {
     await page.locator(".kb-left dd").waitFor();
     await expect(page.locator('.kb-card[aria-pressed="true"]').count()).resolves.toBe(n);
     await page.context().close();
+  });
+
+  it("아레나 판정은 30경기 이상 한 모드마다 따로 나온다", async () => {
+    const { page } = await open(SCREENS.find((s) => s.name === "프로필 아레나")!, 1440, "dark");
+    try {
+      await expect(page.locator(".vpart-head b").allTextContents()).resolves.toEqual(["LastHero", "CheckPoint"]);
+      await expect(page.locator(".vpart").first().locator(".vbars li").count()).resolves.toBe(5);
+    } finally {
+      await page.context().close();
+    }
   });
 
   it("시즌 진행과 아레나 배틀패스를 보여준다", async () => {

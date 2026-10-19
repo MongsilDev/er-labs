@@ -1,5 +1,16 @@
 import type { Sample } from "./criteria";
-import type { Summary } from "./summary";
+import type { ArenaModeStats, Summary } from "./summary";
+
+export const modeSample = (m: ArenaModeStats): Sample => ({
+  hours: 0,
+  n: m.games,
+  kills: m.kills,
+  deaths: m.deaths,
+  survived: m.wins,
+  streak: m.bestKillStreak ?? 0,
+  headshots: m.headshots,
+  maxGameKills: m.maxGameKills,
+});
 
 export function toSample(s: Summary): Sample | null {
   if (s.kind === "arena") {

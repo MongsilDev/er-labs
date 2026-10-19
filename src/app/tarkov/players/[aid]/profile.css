@@ -99,6 +99,23 @@
   border-style: dashed;
   background: transparent;
 }
+.vpart {
+  display: grid;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line-soft);
+}
+.vpart-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+}
+.badge.sm {
+  height: 24px;
+  padding: 0 8px;
+  font-size: 12px;
+}
 .vbars {
   list-style: none;
   display: grid;

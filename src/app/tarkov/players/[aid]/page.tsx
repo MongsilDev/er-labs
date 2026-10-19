@@ -16,7 +16,6 @@ import Verdict from "@/tarkov/components/players/Verdict";
 import { date, dateTime, dec, div, hours, int, pct } from "@/tarkov/lib/format";
 import { arenaModeLabel, memberChips, sideLabel } from "@/tarkov/lib/labels";
 import { MODES, pickMode, tarkovDevUrl } from "@/tarkov/lib/modes";
-import { toSample } from "@/tarkov/lib/sample";
 import { PERK, encodeBuild, type Perk } from "@/tarkov/lib/kord";
 import { ARENA_PASSES, LEAGUE, leagueLabel } from "@/tarkov/lib/season";
 import { achievementInfo, type ArenaSummary, type EftSummary, type Progress, type Summary } from "@/tarkov/lib/summary";
@@ -602,7 +601,7 @@ export default async function Profile({ params, searchParams }: Props) {
   const registered = s?.kind === "arena" ? s.registered : arena?.summary?.kind === "arena" ? arena.summary.registered : null;
   const name = displayName(aid, acc, s);
   const history = nameHistory(aid);
-  const v = s ? verdict(mode, aid, toSample(s)) : null;
+  const v = s ? verdict(mode, aid, s) : null;
   const chips = s ? memberChips(s.member | (other?.summary?.member ?? 0)) : [];
   const eft = s?.kind === "eft" ? s : null;
   const barred = v && v.state !== "none" ? v.metrics.map((m) => m.label) : [];

@@ -34,11 +34,13 @@ export const METRICS: Record<Kind, Metric[]> = {
     { key: "surv", family: "combat", label: "생존율", digits: 3, value: (s, t) => div(s.survived + PRIOR * t.spn, s.n + PRIOR) },
     { key: "streak", family: "streak", label: "연속 생존 횟수", digits: 0, value: (s) => s.streak },
   ],
+  // 아레나는 모드마다 따로 비교. 모드별 플레이 시간이 없어 시간당 킬 대신 경기당 킬
   arena: [
     { key: "kd", label: "K/D", family: "kill", digits: 2, value: (s, t) => div(s.kills + PRIOR * t.kpn, Math.max(1, s.deaths + PRIOR * t.dpn)) },
+    { key: "kpm", family: "kill", label: "경기당 킬", digits: 1, value: (s, t) => div(s.kills + PRIOR * t.kpn, s.n + PRIOR) },
     { key: "hs", family: "hs", label: "헤드샷 비율", digits: 3, value: (s, t) => div(s.headshots + 100 * t.hsr, s.kills + 100) },
-    { key: "kph", family: "kill", label: "시간당 킬", digits: 1, value: (s, t) => div(s.kills + PRIOR * t.kpn, s.hours + PRIOR * t.hpn) },
     { key: "maxkills", family: "maxkills", label: "한 경기 최다 킬", digits: 0, value: (s) => s.maxGameKills },
+    { key: "streak", family: "streak", label: "최고 연속 킬", digits: 0, value: (s) => s.streak },
   ],
 };
 
@@ -71,11 +73,22 @@ export function typical(peers: Sample[]): Typical {
 
 export type MetricResult = { key: string; label: string; family: string; digits: number; value: number; p90: number; p99: number; mean: number; level: 0 | 1 | 2 };
 
-export type Verdict =
-  | { state: "none"; reason: "few" | "peers" | "missing" }
-  | { state: "clear" | "warn" | "alert"; peers: number; width: number; metrics: MetricResult[] };
+export type Judged = { state: "clear" | "warn" | "alert"; peers: number; width: number; metrics: MetricResult[] };
+export type Unjudged = { state: "none"; reason: "few" | "peers" | "missing" };
+// 아레나는 parts에 모드별 판정이 들어가고 state는 그중 가장 높은 단계
+export type VerdictPart = { key: string; games: number; v: Judged | Unjudged };
+export type Verdict = Unjudged | (Judged & { parts?: VerdictPart[] });
 
-export function judge(kind: Kind, player: Sample, peers: Sample[], width: number): Verdict {
+const RANK = { none: 0, clear: 1, warn: 2, alert: 3 } as const;
+
+export function combine(parts: VerdictPart[]): Verdict {
+  const judged = parts.filter((p): p is VerdictPart & { v: Judged } => p.v.state !== "none");
+  if (!judged.length) return { state: "none", reason: parts.length ? "peers" : "few" };
+  const worst = judged.reduce((a, p) => (RANK[p.v.state] > RANK[a] ? p.v.state : a), "clear" as Judged["state"]);
+  return { state: worst, peers: judged.reduce((a, p) => a + p.v.peers, 0), width: Math.max(...judged.map((p) => p.v.width)), metrics: [], parts };
+}
+
+export function judge(kind: Kind, player: Sample, peers: Sample[], width: number): Judged | Unjudged {
   if (player.n < MIN_N) return { state: "none", reason: "few" };
   if (peers.length < MIN_PEERS) return { state: "none", reason: "peers" };
   const t = typical(peers);

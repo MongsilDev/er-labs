@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { judge, quantile, trimmedMean, type Sample } from "@/tarkov/lib/criteria";
+import { combine, judge, quantile, trimmedMean, type Sample } from "@/tarkov/lib/criteria";
 import { toSample } from "@/tarkov/lib/sample";
 import { levelFromExp, parse, parseArena, parseEft } from "@/tarkov/lib/summary";
 
@@ -121,6 +121,23 @@ describe("판정", () => {
     expect(high.length).toBeGreaterThanOrEqual(2);
     expect(new Set(high.map((m) => m.family))).toEqual(new Set(["combat"]));
     expect(v.state).toBe("warn");
+  });
+  it("아레나는 경기당 킬과 최고 연속 킬로 판정하고 모드별 판정 중 가장 높은 단계를 씀", () => {
+    const arenaBase: Sample = { hours: 0, n: 200, kills: 6000, deaths: 5000, survived: 100, streak: 10, headshots: 2500, maxGameKills: 50 };
+    const arenaPeers = Array.from({ length: 200 }, (_, i) => ({ ...arenaBase, kills: 5000 + i * 10, maxGameKills: 40 + (i % 20), streak: 6 + (i % 8) }));
+    const calm = judge("arena", arenaBase, arenaPeers, 0.1);
+    expect(calm.state).toBe("clear");
+    expect(calm.state === "none" ? [] : calm.metrics.map((m) => m.key)).toEqual(["kd", "kpm", "hs", "maxkills", "streak"]);
+    const hot = judge("arena", { ...arenaBase, maxGameKills: 200 }, arenaPeers, 0.1);
+    expect(hot.state).toBe("alert");
+    const v = combine([
+      { key: "UnrankedCheckPoint", games: 200, v: calm },
+      { key: "UnrankedLastHero", games: 200, v: hot },
+      { key: "UnrankedTeamFight", games: 40, v: { state: "none", reason: "peers" } },
+    ]);
+    expect(v.state).toBe("alert");
+    expect(combine([{ key: "UnrankedTeamFight", games: 40, v: { state: "none", reason: "peers" } }])).toEqual({ state: "none", reason: "peers" });
+    expect(combine([])).toEqual({ state: "none", reason: "few" });
   });
   it("여러 지표가 상위 1%를 넘으면 이상 수치", () => {
     const v = judge("eft", { ...base, kills: 4000, deaths: 40, survived: 360, streak: 60 }, peers, 0.1);
