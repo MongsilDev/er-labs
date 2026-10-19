@@ -1,0 +1,764 @@
+{
+ "6512ea46f7a078264a4376e4": {
+  "name": "PMC의 베스트 프렌드",
+  "rarity": "common",
+  "percent": 2.13,
+  "hidden": false
+ },
+ "6512eb3ddfb0ae1ee75a0376": {
+  "name": "여행객",
+  "rarity": "common",
+  "percent": 6.88,
+  "hidden": false
+ },
+ "6512f16bde333c33d5127cbc": {
+  "name": "킬러들의 킬러",
+  "rarity": "common",
+  "percent": 0.09,
+  "hidden": true
+ },
+ "6512f1e3be73cc7f07358ed5": {
+  "name": "스타일의 예술",
+  "rarity": "common",
+  "percent": 6.68,
+  "hidden": false
+ },
+ "6513eb6e0dc723592b0f9095": {
+  "name": "네 형이나 불러와라",
+  "rarity": "common",
+  "percent": 11.81,
+  "hidden": false
+ },
+ "6513ed89cf2f1c285e606068": {
+  "name": "제재소의 침묵",
+  "rarity": "common",
+  "percent": 9.97,
+  "hidden": false
+ },
+ "6513ee11a3dd9b6aa7159b4a": {
+  "name": "거래 성사",
+  "rarity": "common",
+  "percent": 12.45,
+  "hidden": false
+ },
+ "6513eec00dc723592b0f90cc": {
+  "name": "꿩 사냥",
+  "rarity": "common",
+  "percent": 6.72,
+  "hidden": false
+ },
+ "6513efa1b49e3253755f47eb": {
+  "name": "요양원 관리인",
+  "rarity": "common",
+  "percent": 8.68,
+  "hidden": false
+ },
+ "6513f0a10dc723592b0f90cf": {
+  "name": "웃기는 묘지기",
+  "rarity": "common",
+  "percent": 4.35,
+  "hidden": false
+ },
+ "6513f1feec10ff011f17c7ea": {
+  "name": "이제는 세 명이라고?!",
+  "rarity": "common",
+  "percent": 5.05,
+  "hidden": false
+ },
+ "6513f28cb49e3253755f47f3": {
+  "name": "눈먼 감시자",
+  "rarity": "common",
+  "percent": 0.74,
+  "hidden": true
+ },
+ "65140ab8ec10ff011f17cc10": {
+  "name": "입으면 안되는 것",
+  "rarity": "rare",
+  "percent": 0.3,
+  "hidden": false
+ },
+ "65140b55cf2f1c285e606414": {
+  "name": "망치와 낫",
+  "rarity": "rare",
+  "percent": 0.64,
+  "hidden": false
+ },
+ "65140bbec31fcb0e163577b9": {
+  "name": "제재소의 왕",
+  "rarity": "rare",
+  "percent": 0.54,
+  "hidden": false
+ },
+ "65140c00b1c08b0feb216d50": {
+  "name": "타르코프식 최후의 결전",
+  "rarity": "rare",
+  "percent": 0.58,
+  "hidden": false
+ },
+ "65141032a3dd9b6aa7159ed3": {
+  "name": "또 다른 미제사건",
+  "rarity": "rare",
+  "percent": 0.21,
+  "hidden": false
+ },
+ "651411f1cf2f1c285e606423": {
+  "name": "누가 의사 선생님 찾으셨나요?",
+  "rarity": "rare",
+  "percent": 0.23,
+  "hidden": false
+ },
+ "651412b8c31fcb0e163577c5": {
+  "name": "늙은 개와 오래된 재주",
+  "rarity": "rare",
+  "percent": 0.27,
+  "hidden": false
+ },
+ "6514134eec10ff011f17cc26": {
+  "name": "어둠의 목소리가 들린다",
+  "rarity": "rare",
+  "percent": 0.92,
+  "hidden": false
+ },
+ "651413e9c31fcb0e163577c9": {
+  "name": "이래야 잘 쐈다고 하는거지",
+  "rarity": "rare",
+  "percent": 0.07,
+  "hidden": true
+ },
+ "6514143d59647d2cb3213c93": {
+  "name": "ULTRA의 지배자",
+  "rarity": "legendary",
+  "percent": 0.14,
+  "hidden": false
+ },
+ "651415feb49e3253755f4b68": {
+  "name": "만수무강 하시옵소서!",
+  "rarity": "rare",
+  "percent": 0.48,
+  "hidden": false
+ },
+ "6514174fb1c08b0feb216d73": {
+  "name": "아메리칸 스나이퍼의 계승자",
+  "rarity": "rare",
+  "percent": 0.22,
+  "hidden": true
+ },
+ "651417d6ec10ff011f17cc31": {
+  "name": "존 윅의 후계자",
+  "rarity": "common",
+  "percent": 0.25,
+  "hidden": true
+ },
+ "6514184ec31fcb0e163577d2": {
+  "name": "킬러7",
+  "rarity": "rare",
+  "percent": 0.71,
+  "hidden": true
+ },
+ "651419eea3dd9b6aa7159ee5": {
+  "name": "눈 먼 분노",
+  "rarity": "rare",
+  "percent": 6.12,
+  "hidden": false
+ },
+ "65141a3059647d2cb3213c9e": {
+  "name": "조각가",
+  "rarity": "common",
+  "percent": 0.03,
+  "hidden": false
+ },
+ "65141ab70dc723592b0f9482": {
+  "name": "취권",
+  "rarity": "common",
+  "percent": 0.78,
+  "hidden": true
+ },
+ "65141b9859647d2cb3213ca2": {
+  "name": "U-SUCC",
+  "rarity": "common",
+  "percent": 9.58,
+  "hidden": false
+ },
+ "65141bdfcf2f1c285e606446": {
+  "name": "BEAR와 함께",
+  "rarity": "common",
+  "percent": 7.52,
+  "hidden": false
+ },
+ "65141c30ec10ff011f17cc3b": {
+  "name": "타르코프에 오신 것을 환영합니다",
+  "rarity": "common",
+  "percent": 49.17,
+  "hidden": true
+ },
+ "65141c80ec10ff011f17cc3e": {
+  "name": "언제나 처음은 아프지",
+  "rarity": "common",
+  "percent": 41.26,
+  "hidden": true
+ },
+ "65141cd2cf2f1c285e606449": {
+  "name": "시켜만 주십시오",
+  "rarity": "rare",
+  "percent": 5.58,
+  "hidden": false
+ },
+ "65141dd6303df252af1c72c9": {
+  "name": "PMC",
+  "rarity": "rare",
+  "percent": 2.99,
+  "hidden": false
+ },
+ "65141e37cf2f1c285e606361": {
+  "name": "그녀가 그랬었지 (That's What She Said)",
+  "rarity": "common",
+  "percent": 22.52,
+  "hidden": true
+ },
+ "65141eb5c31fcb0e163577dd": {
+  "name": "로스트",
+  "rarity": "common",
+  "percent": 27.87,
+  "hidden": true
+ },
+ "6514321bec10ff011f17ccac": {
+  "name": "반딧불이",
+  "rarity": "legendary",
+  "percent": 1.34,
+  "hidden": false
+ },
+ "6527d2e2c656a951ad1528c3": {
+  "name": "평화의 담뱃대",
+  "rarity": "rare",
+  "percent": 0.23,
+  "hidden": false
+ },
+ "6527d3aac656a951ad1528ce": {
+  "name": "빨간 책",
+  "rarity": "rare",
+  "percent": 0.23,
+  "hidden": false
+ },
+ "6527ee4a647c29201011defe": {
+  "name": "넌 내 형제가 아니야",
+  "rarity": "common",
+  "percent": 35.34,
+  "hidden": true
+ },
+ "6529097eccf6aa5f8737b3d0": {
+  "name": "스노우볼",
+  "rarity": "legendary",
+  "percent": 0.08,
+  "hidden": false
+ },
+ "655b49bc91aa9e07687ae47c": {
+  "name": "정의",
+  "rarity": "common",
+  "percent": 4.73,
+  "hidden": false
+ },
+ "655b4a576689c676ce57acb6": {
+  "name": "진짜 범죄",
+  "rarity": "rare",
+  "percent": 0.2,
+  "hidden": false
+ },
+ "660fe21454670811e304c045": {
+  "name": "마슬레니차",
+  "rarity": "legendary",
+  "percent": 0.01,
+  "hidden": false
+ },
+ "6634c8886e083a141f4aa3f4": {
+  "name": "리슐리외 추기경",
+  "rarity": "legendary",
+  "percent": 0.05,
+  "hidden": true
+ },
+ "6634ca69ee506a5c3e61be56": {
+  "name": "평화에 관여함",
+  "rarity": "legendary",
+  "percent": 0.06,
+  "hidden": true
+ },
+ "6634cae870af846d2868dada": {
+  "name": "지역의 대빵",
+  "rarity": "legendary",
+  "percent": 0.33,
+  "hidden": true
+ },
+ "664f1f8768508d74604bf556": {
+  "name": "카파로 향하는 여정",
+  "rarity": "legendary",
+  "percent": 1.35,
+  "hidden": false
+ },
+ "664f23e44702fd5db50ee732": {
+  "name": "만능 재주꾼",
+  "rarity": "rare",
+  "percent": 2.55,
+  "hidden": false
+ },
+ "66742c003a67b164a300fcbf": {
+  "name": "구원의 열쇠",
+  "rarity": "legendary",
+  "percent": 0.28,
+  "hidden": false
+ },
+ "668bf47c781d446fdc083711": {
+  "name": "치열한 경쟁",
+  "rarity": "legendary",
+  "percent": 0.17,
+  "hidden": false
+ },
+ "66b493bc2d8cd3b5e90a3648": {
+  "name": "마라톤",
+  "rarity": "legendary",
+  "percent": 0.26,
+  "hidden": false
+ },
+ "66c328aca91e7d66fa1b0b7b": {
+  "name": "방랑자",
+  "rarity": "common",
+  "percent": 14.71,
+  "hidden": false
+ },
+ "66c328de9dc78468f4040f35": {
+  "name": "업보를 청산할 시간이다",
+  "rarity": "common",
+  "percent": 11.81,
+  "hidden": false
+ },
+ "66c32996b4c0c017a3319cc3": {
+  "name": "다시 구르는 윤회의 수레바퀴",
+  "rarity": "rare",
+  "percent": 0.35,
+  "hidden": false
+ },
+ "66e2a7e5919bad697104f4b3": {
+  "name": "하이웨이 투 더 데인저 존",
+  "rarity": "legendary",
+  "percent": 0.25,
+  "hidden": false
+ },
+ "670feb95a4e71050310cc14b": {
+  "name": "완치",
+  "rarity": "legendary",
+  "percent": 0.19,
+  "hidden": false
+ },
+ "670febed5ee0fc738a0965a4": {
+  "name": "치명적 결과",
+  "rarity": "legendary",
+  "percent": 0.16,
+  "hidden": false
+ },
+ "675709bef4e2a2ce0f058f56": {
+  "name": "사륜구동",
+  "rarity": "rare",
+  "percent": 0.5,
+  "hidden": false
+ },
+ "675998a894008342eb04e47f": {
+  "name": "코로보드",
+  "rarity": "legendary",
+  "percent": 0.11,
+  "hidden": false
+ },
+ "676091c0f457869a94017a23": {
+  "name": "명망 있는 자",
+  "rarity": "legendary",
+  "percent": 1.33,
+  "hidden": false
+ },
+ "676094451fec2f7426093be6": {
+  "name": "더욱 명망 있는 자",
+  "rarity": "legendary",
+  "percent": 0.5,
+  "hidden": false
+ },
+ "67a0e57117e34930e50075f3": {
+  "name": "출구를 찾아서",
+  "rarity": "legendary",
+  "percent": 0.23,
+  "hidden": false
+ },
+ "67a0e57b972c11a3f50773b2": {
+  "name": "던전 마스터",
+  "rarity": "legendary",
+  "percent": 0.07,
+  "hidden": false
+ },
+ "67c838a4c566b0028f0f2d07": {
+  "name": "올 인 레드",
+  "rarity": "rare",
+  "percent": 0.07,
+  "hidden": false
+ },
+ "67fce0c2f18dc20eae02240b": {
+  "name": "태양이라는 이름의 별",
+  "rarity": "rare",
+  "percent": 0.08,
+  "hidden": true
+ },
+ "6842c25bd02bc07d70054019": {
+  "name": "페이스 유지하기",
+  "rarity": "legendary",
+  "percent": 0.22,
+  "hidden": false
+ },
+ "6842c27a38482d35ac0bd847": {
+  "name": "높이, 더 높이!",
+  "rarity": "legendary",
+  "percent": 0.11,
+  "hidden": false
+ },
+ "685d3d6b81d993fda109cdb8": {
+  "name": "마지막 한 판",
+  "rarity": "legendary",
+  "percent": 2.03,
+  "hidden": false
+ },
+ "685d6539127e4806240f3bcd": {
+  "name": "끝까지 간다",
+  "rarity": "legendary",
+  "percent": 0.12,
+  "hidden": false
+ },
+ "68936a7a672ffe94a509446b": {
+  "name": "타르그라드 이야기",
+  "rarity": "legendary",
+  "percent": 0.31,
+  "hidden": false
+ },
+ "68d3fe84757f8967ec09099b": {
+  "name": "5점 만점에 5점",
+  "rarity": "legendary",
+  "percent": 0.05,
+  "hidden": false
+ },
+ "68d3ff840531ed76e808866c": {
+  "name": "완벽에 한계는 없다",
+  "rarity": "legendary",
+  "percent": 0.02,
+  "hidden": false
+ },
+ "68dfdeb7958a19b62b0ae460": {
+  "name": "가볍게 가자",
+  "rarity": "legendary",
+  "percent": 0.95,
+  "hidden": false
+ },
+ "68e8f02ff3a1196d1a05f2cb": {
+  "name": "생존자",
+  "rarity": "legendary",
+  "percent": 0.04,
+  "hidden": false
+ },
+ "68e8f042b8efa2bbeb009d89": {
+  "name": "파멸자",
+  "rarity": "legendary",
+  "percent": 0.1,
+  "hidden": false
+ },
+ "68e8f04eb841bc8ac305350a": {
+  "name": "채무자",
+  "rarity": "legendary",
+  "percent": 0.09,
+  "hidden": false
+ },
+ "68e8f0575eb7e5ce5000ba0a": {
+  "name": "구원자",
+  "rarity": "legendary",
+  "percent": 0.32,
+  "hidden": false
+ },
+ "68f76335c3f68167b8029c18": {
+  "name": "생존자 (PVE 존)",
+  "rarity": "legendary",
+  "percent": 0.04,
+  "hidden": false
+ },
+ "68f76344bc0e8927900279f0": {
+  "name": "파멸자 (PVE 존)",
+  "rarity": "legendary",
+  "percent": 0.1,
+  "hidden": false
+ },
+ "68f76353c152253a5b01a612": {
+  "name": "채무자 (PVE 존)",
+  "rarity": "legendary",
+  "percent": 0.09,
+  "hidden": false
+ },
+ "68f7635e006f73031b0336fa": {
+  "name": "구원자 (PVE 존)",
+  "rarity": "legendary",
+  "percent": 0.31,
+  "hidden": false
+ },
+ "691212088e10a4e1fb0f48c4": {
+  "name": "약속을 지키는 자",
+  "rarity": "legendary",
+  "percent": 1.52,
+  "hidden": true
+ },
+ "691213563d597b2ef80a21cf": {
+  "name": "비즈니스일 뿐",
+  "rarity": "legendary",
+  "percent": 0.95,
+  "hidden": true
+ },
+ "691213956b60607135006811": {
+  "name": "길잡이",
+  "rarity": "legendary",
+  "percent": 3.36,
+  "hidden": false
+ },
+ "691213c8680e04c5da0571eb": {
+  "name": "지옥불",
+  "rarity": "legendary",
+  "percent": 0.77,
+  "hidden": false
+ },
+ "691213f0dbcdbbc54402fe00": {
+  "name": "남겨진 빵부스러기",
+  "rarity": "legendary",
+  "percent": 0.55,
+  "hidden": false
+ },
+ "6912145e52ddd29bf002d343": {
+  "name": "타인의 눈으로",
+  "rarity": "legendary",
+  "percent": 0.53,
+  "hidden": false
+ },
+ "69121487d2f0e6de2f0561ef": {
+  "name": "빚은 갚아야지",
+  "rarity": "legendary",
+  "percent": 0.86,
+  "hidden": false
+ },
+ "691214c93d597b2ef80a2206": {
+  "name": "테세우스",
+  "rarity": "legendary",
+  "percent": 0.95,
+  "hidden": false
+ },
+ "691214eafc9b2bc7f3042a57": {
+  "name": "우연의 일치(가 아니다)",
+  "rarity": "legendary",
+  "percent": 0.45,
+  "hidden": false
+ },
+ "69121515e329984a340f00b4": {
+  "name": "장난은 이제 그만!",
+  "rarity": "legendary",
+  "percent": 0.14,
+  "hidden": true
+ },
+ "6912153f761a11e52408fbd2": {
+  "name": "쉬운 길",
+  "rarity": "legendary",
+  "percent": 0.08,
+  "hidden": true
+ },
+ "6912156f3d597b2ef80a2209": {
+  "name": "U턴",
+  "rarity": "legendary",
+  "percent": 0.12,
+  "hidden": true
+ },
+ "6912159adf87c6a94a0b9f34": {
+  "name": "터지기라도 하겠어?",
+  "rarity": "legendary",
+  "percent": 0.12,
+  "hidden": true
+ },
+ "691215e8680e04c5da057e57": {
+  "name": "작은 승리들",
+  "rarity": "legendary",
+  "percent": 0.25,
+  "hidden": false
+ },
+ "691216216cd39d8e1d09173b": {
+  "name": "내가 곧 속도다",
+  "rarity": "legendary",
+  "percent": 0.03,
+  "hidden": true
+ },
+ "6912163e680e04c5da057e5b": {
+  "name": "좋은 일에 쓰기",
+  "rarity": "legendary",
+  "percent": 0.54,
+  "hidden": true
+ },
+ "6912168c52ddd29bf002d37a": {
+  "name": "빛이 사라질 때",
+  "rarity": "legendary",
+  "percent": 0.51,
+  "hidden": true
+ },
+ "693a83434cb1cf587c0a63f9": {
+  "name": "화이트아웃",
+  "rarity": "legendary",
+  "percent": 0.8,
+  "hidden": false
+ },
+ "6984ab58ee0ae2c0d5075f33": {
+  "name": "덕 헌트",
+  "rarity": "legendary",
+  "percent": 0.35,
+  "hidden": false
+ },
+ "69de1be5d378f8aef8008409": {
+  "name": "정타다, 정타!",
+  "rarity": "legendary",
+  "percent": 0.06,
+  "hidden": false
+ },
+ "69de1c2be33584b09a098e93": {
+  "name": "죽음을 앞둔 자들의 경례",
+  "rarity": "legendary",
+  "percent": 0.15,
+  "hidden": false
+ },
+ "6a0344563743e4b101070b92": {
+  "name": "빙하의 균열",
+  "rarity": "legendary",
+  "percent": 0.32,
+  "hidden": false
+ },
+ "6a03447fb2e3003f8706a400": {
+  "name": "배의 일부, 우리의 일부",
+  "rarity": "legendary",
+  "percent": 0.21,
+  "hidden": false
+ },
+ "6a04f93d7a6a2b325906bb5c": {
+  "name": "출항 대기",
+  "rarity": "legendary",
+  "percent": 0.25,
+  "hidden": false
+ },
+ "6a11d9028fd274eb6207c0bc": {
+  "name": "배에 올라탔다",
+  "rarity": "common",
+  "percent": 0.9,
+  "hidden": false
+ },
+ "6a11d98a1e4337ff1d0a6dbe": {
+  "name": "용감한 자가 승리한다",
+  "rarity": "rare",
+  "percent": 0.22,
+  "hidden": false
+ },
+ "6a399cb92c8999ddbd01268b": {
+  "name": "내가 곧 법이노라",
+  "rarity": "legendary",
+  "percent": 0.72,
+  "hidden": false
+ },
+ "6a4fbdaf39f54f9c000f1575": {
+  "name": "고잉 다크",
+  "rarity": "legendary",
+  "percent": 0.37,
+  "hidden": false
+ },
+ "6a59f63cacaee8fa5d013981": {
+  "name": "아무런 도움 필요 없어",
+  "rarity": "seasonal",
+  "percent": 0.45,
+  "hidden": false
+ },
+ "6a59f64174b4c1a38702a8a6": {
+  "name": "임포스터",
+  "rarity": "seasonal",
+  "percent": 0.01,
+  "hidden": false
+ },
+ "6a59f64965aa8755e000b95c": {
+  "name": "신도",
+  "rarity": "seasonal",
+  "percent": 0.45,
+  "hidden": false
+ },
+ "6a59f6fb65aa8755e000b95f": {
+  "name": "첫 걸음",
+  "rarity": "seasonal",
+  "percent": 0,
+  "hidden": false
+ },
+ "6a59f777625222137906a5c5": {
+  "name": "정상에 도달하다",
+  "rarity": "seasonal",
+  "percent": 0,
+  "hidden": false
+ },
+ "6a5df324129316dcbe0da3da": {
+  "name": "나한테는 다 계획이 있었다고",
+  "rarity": "seasonal",
+  "percent": 0,
+  "hidden": false
+ },
+ "6a5df6b0c901d2199d017048": {
+  "name": "하나도 좋지만, 두개는 더 좋지",
+  "rarity": "seasonal",
+  "percent": 0,
+  "hidden": false
+ },
+ "6a5df752accb14ca770ccb07": {
+  "name": "유전적 우월성",
+  "rarity": "seasonal",
+  "percent": 0,
+  "hidden": false
+ },
+ "6a5dfd7b5c12f0b8a80c453c": {
+  "name": "우리 집에 있는 하드코어",
+  "rarity": "seasonal",
+  "percent": 0,
+  "hidden": false
+ },
+ "6a5dfd8653ab08ce0d093aa6": {
+  "name": "그걸 도전이라고 하나?",
+  "rarity": "seasonal",
+  "percent": 0,
+  "hidden": false
+ },
+ "6a5dfed95c12f0b8a80c4545": {
+  "name": "천국에서 태어난 기업가",
+  "rarity": "seasonal",
+  "percent": 0,
+  "hidden": false
+ },
+ "6a5e2d53e88fae7c180232f8": {
+  "name": "일급 비밀",
+  "rarity": "seasonal",
+  "percent": 0,
+  "hidden": false
+ },
+ "6a60f75f1a1222ee000baf0d": {
+  "name": "새 시대의 여명",
+  "rarity": "legendary",
+  "percent": 0.45,
+  "hidden": false
+ },
+ "6a6870b6e37edc03f00a678d": {
+  "name": "원칙보다 이익",
+  "rarity": "seasonal",
+  "percent": 0,
+  "hidden": false
+ },
+ "6a6871871f135181ee0aff56": {
+  "name": "낯선 사람들 사이에서",
+  "rarity": "seasonal",
+  "percent": 0,
+  "hidden": false
+ },
+ "6aba7a50d7771f5a3808638d": {
+  "name": "기댈 수 있는 어깨",
+  "rarity": "common",
+  "percent": 0.04,
+  "hidden": false
+ }
+}

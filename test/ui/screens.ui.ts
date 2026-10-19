@@ -1,0 +1,217 @@
+import { type ChildProcess, spawn } from "node:child_process";
+import { cpSync, createReadStream, existsSync, mkdtempSync, readdirSync, rmSync, statSync } from "node:fs";
+import { createServer as httpServer, type Server } from "node:http";
+import { createServer } from "node:net";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { type Browser, chromium, type Page } from "playwright";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
+const ROOT = fileURLToPath(new URL("../..", import.meta.url));
+const STANDALONE = join(ROOT, ".next/standalone");
+const FIXTURES = join(ROOT, "test/fixtures");
+const DATA = mkdtempSync(join(tmpdir(), "tarkov-labs-ui-"));
+const SHOTS = mkdtempSync(join(tmpdir(), "tarkov-labs-ui-shots-"));
+process.env.DATA_DIR = DATA;
+
+let server: ChildProcess;
+let upstream: Server;
+let base = "";
+let browser: Browser;
+
+function freePort(): Promise<number> {
+  return new Promise((resolve) => {
+    const s = createServer();
+    s.listen(0, "127.0.0.1", () => {
+      const { port } = s.address() as { port: number };
+      s.close(() => resolve(port));
+    });
+  });
+}
+
+// players.tarkov.dev 대신 픽스처 폴더를 그대로 내려줌
+async function fixtureServer(): Promise<string> {
+  const port = await freePort();
+  upstream = httpServer((req, res) => {
+    const file = join(FIXTURES, decodeURIComponent((req.url ?? "/").split("?")[0]));
+    if (!file.startsWith(FIXTURES) || !existsSync(file) || !statSync(file).isFile()) {
+      res.writeHead(404).end();
+      return;
+    }
+    res.writeHead(200, { "content-type": "application/json" });
+    createReadStream(file).pipe(res);
+  });
+  await new Promise<void>((r) => upstream.listen(port, "127.0.0.1", r));
+  return `http://127.0.0.1:${port}`;
+}
+
+async function seed() {
+  const { db } = await import("../../src/server/db");
+  const conn = db();
+  const t = Date.now();
+  const acc = conn.prepare("INSERT INTO accounts (aid, name, name_lc, u_pvp, u_season, u_pve, u_arena) VALUES (?, ?, ?, ?, ?, ?, ?)");
+  acc.run(1001, "Fixture-Alpha", "fixture-alpha", t, t, t, null);
+  acc.run(1002, "Fixture-Bravo", "fixture-bravo", t, t, t, t);
+  acc.run(1003, "Fixture-Charlie", "fixture-charlie", t, null, t, t);
+  acc.run(1004, "Fixture-Hidden", "fixture-hidden", t, null, null, null);
+  conn.prepare("INSERT INTO hidden (aid, at) VALUES (1004, ?)").run(t);
+  conn.prepare("INSERT INTO names (aid, old_name, new_name, seen_at) VALUES (1001, ?, ?, ?)").run("아주아주긴옛날닉네임_Long_Old_Name", "Fixture-Alpha", t);
+  // 1001과 비슷한 계정 200개로 판정이 나오게 함
+  const b = conn.prepare("INSERT INTO baseline (mode, aid, updated, hours, n, kills, deaths, survived, streak, headshots, max_game_kills) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+  for (let i = 0; i < 200; i++) {
+    b.run("pvp", 50_000 + i, t, 2456 * (0.95 + (i % 10) / 100), 1055 + (i % 40) - 20, 150 + i, 560 + (i % 30), 400 + (i % 80), 4 + (i % 9), 0, 0);
+    b.run("arena", 50_000 + i, t, 100 * (0.95 + (i % 10) / 100), 21 + (i % 3), 300 + i, 500 + (i % 50), 10 + (i % 5), 10 + (i % 15), 120 + (i % 60), 30 + (i % 20));
+  }
+  conn.prepare("INSERT INTO meta (key, value) VALUES ('indexed_at', ?), ('accounts', '4')").run(String(t));
+}
+
+beforeAll(async () => {
+  if (!existsSync(join(STANDALONE, "server.js"))) throw new Error("먼저 pnpm build를 실행해주세요.");
+  for (const dir of ["public", "assets"]) cpSync(join(ROOT, dir), join(STANDALONE, dir), { recursive: true });
+  cpSync(join(ROOT, ".next/static"), join(STANDALONE, ".next/static"), { recursive: true });
+  await seed();
+  const players = await fixtureServer();
+  const port = await freePort();
+  base = `http://localhost:${port}`;
+  // 운영 .env가 섞이지 않게 환경 변수를 직접 지정
+  server = spawn(process.execPath, ["server.js"], {
+    cwd: STANDALONE,
+    env: { NODE_ENV: "production", PATH: process.env.PATH ?? "", PORT: String(port), HOSTNAME: "127.0.0.1", BASE_URL: base, DATA_DIR: DATA, PLAYERS_BASE: players, JOBS: "0" },
+    stdio: "ignore",
+  });
+  for (let i = 0; i < 50; i++) {
+    if (await fetch(`${base}/api/health`).then((r) => r.ok).catch(() => false)) break;
+    await new Promise((r) => setTimeout(r, 200));
+  }
+  browser = await chromium.launch();
+});
+
+afterAll(async () => {
+  await browser?.close();
+  server?.kill();
+  upstream?.close();
+  rmSync(DATA, { recursive: true, force: true });
+  if (readdirSync(SHOTS).length === 0) rmSync(SHOTS, { recursive: true });
+});
+
+type Screen = { name: string; path: string; status?: number };
+
+const SCREENS: Screen[] = [
+  { name: "홈", path: "/" },
+  { name: "계정 조회", path: "/players" },
+  { name: "프로필 PvP", path: "/players/1001?mode=pvp" },
+  { name: "프로필 PvE", path: "/players/1003?mode=pve" },
+  { name: "프로필 아레나", path: "/players/1002?mode=arena" },
+  { name: "기록 없는 모드", path: "/players/1001?mode=arena" },
+  { name: "숨긴 계정", path: "/players/1004" },
+  { name: "판정 기준", path: "/criteria" },
+  { name: "처리방침", path: "/privacy" },
+  { name: "KORD BREACH", path: "/kord-breach" },
+  { name: "없는 페이지", path: "/players/abc", status: 404 },
+];
+
+type Problems = { overflow: number; undefinedClass: string[]; unstyled: string[] };
+
+function inspect(): Problems {
+  const defined = new Set<string>();
+  const collect = (rule: CSSRule) => {
+    const sel = (rule as CSSStyleRule).selectorText;
+    if (sel) for (const m of sel.matchAll(/\.([\w-]+)/g)) defined.add(m[1]);
+    for (const child of (rule as CSSGroupingRule).cssRules ?? []) collect(child);
+  };
+  for (const sheet of document.styleSheets) for (const rule of sheet.cssRules) collect(rule);
+  const visible = (el: Element) => {
+    const r = el.getBoundingClientRect();
+    return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== "hidden";
+  };
+  const label = (el: Element) => `${el.tagName.toLowerCase()}.${[...el.classList].join(".")} "${(el.textContent ?? "").trim().slice(0, 30)}"`;
+  const undefinedClass = new Set<string>();
+  for (const el of document.body.querySelectorAll("[class]")) {
+    if (!visible(el)) continue;
+    for (const c of el.classList) if (!defined.has(c)) undefinedClass.add(`.${c} ${label(el)}`);
+  }
+  const unstyled: string[] = [];
+  for (const el of document.querySelectorAll("button, select, input:not([type=checkbox]):not([type=radio]):not([type=hidden])")) {
+    if (!visible(el)) continue;
+    const border = getComputedStyle(el).borderTopStyle;
+    if (border === "outset" || border === "inset") unstyled.push(label(el));
+  }
+  return { overflow: document.documentElement.scrollWidth - innerWidth, undefinedClass: [...undefinedClass], unstyled };
+}
+
+async function open(screen: Screen, width: number, theme: "dark" | "light"): Promise<{ page: Page; errors: string[]; status: number }> {
+  const ctx = await browser.newContext({ viewport: { width, height: 900 } });
+  await ctx.addInitScript((t) => localStorage.setItem("tl-theme", t), theme);
+  const page = await ctx.newPage();
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(String(e)));
+  page.on("console", (m) => {
+    if (m.type() === "error" && !(screen.status === 404 && m.text().includes("404"))) errors.push(m.text());
+  });
+  const res = await page.goto(base + screen.path, { waitUntil: "networkidle" });
+  await page.evaluate(() => document.fonts.ready);
+  return { page, errors, status: res?.status() ?? 0 };
+}
+
+describe("화면 점검", () => {
+  for (const screen of SCREENS) {
+    for (const width of [390, 1440]) {
+      for (const theme of ["dark", "light"] as const) {
+        it(`${screen.name} ${width} ${theme}`, async () => {
+          const { page, errors, status } = await open(screen, width, theme);
+          try {
+            expect(status).toBe(screen.status ?? 200);
+            expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe(theme);
+            const p = await page.evaluate(inspect);
+            expect(p, `가로 넘침, 정의 없는 클래스, 브라우저 기본 모양 컨트롤 ${JSON.stringify(p)}`).toEqual({ overflow: 0, undefinedClass: [], unstyled: [] });
+            expect(errors).toEqual([]);
+          } catch (e) {
+            await page.screenshot({ path: join(SHOTS, `${screen.name}-${width}-${theme}.png`), fullPage: true });
+            throw new Error(`${e instanceof Error ? e.message : e}\n캡처: ${SHOTS}`);
+          } finally {
+            await page.context().close();
+          }
+        });
+      }
+    }
+  }
+
+  it("프로필에 판정과 닉네임 변경이 표시된다", async () => {
+    const { page } = await open(SCREENS[2], 1440, "dark");
+    await expect(page.locator(".badge").first().textContent()).resolves.toMatch(/특이점 없음|확인 필요|이상 수치/);
+    await expect(page.getByText("아주아주긴옛날닉네임_Long_Old_Name").count()).resolves.toBe(1);
+    await page.context().close();
+  });
+
+  it("검색어를 넣으면 후보가 뜨고 고르면 프로필로 이동한다", async () => {
+    const { page } = await open(SCREENS[1], 390, "dark");
+    await page.getByRole("combobox").fill("fixture");
+    await page.getByRole("option").first().waitFor();
+    const names = await page.getByRole("option").allTextContents();
+    expect(names.some((n) => n.includes("Hidden"))).toBe(false);
+    await page.getByRole("combobox").fill("Fixture-Bravo");
+    await page.getByRole("option", { name: /Fixture-Bravo/ }).waitFor();
+    await page.keyboard.press("Enter");
+    await page.waitForURL(/\/players\/1002/);
+    await page.context().close();
+  });
+
+  it("키보드로 옮긴 초점이 화면에 표시된다", async () => {
+    const { page } = await open(SCREENS[2], 1440, "dark");
+    const missing: string[] = [];
+    for (let i = 0; i < 40; i++) {
+      await page.keyboard.press("Tab");
+      const r = await page.evaluate(() => {
+        const el = document.activeElement as HTMLElement | null;
+        if (!el || el === document.body) return null;
+        const s = getComputedStyle(el);
+        const shown = s.outlineStyle !== "none" && parseFloat(s.outlineWidth) > 0;
+        return shown ? null : `${el.tagName.toLowerCase()} "${(el.textContent ?? el.getAttribute("aria-label") ?? "").trim().slice(0, 30)}"`;
+      });
+      if (r) missing.push(r);
+    }
+    await page.context().close();
+    expect(missing).toEqual([]);
+  });
+});

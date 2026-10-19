@@ -1,0 +1,54 @@
+# Tarkov Labs
+
+Escape from Tarkov 도구를 모아 둔 사이트입니다. 계정 전적 조회와 KORD BREACH 특성 시뮬레이터가 있습니다. [tarkov.mongsil.dev](https://tarkov.mongsil.dev)에서 쓸 수 있습니다.
+
+## 기능
+
+### 계정 조회
+
+- 닉네임 앞부분이나 계정 번호로 찾습니다. tarkov.dev에서 한 번 이상 조회된 계정만 찾을 수 있습니다.
+- PvP, 시즌, PvE, 아레나 전적을 탭으로 나눠 보여 줍니다. 아레나는 헤드샷 비율, 한 경기 최다 킬, 최고 연속 킬, 모드별 기록까지 나옵니다.
+- 판정 배지는 플레이 시간과 레이드 수가 비슷한 계정들 사이에서 PMC K/D, 생존율 같은 지표가 어디쯤인지 보여 줍니다. 통계 기준이며 부정행위의 증거가 아닙니다. 계산 방식은 사이트의 판정 기준 페이지에 있습니다.
+- 닉네임 변경과 이 사이트에서 받은 전적 기록이 쌓입니다.
+- 기록이 오래됐으면 tarkov.dev에서 그 계정을 열고 돌아오면 됩니다. 탭으로 돌아오면 자동으로 다시 불러옵니다.
+
+### KORD BREACH 특성 시뮬레이터
+
+시즌 1 특성의 포인트 합계를 계산합니다. 긍정 특성은 포인트를 쓰고 부정 특성은 포인트를 얻습니다. 같은 스탯을 반대로 바꾸는 특성은 함께 고를 수 없습니다.
+
+## 실행
+
+Node 24 이상과 pnpm이 필요합니다.
+
+```bash
+pnpm install
+cp .env.example .env.local
+pnpm dev
+```
+
+처음 띄우면 tarkov.dev에서 이름 목록 약 300만 건을 받아 SQLite에 넣습니다. 1분 정도 걸리고 DB는 약 250MB입니다. 받지 않으려면 `JOBS=0`으로 띄웁니다.
+
+```bash
+pnpm test    # 프로필 파서와 판정 계산 테스트
+pnpm test:ui # 빌드한 서버를 픽스처 데이터로 띄워 화면별 가로 넘침, 빠진 스타일, 콘솔 오류 점검
+pnpm lint
+pnpm build
+```
+
+## 설정
+
+| 키 | 설명 |
+|---|---|
+| `BASE_URL` | 사이트 주소. 요청 출처 검사와 sitemap에 씁니다 |
+| `DATA_DIR` | SQLite 파일을 둘 폴더. 기본값은 `./data` |
+| `PLAYERS_BASE` | 프로필 JSON을 받을 주소. 기본값은 `https://players.tarkov.dev` |
+| `JOBS` | `0`이면 이름 목록 적재와 비교군 수집을 하지 않습니다 |
+| `SENTRY_DSN` | 서버 오류를 보낼 Sentry DSN. 비우면 보내지 않습니다 |
+
+## 데이터
+
+- 전적은 [tarkov.dev](https://tarkov.dev)가 공개하는 `players.tarkov.dev` JSON에서 받습니다. 이름 목록은 하루 한 번, 판정 비교군은 최근 30일 안에 갱신된 계정을 초당 1건씩 받습니다. Battlestate Games 서버에는 접속하지 않습니다.
+- `src/data/levels.json`과 `src/data/achievements.json`은 tarkov.dev JSON API의 레벨 표와 업적 정보입니다. `pnpm refdata`로 다시 만듭니다.
+- `test/fixtures`는 실제 프로필 세 개에서 장비와 아이템을 빼고 닉네임과 계정 번호를 바꾼 것입니다.
+- 계정 주인이 삭제를 요청하면 `node scripts/hide.mjs <계정 번호>`로 기록을 지우고 이후 표시하지 않습니다.
+- 글꼴은 [Pretendard](https://github.com/orioncactus/pretendard)이며 SIL Open Font License를 따릅니다.

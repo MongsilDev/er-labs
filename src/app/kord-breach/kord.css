@@ -1,0 +1,476 @@
+.kord {
+  --bg: #0e1518;
+  --bg2: #0a0f12;
+  --text: #e8ecec;
+  --dim: #8c9a97;
+  --faint: #5f6d6a;
+  --gcard: #141c1f;
+  --gline: #242e31;
+  --line2: #3a4640;
+  --grn: #5faa66;
+  --grn-txt: #cfe3d2;
+  --pcard: #111d15;
+  --pline: #25362a;
+  --psel: #16291b;
+  --pselln: #41764b;
+  --pbar: #1e3927;
+  --red: #c56d5d;
+  --red-txt: #e6cfc9;
+  --ncard: #1c1315;
+  --nline: #352327;
+  --nsel: #281a1d;
+  --nselln: #7c4740;
+  --nbar: #391f23;
+  --note: #d9b45f;
+
+  color-scheme: dark;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 20px 20px;
+  border-radius: 12px;
+  background: radial-gradient(130% 90% at 50% 0%, #131d20 0%, var(--bg) 55%, var(--bg2) 100%);
+  color: var(--text);
+  word-break: normal;
+  overflow-wrap: normal;
+  font-feature-settings: normal;
+}
+.kord :focus-visible {
+  outline-color: var(--grn);
+}
+
+/* 점수 머리글은 카드가 스크롤돼도 화면 위에 고정 */
+.kord .kb-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  margin: -10px -20px 0;
+  padding: 10px 20px;
+  border-radius: 12px 12px 0 0;
+  background: rgba(12, 18, 21, 0.92);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--gline);
+}
+.kord .kb-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.kord .kb-mark {
+  width: 5px;
+  height: 36px;
+  background: var(--grn);
+  box-shadow: 0 0 12px rgba(95, 170, 102, 0.55);
+}
+.kord .kb-title {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.5;
+  letter-spacing: 0.15em;
+}
+.kord .kb-sub {
+  font-size: 11px;
+  color: var(--dim);
+  letter-spacing: 0.3em;
+  margin-top: 3px;
+}
+.kord .kb-score {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.kord .kb-scorepanel {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--gcard);
+  border: 1px solid var(--line2);
+  border-radius: 10px;
+  padding: 7px 18px;
+}
+.kord .kb-sp-break {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 13px;
+  color: var(--dim);
+  font-variant-numeric: tabular-nums;
+}
+.kord .kb-sp-break .kb-c {
+  color: var(--grn);
+}
+.kord .kb-sp-break .kb-g {
+  color: var(--red);
+}
+.kord .kb-sp-break b {
+  font-weight: 800;
+}
+.kord .kb-sp-net {
+  text-align: right;
+  line-height: 1;
+  border-left: 1px solid var(--gline);
+  padding-left: 18px;
+}
+.kord .kb-sp-net .kb-lab {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--dim);
+  text-transform: uppercase;
+}
+.kord .kb-sp-net .kb-val {
+  font-size: 34px;
+  font-weight: 800;
+  margin-top: 4px;
+  font-variant-numeric: tabular-nums;
+}
+.kord .kb-reset {
+  background: transparent;
+  color: var(--dim);
+  border: 1px solid var(--gline);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.kord .kb-reset:hover {
+  color: var(--text);
+  border-color: var(--dim);
+}
+
+.kord .kb-bar {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: #dbe4e2;
+  text-transform: uppercase;
+  padding: 5px 0;
+  border-radius: 3px;
+}
+.kord .kb-bar.kb-gray {
+  background: linear-gradient(90deg, transparent, #2f3a3d 50%, transparent);
+}
+.kord .kb-bar.kb-green {
+  background: linear-gradient(90deg, transparent, var(--pbar) 50%, transparent);
+  color: var(--grn-txt);
+}
+.kord .kb-bar.kb-red {
+  background: linear-gradient(90deg, transparent, var(--nbar) 50%, transparent);
+  color: var(--red-txt);
+}
+
+.kord .kb-board {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.kord .kb-sec {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.kord .kb-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: minmax(52px, auto);
+  gap: 4px;
+}
+
+.kord .kb-card,
+.kord .kb-gchip {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  text-align: left;
+  border-radius: 7px;
+  padding: 5px 10px;
+  overflow: hidden;
+  color: var(--text);
+}
+.kord .kb-gchip {
+  background: var(--gcard);
+  border: 1px solid var(--gline);
+}
+.kord .kb-card {
+  background: var(--pcard);
+  border: 1px solid var(--pline);
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+.kord .kb-card.kb-neg {
+  background: var(--ncard);
+  border-color: var(--nline);
+}
+.kord .kb-card:focus-visible {
+  outline: 2px solid var(--grn);
+  outline-offset: 1px;
+}
+.kord .kb-card.kb-pos:hover {
+  border-color: var(--pselln);
+}
+.kord .kb-card.kb-neg:hover {
+  border-color: var(--nselln);
+}
+.kord .kb-card.kb-pos[aria-pressed="true"] {
+  background: var(--psel);
+  border-color: var(--grn);
+}
+.kord .kb-card.kb-neg[aria-pressed="true"] {
+  background: var(--nsel);
+  border-color: var(--red);
+}
+
+.kord .kb-cic {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  color: #b3c0bd;
+  background-color: currentColor;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+.kord .kb-card.kb-pos[aria-pressed="true"] .kb-cic {
+  color: var(--grn);
+}
+.kord .kb-card.kb-neg[aria-pressed="true"] .kb-cic {
+  color: var(--red);
+}
+.kord .kb-cbody {
+  min-width: 0;
+  flex: 1;
+}
+.kord .kb-ctop {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.kord .kb-cname {
+  flex: 0 1 auto;
+  min-width: 0;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.kord .kb-cpts {
+  font-size: 13px;
+  font-weight: 700;
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-variant-numeric: tabular-nums;
+}
+.kord .kb-card.kb-pos .kb-cpts {
+  background: rgba(95, 170, 102, 0.15);
+  color: #95d19a;
+}
+.kord .kb-card.kb-neg .kb-cpts {
+  background: rgba(197, 109, 93, 0.16);
+  color: #e2a596;
+}
+.kord .kb-ceff {
+  font-size: 12.5px;
+  line-height: 1.28;
+  color: var(--dim);
+  margin-top: 3px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.kord .kb-gchip .kb-cname {
+  white-space: normal;
+}
+
+/* 특이사항 노트 배지 (예: 매력 없음 → 카파 획득 가능) */
+.kord .kb-cbadge {
+  flex: 0 0 auto;
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--note);
+  background: rgba(217, 180, 95, 0.14);
+  border: 1px solid rgba(217, 180, 95, 0.4);
+  border-radius: 4px;
+  padding: 1px 6px;
+  white-space: nowrap;
+}
+
+/* 헤더 중앙 안내 배너 (브랜드와 점수 패널 사이) */
+.kord .kb-infobar {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 560px;
+  align-self: center;
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--dim);
+  background: rgba(95, 170, 102, 0.06);
+  border: 1px solid var(--gline);
+  border-radius: 6px;
+  padding: 7px 12px;
+}
+.kord .kb-infobar .kb-ico {
+  color: var(--grn);
+  font-weight: 700;
+  flex: 0 0 auto;
+}
+.kord .kb-inotes {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+/* 상호 배타로 지금 고를 수 없는 카드 */
+.kord .kb-card:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  filter: grayscale(0.55);
+}
+.kord .kb-card.kb-pos:disabled:hover {
+  border-color: var(--pline);
+}
+.kord .kb-card.kb-neg:disabled:hover {
+  border-color: var(--nline);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kord .kb-card {
+    transition: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .kord {
+    padding: 12px 14px 28px;
+    gap: 14px;
+  }
+  .kord .kb-head {
+    margin: -12px -14px 0;
+    padding: 12px 14px;
+  }
+  .kord .kb-board {
+    gap: 16px;
+  }
+  .kord .kb-grid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: minmax(58px, auto);
+  }
+  .kord .kb-card,
+  .kord .kb-gchip {
+    min-height: 58px;
+    padding: 8px 12px;
+  }
+}
+
+@media (max-width: 560px) {
+  /* .wrap 좌우 여백 16px만큼 넓혀 화면 폭을 다 씀 */
+  .kord {
+    margin: 0 -16px;
+    border-radius: 0;
+  }
+  .kord .kb-head {
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 10px;
+    border-radius: 0;
+  }
+  .kord .kb-brand {
+    order: 1;
+    gap: 9px;
+  }
+  .kord .kb-mark {
+    height: 30px;
+  }
+  .kord .kb-score {
+    order: 2;
+    margin-left: auto;
+    gap: 10px;
+  }
+  .kord .kb-infobar {
+    order: 3;
+    flex: 1 1 100%;
+    align-self: stretch;
+    max-width: none;
+  }
+  .kord .kb-scorepanel {
+    padding: 6px 12px;
+    gap: 12px;
+    border-radius: 8px;
+  }
+  .kord .kb-sp-break {
+    font-size: 12px;
+    gap: 3px;
+  }
+  .kord .kb-sp-net {
+    padding-left: 12px;
+  }
+  .kord .kb-sp-net .kb-val {
+    font-size: 26px;
+  }
+  .kord .kb-title {
+    font-size: 18px;
+  }
+  .kord .kb-sub {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+  }
+  .kord .kb-reset {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+  .kord .kb-grid {
+    gap: 6px;
+    grid-auto-rows: minmax(56px, auto);
+  }
+  .kord .kb-card,
+  .kord .kb-gchip {
+    gap: 8px;
+    padding: 7px 9px;
+    min-height: 56px;
+  }
+  .kord .kb-cic {
+    width: 34px;
+    height: 34px;
+  }
+  .kord .kb-cname {
+    font-size: 14px;
+  }
+  .kord .kb-ceff {
+    font-size: 11px;
+    line-height: 1.25;
+    margin-top: 2px;
+  }
+  .kord .kb-cpts {
+    font-size: 12px;
+    padding: 1px 6px;
+  }
+  .kord .kb-ctop {
+    flex-wrap: wrap;
+    row-gap: 3px;
+  }
+  .kord .kb-cbadge {
+    font-size: 10px;
+  }
+  .kord .kb-bar {
+    font-size: 12px;
+    letter-spacing: 0.15em;
+  }
+}
