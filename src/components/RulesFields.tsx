@@ -40,7 +40,7 @@ export default function RulesFields({ rules, mode, rounds, onChange }: { rules: 
         </label>
         <label>
           <input type="checkbox" checked={rules.bans} onChange={(e) => set("bans", e.target.checked)} />
-          같은 실험체 3명 이상이면 다음 라운드 금지
+          강화 3-PICK-BAN: 3명 1라운드, 4명 2라운드, 5명 이상 3라운드 금지
         </label>
         <label>
           <input type="checkbox" checked={rules.subWeather} onChange={(e) => set("subWeather", e.target.checked)} />
