@@ -11,7 +11,10 @@ import { currentUser } from "@/server/auth";
 import { myTournaments } from "@/server/tournament";
 import "./score.css";
 
-export const metadata: Metadata = { title: "점수 계산" };
+export const metadata: Metadata = {
+  title: "점수 계산",
+  description: "이터널 리턴 커스텀 게임 결과 CSV로 커뮤니티 대회 순위, 감점, 체크포인트, 금지 실험체를 계산합니다.",
+};
 export const dynamic = "force-dynamic";
 
 export default async function ScorePage({ searchParams }: { searchParams: Promise<{ create?: string; login?: string }> }) {

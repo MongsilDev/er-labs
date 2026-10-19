@@ -79,6 +79,7 @@ export type NextRound = {
   subRemaining: string[];
   bans: string[];
   checkpoint: string[];
+  weatherPick: string | null;
 };
 
 export type PlayerStat = { nickname: string; team: string; value: number; rank: number };
@@ -493,6 +494,8 @@ export function computeGroup(input: GroupInput): GroupResult {
       subRemaining: rules.subWeather ? SUB_WEATHERS.filter((s) => !used.has(s)) : [],
       bans: [...(bansByRound.get(nextNo) ?? [])],
       checkpoint: mode === "points" ? [] : standings.filter((s) => s.checkpoint).map((s) => s.name),
+      // 마스터즈 규정 2.5.3: 체크포인트 팀 중 최고 점수 팀이 다음 라운드 메인 날씨 선택
+      weatherPick: mode === "points" ? null : (standings.find((s) => s.checkpoint)?.name ?? null),
     };
   }
 

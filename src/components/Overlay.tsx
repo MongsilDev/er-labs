@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { api } from "@/lib/client";
 import { fmt1 } from "@/lib/format";
 import type { TournamentView } from "@/lib/view";
@@ -44,10 +44,30 @@ export default function Overlay({
   }, [view.code]);
   const g = view.groups[idx];
   const rows = result.standings.slice(0, limit);
+  const box = useRef<HTMLDivElement>(null);
+  // 지정 배율에서 화면 높이를 넘으면 맞을 때까지 줄임
+  useLayoutEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const fit = () => {
+      let z = scale;
+      for (let i = 0; i < 4; i++) {
+        el.style.zoom = String(z);
+        el.style.setProperty("--zoom-fix", String(z));
+        const h = el.getBoundingClientRect().height;
+        const room = window.innerHeight - 48;
+        if (h <= room + 1) break;
+        z = Math.max(0.3, (z * room) / h);
+      }
+    };
+    fit();
+    window.addEventListener("resize", fit);
+    return () => window.removeEventListener("resize", fit);
+  }, [scale, rows.length, view.version]);
   const max = Math.max(1, ...result.standings.map(barTotal));
   const status = result.ended ? "최종 순위" : result.played ? `${result.played}라운드 종료` : "경기 전";
   return (
-    <div className={`ov ${side}${rows.length > 12 ? " dense" : ""}`} style={{ zoom: scale, ["--n" as string]: rows.length, ["--zoom-fix" as string]: scale }}>
+    <div ref={box} className={`ov ${side}${rows.length > 12 ? " dense" : ""}`} style={{ zoom: scale, ["--n" as string]: rows.length, ["--zoom-fix" as string]: scale }}>
       <div className="ov-hd">
         <b>
           {view.name}

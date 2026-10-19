@@ -207,7 +207,12 @@ export function Teams({ group, result, mode, rules, run }: { group: GroupView; r
           ).map(([to, froms]) => (
             <li key={to}>
               <span className="ellipsis">
-                {froms.filter((f) => normalize(f) !== normalize(to)).join(", ")} 대신 <b className="plain">{to}</b>
+                {(() => {
+                  const own = froms.filter((f) => normalize(f) !== normalize(to));
+                  const records = own.filter((f) => normalize(f) in result.displayOf);
+                  return (records.length ? records : own).join(", ");
+                })()}{" "}
+                대신 <b className="plain">{to}</b>
               </span>
               <button
                 type="button"

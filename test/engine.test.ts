@@ -239,6 +239,19 @@ describe("재점검에서 찾은 경우", () => {
   });
 });
 
+describe("메인 날씨 선택권", () => {
+  it("체크포인트 팀 중 점수가 가장 높은 팀이 다음 라운드 메인 날씨를 고른다", () => {
+    const rules = presetRules("masters");
+    rules.checkpoint = { ...rules.checkpoint, type: "points", points: 15 };
+    const r1 = round(1, 1, [{ team: "A", place: 1, ks: 8 }, { team: "B", place: 2, ks: 9 }, { team: "C", place: 3, ks: 0 }]);
+    const res = computeGroup(group({ rules, plannedRounds: 12, rounds: [r1] }, "checkpoint"));
+    expect(res.next?.checkpoint).toEqual(["A", "B"]);
+    expect(res.next?.weatherPick).toBe("A");
+    const pts = computeGroup(group({ rounds: [r1] }));
+    expect(pts.next?.weatherPick).toBeNull();
+  });
+});
+
 describe("다른 동점 기준", () => {
   const r1 = round(1, 1, [{ team: "A", place: 1, ks: 0 }, { team: "B", place: 3, ks: 5 }]);
   const r2 = round(2, 2, [{ team: "A", place: 4, ks: 1 }, { team: "B", place: 2, ks: 0 }]);

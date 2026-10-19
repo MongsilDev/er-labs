@@ -105,6 +105,7 @@ export default function Rounds({ group, result, mode, planned, multi, editable, 
               ) : (
                 next.main
               )}
+              {next.weatherPick && <span className="muted wx-pick">{next.weatherPick} 선택</span>}
             </dd>
             <dt>{editable ? "서브 날씨" : next.sub ? "서브 날씨" : "서브 날씨 후보"}</dt>
             <dd>

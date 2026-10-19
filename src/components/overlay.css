@@ -6,7 +6,6 @@ html.overlay-page body {
   position: fixed;
   top: 24px;
   right: 24px;
-  max-height: calc(100vh - 48px);
   overflow: hidden;
   width: 500px;
   background: rgba(10, 13, 20, 0.86);

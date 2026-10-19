@@ -6,6 +6,7 @@ import TournamentApp from "@/components/t/TournamentApp";
 import { currentUser } from "@/server/auth";
 import { clientIp } from "@/server/http";
 import { allow, blocked, miss } from "@/server/limits";
+import { summary } from "@/server/og";
 import { loadView } from "@/server/tournament";
 
 type P = { params: Promise<{ code: string; group: string }>; searchParams?: Promise<{ created?: string }> };
@@ -13,9 +14,12 @@ type P = { params: Promise<{ code: string; group: string }>; searchParams?: Prom
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: P): Promise<Metadata> {
-  const { code } = await params;
+  const { code, group } = await params;
   const view = loadView(code, null);
-  return { title: view ? view.name : "없는 대회", robots: { index: false } };
+  if (!view) return { title: "없는 대회", robots: { index: false } };
+  const idx = group.length === 1 ? group.toUpperCase().charCodeAt(0) - 65 : 0;
+  const description = summary(view, idx >= 0 && idx < view.groupCount ? idx : 0);
+  return { title: view.name, description, openGraph: { title: view.name, description, siteName: "ER Labs", type: "website", locale: "ko_KR" }, robots: { index: false } };
 }
 
 export default async function Page({ params, searchParams }: P) {

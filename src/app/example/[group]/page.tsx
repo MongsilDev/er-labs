@@ -6,7 +6,10 @@ import TournamentApp from "@/components/t/TournamentApp";
 import { exampleView } from "@/lib/example";
 import { currentUser } from "@/server/auth";
 
-export const metadata: Metadata = { title: "예시 대회" };
+export const metadata: Metadata = {
+  title: exampleView().name,
+  description: "2026 KEL 서킷 4 결승 실제 경기 기록으로 만든 점수 계산 예시입니다.",
+};
 
 export default async function Page({ params }: { params: Promise<{ group: string }> }) {
   const { group } = await params;
