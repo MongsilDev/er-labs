@@ -8,9 +8,11 @@ import Lines from "@/components/Lines";
 type Hit = { aid: number; name: string; last: number | null };
 
 
-export default function SearchBox({ autoFocus, compact }: { autoFocus?: boolean; compact?: boolean }) {
+export default function SearchBox({ autoFocus, compact, initial }: { autoFocus?: boolean; compact?: boolean; initial?: string }) {
   const router = useRouter();
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(initial ?? "");
+  // 첫 화면 검색창에서 넘어온 검색어는 결과가 오면 한 번 제출
+  const pending = useRef(Boolean(initial?.trim()));
   const [hits, setHits] = useState<Hit[]>([]);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
@@ -41,12 +43,23 @@ export default function SearchBox({ autoFocus, compact }: { autoFocus?: boolean;
         setActive(-1);
         setOpen(true);
         setMsg(data.error ?? "");
+        if (pending.current) {
+          pending.current = false;
+          const low = t.toLowerCase();
+          const list = data.results ?? [];
+          const pick = list.find((h) => h.name.toLowerCase() === low || String(h.aid) === low) ?? (list.length === 1 ? list[0] : null);
+          if (pick) {
+            setOpen(false);
+            setBusy(true);
+            router.push(`/tarkov/players/${pick.aid}`);
+          }
+        }
       } catch {
         if (n === seq.current) setMsg("검색하지 못했습니다.");
       }
     }, 150);
     return () => clearTimeout(timer);
-  }, [q]);
+  }, [q, router]);
 
   const go = (h: Hit) => {
     setOpen(false);

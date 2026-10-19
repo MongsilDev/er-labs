@@ -257,6 +257,18 @@ describe("화면 점검", () => {
     }
   });
 
+  it("첫 화면 검색창에서 닉네임을 넣으면 그 계정으로 바로 간다", async () => {
+    // 첫 화면은 Tailwind라 이 파일의 정의 없는 클래스 검사 대상이 아님
+    const { page } = await open({ name: "첫 화면", path: "/" }, 1440, "dark");
+    try {
+      await page.getByRole("searchbox", { name: "닉네임 또는 계정 번호" }).fill("Fixture-Alpha");
+      await page.getByRole("button", { name: "조회" }).click();
+      await page.waitForURL(/\/tarkov\/players\/1001/, { timeout: 15_000 });
+    } finally {
+      await page.context().close();
+    }
+  });
+
   it("시즌 진행과 아레나 배틀패스를 보여준다", async () => {
     const { page } = await open(SCREENS.find((s) => s.name === "프로필 PvP")!, 1440, "dark");
     await page.goto(`${base}/tarkov/players/1001?mode=season`, { waitUntil: "networkidle" });

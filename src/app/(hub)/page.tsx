@@ -6,92 +6,153 @@ import ThemeToggle from "@/er/components/ThemeToggle";
 import { tournamentCount } from "@/er/server/tournament";
 import { ACCENT as TARKOV_ACCENT } from "@/tarkov/components/Mark";
 import { date, int } from "@/tarkov/lib/format";
-import { baselineCounts } from "@/tarkov/server/baseline";
+import { COMMON, PERSONAL } from "@/tarkov/lib/kord";
+import { baselineAccounts } from "@/tarkov/server/baseline";
 import { getMeta } from "@/tarkov/server/db";
-import { nameChangeCount } from "@/tarkov/server/profiles";
 
 export const dynamic = "force-dynamic";
 
 const ER_ACCENT = "#26f1f6";
 
-const TOOLS = [
-  { href: "/er/score", game: "이터널 리턴", name: "점수 계산", desc: "결과 CSV로 대회 순위, 감점, 체크포인트, 밴 계산", accent: ER_ACCENT },
-  { href: "/tarkov/players", game: "Escape from Tarkov", name: "계정 조회", desc: "시즌, PvP, PvE, 아레나 전적과 판정 배지", accent: TARKOV_ACCENT },
-  { href: "/tarkov/kord-breach", game: "Escape from Tarkov", name: "KORD BREACH 특성 시뮬레이터", desc: "시즌 1 특성 포인트 계산", accent: TARKOV_ACCENT },
-];
+function Title({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <Link className="group text-[22px] leading-snug font-extrabold tracking-[-0.3px] no-underline" href={href}>
+      {children}
+      <svg className="ml-1 inline-block size-5 align-[-3px] text-fg-3 transition-transform group-hover:translate-x-0.5 group-hover:text-fg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+        <path d="M9 6l6 6-6 6" />
+      </svg>
+    </Link>
+  );
+}
+
+function Stats({ items }: { items: { label: string; value: string }[] }) {
+  return (
+    <dl className="mt-auto flex flex-wrap gap-x-8 gap-y-3 border-t border-line-soft pt-4">
+      {items.map((s) => (
+        <div key={s.label} className="grid gap-0.5">
+          <dt className="text-[12px] text-fg-3">{s.label}</dt>
+          <dd className="text-[20px] leading-tight font-extrabold tabular-nums">{s.value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+function Tool({ game, accent, href, name, desc, children, stats, className = "" }: {
+  game: string;
+  accent: string;
+  href: string;
+  name: string;
+  desc: string;
+  children?: React.ReactNode;
+  stats: { label: string; value: string }[];
+  className?: string;
+}) {
+  return (
+    <section className={`panel flex flex-col p-6 max-[760px]:p-5 ${className}`} aria-label={name}>
+      <span className="mb-1.5 flex items-center gap-2 text-[13px] text-fg-3">
+        <span className="size-2 rounded-full" style={{ background: accent }} aria-hidden="true" />
+        {game}
+      </span>
+      <Title href={href}>{name}</Title>
+      <p className="mt-1 text-[14px] text-fg-2">{desc}</p>
+      {children && <div className="mt-5 mb-5">{children}</div>}
+      <Stats items={stats} />
+    </section>
+  );
+}
+
+const signed = (n: number) => (n > 0 ? `+${n}` : String(n));
 
 export default function Hub() {
   const indexed = Number(getMeta("indexed_at")) || null;
-  const peers = Object.values(baselineCounts()).reduce((a, b) => a + b, 0);
-  const stats = [
-    { label: "진행 중인 대회", value: int(tournamentCount()), unit: "개" },
-    { label: "Tarkov 색인 계정", value: int(Number(getMeta("accounts")) || 0), unit: "개" },
-    { label: "판정 비교군", value: int(peers), unit: "명" },
-    { label: "닉네임 변경 기록", value: int(nameChangeCount()), unit: "건" },
-  ];
+  const plus = PERSONAL.filter((p) => (p.points ?? 0) < 0);
+  const minus = PERSONAL.filter((p) => (p.points ?? 0) > 0);
+  // 포인트를 가장 많이 쓰는 긍정 특성과 가장 많이 얻는 부정 특성 둘씩
+  const picks = [...[...plus].sort((a, b) => a.points! - b.points!).slice(0, 2), ...[...minus].sort((a, b) => b.points! - a.points!).slice(0, 2)];
   return (
     <>
       <SiteHeader>
         <ThemeToggle />
       </SiteHeader>
       <main id="main" className="wrap">
-        <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,560px)] items-start gap-12 pt-8 max-[960px]:grid-cols-[minmax(0,1fr)] max-[960px]:gap-8 max-[960px]:pt-2">
-          <section aria-labelledby="hub-h">
-            <h1 id="hub-h" className="text-[56px] leading-none font-extrabold tracking-[-1.5px] max-[760px]:text-[44px]">
-              Labs
-            </h1>
-            <p className="mt-3 text-[18px] text-fg-2">게임 도구 모음</p>
-            <ul className="mt-8 grid gap-2.5">
-              {TOOLS.map((t) => (
-                <li key={t.href}>
-                  <Link className="panel group flex items-center gap-4 px-5 py-4 no-underline hover:border-line-strong" href={t.href}>
-                    <span className="h-10 w-1 shrink-0 rounded-full" style={{ background: t.accent }} aria-hidden="true" />
-                    <span className="grid min-w-0 gap-0.5">
-                      <span className="text-[12px] text-fg-3">{t.game}</span>
-                      <b className="text-[17px]">{t.name}</b>
-                      <span className="text-[14px] text-fg-3">{t.desc}</span>
-                    </span>
-                    <svg className="ml-auto size-5 shrink-0 text-fg-3 group-hover:text-fg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                      <path d="M9 6l6 6-6 6" />
-                    </svg>
-                  </Link>
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 pt-4 pb-6 max-[760px]:pt-1 max-[760px]:pb-5">
+          <h1 className="text-[30px] leading-none font-extrabold tracking-[-0.6px]">Labs</h1>
+          <p className="text-[15px] text-fg-3">게임 도구 모음</p>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3 max-[1100px]:grid-cols-2 max-[760px]:grid-cols-1">
+          <Tool
+            className="max-[1100px]:col-span-2 max-[760px]:col-span-1"
+            game="이터널 리턴"
+            accent={ER_ACCENT}
+            href="/er/score"
+            name="점수 계산"
+            desc="결과 CSV로 대회 순위, 감점, 체크포인트, 밴 계산"
+            stats={[{ label: "진행 중인 대회", value: `${int(tournamentCount())}개` }]}
+          >
+            <ExampleBoard rows={3} bare />
+          </Tool>
+
+          <Tool
+            game="Escape from Tarkov"
+            accent={TARKOV_ACCENT}
+            href="/tarkov/players"
+            name="계정 조회"
+            desc="시즌, PvP, PvE, 아레나 전적과 판정 배지"
+            stats={[
+              { label: "색인 계정", value: int(Number(getMeta("accounts")) || 0) },
+              { label: "판정 비교군", value: int(baselineAccounts()) },
+            ]}
+          >
+            <form className="flex gap-2" action="/tarkov/players" method="get" role="search">
+              <input
+                className="field min-w-0 flex-1"
+                type="search"
+                name="q"
+                placeholder="닉네임 또는 계정 번호"
+                aria-label="닉네임 또는 계정 번호"
+                autoComplete="off"
+                spellCheck={false}
+                maxLength={32}
+                required
+              />
+              <button className="btn primary" type="submit">
+                조회
+              </button>
+            </form>
+            <p className="mt-3 text-[13px] text-fg-3">
+              tarkov.dev에서 한 번 이상 조회된 계정만 찾을 수 있습니다.
+              <br />
+              {indexed && <>이름 목록 {date(indexed)} 기준, </>}
+              <Link className="link" href="/tarkov/criteria">
+                판정 기준
+              </Link>
+            </p>
+          </Tool>
+
+          <Tool
+            game="Escape from Tarkov"
+            accent={TARKOV_ACCENT}
+            href="/tarkov/kord-breach"
+            name="KORD BREACH 특성 시뮬레이터"
+            desc="시즌 1 특성 포인트 계산"
+            stats={[
+              { label: "공통 특성", value: int(COMMON.length) },
+              { label: "긍정 특성", value: int(plus.length) },
+              { label: "부정 특성", value: int(minus.length) },
+            ]}
+          >
+            <ul className="grid">
+              {picks.map((p) => (
+                <li key={p.id} className="flex items-center gap-3 border-t border-line-soft py-2 first:border-t-0 first:pt-0">
+                  <span className="min-w-0 truncate text-[14px] font-bold">{p.name}</span>
+                  <span className="ml-auto text-[14px] font-extrabold tabular-nums text-fg-2">{signed(p.points!)}</span>
                 </li>
               ))}
             </ul>
-          </section>
-          <section className="grid gap-3" aria-label="점수 계산 예시">
-            <span className="text-[13px] text-fg-3">점수 계산 예시</span>
-            <ExampleBoard rows={5} />
-          </section>
+          </Tool>
         </div>
-
-        <section className="mt-16 max-[760px]:mt-12" aria-labelledby="stat-h">
-          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-line pb-3">
-            <h2 id="stat-h" className="text-[18px] font-bold">
-              현황
-            </h2>
-            {indexed && <span className="text-[13px] text-fg-3">Tarkov 이름 목록 {date(indexed)} 기준</span>}
-          </div>
-          <dl className="grid grid-cols-4 max-[760px]:grid-cols-2">
-            {stats.map((s, i) => (
-              <div
-                key={s.label}
-                className={[
-                  "grid gap-2 border-line py-6 pr-6 max-[760px]:py-5 max-[760px]:pr-4",
-                  i === 0 ? "pl-0" : "border-l pl-6",
-                  i % 2 ? "max-[760px]:border-l max-[760px]:pl-4" : "max-[760px]:border-l-0 max-[760px]:pl-0",
-                  i >= 2 ? "max-[760px]:border-t" : "",
-                ].join(" ")}
-              >
-                <dt className="text-[13px] text-fg-3">{s.label}</dt>
-                <dd className="text-[32px] leading-none font-extrabold tabular-nums max-[760px]:text-[26px]">
-                  {s.value}
-                  <span className="ml-1 text-[14px] font-medium text-fg-3">{s.unit}</span>
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </section>
       </main>
       <SiteFooter />
     </>

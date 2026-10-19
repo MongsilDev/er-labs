@@ -3,7 +3,7 @@ import Bar from "@/er/components/t/Bar";
 import { barTotal, computeGroup } from "@/er/lib/engine";
 import { exampleView } from "@/er/lib/example";
 
-export default function ExampleBoard({ rows = 4 }: { rows?: number }) {
+export default function ExampleBoard({ rows = 4, bare }: { rows?: number; bare?: boolean }) {
   const ex = exampleView();
   const g = ex.groups[0];
   const res = computeGroup({
@@ -19,11 +19,17 @@ export default function ExampleBoard({ rows = 4 }: { rows?: number }) {
   const top = res.standings.slice(0, rows);
   const max = Math.max(1, ...res.standings.map(barTotal));
   return (
-    <section className="panel px-5 py-[18px]" aria-labelledby="ex-h">
+    <section className={bare ? "" : "panel px-5 py-[18px]"} aria-labelledby="ex-h">
       <div className="mb-1.5 flex items-center gap-2">
-        <b id="ex-h" className="min-w-0 truncate text-[15px]">
-          {ex.name}
-        </b>
+        {bare ? (
+          <Link id="ex-h" className="link min-w-0 truncate text-[15px] font-bold" href="/er/example/a">
+            {ex.name}
+          </Link>
+        ) : (
+          <b id="ex-h" className="min-w-0 truncate text-[15px]">
+            {ex.name}
+          </b>
+        )}
         <span className="ml-auto text-[13px] text-fg-3">{res.played}라운드 종료</span>
       </div>
       {top.map((s, i) => (
@@ -36,11 +42,13 @@ export default function ExampleBoard({ rows = 4 }: { rows?: number }) {
           <span className="text-right text-[18px] font-extrabold tabular-nums">{s.total.toFixed(1)}</span>
         </div>
       ))}
-      <div className="mt-3 flex justify-end">
-        <Link className="btn sm" href="/er/example/a">
-          예시 대회 열기
-        </Link>
-      </div>
+      {!bare && (
+        <div className="mt-3 flex justify-end">
+          <Link className="btn sm" href="/er/example/a">
+            예시 대회 열기
+          </Link>
+        </div>
+      )}
     </section>
   );
 }
