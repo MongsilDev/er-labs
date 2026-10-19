@@ -373,12 +373,8 @@ export async function playersImage(result: GroupResult, meta: BoardMeta): Promis
   const H = 1350;
   const { c, ctx } = canvas(W, H);
   const event = `${meta.group ? `${meta.name} ${meta.group}조` : meta.name}, ${result.played}라운드`;
-  const sections = [
-    ["라운드당 킬", result.players.kills],
-    ["라운드당 사냥", result.players.hunting],
-    ["라운드당 평균 레벨", result.players.level],
-  ] as const;
-  await fonts([event, "선수 기록공동위", ...sections.flatMap(([t, l]) => [t, ...l.map((p) => p.nickname + p.team)]), dateKo(Date.now()), "er.mongsil.dev0123456789."]);
+  const list = result.players.slice(0, 10);
+  await fonts([event, "선수 기록라운드당 킬공동", ...list.map((p) => p.nickname + p.team), dateKo(Date.now()), "er.mongsil.dev0123456789."]);
   const L = 72;
   font(ctx, 600, 24);
   ctx.fillStyle = C.muted;
@@ -388,38 +384,46 @@ export async function playersImage(result: GroupResult, meta: BoardMeta): Promis
   ctx.fillStyle = C.text;
   ctx.fillText("선수 기록", L, 182);
 
-  let y = 268;
-  for (const [title, list] of sections) {
-    font(ctx, 700, 26);
+  const top = 236;
+  font(ctx, 600, 18);
+  ctx.fillStyle = C.text3;
+  ctx.fillText("선수", L + 70, top + 20);
+  ctx.textAlign = "right";
+  ctx.fillText("킬", W - L - 170, top + 20);
+  ctx.fillText("라운드당 킬", W - L, top + 20);
+  const rowH = 90;
+  list.forEach((p, i) => {
+    const y = top + 40 + i * rowH;
+    const first = p.rank === 1;
+    ctx.fillStyle = C.soft;
+    ctx.fillRect(L, y, W - 2 * L, 1);
+    const mid = y + rowH / 2;
+    const tied = list.filter((o) => o.rank === p.rank).length > 1;
+    font(ctx, 800, 26);
+    ctx.fillStyle = first ? C.gold : C.text3;
+    ctx.textAlign = "left";
+    ctx.fillText(String(p.rank), L + 4, mid + 9);
+    if (tied) {
+      font(ctx, 600, 13);
+      ctx.fillText("공동", L + 4, mid + 30);
+    }
+    font(ctx, 800, 30);
+    ctx.fillStyle = C.text;
+    const name = fit(ctx, p.nickname, 440);
+    const nameW = ctx.measureText(name).width;
+    ctx.fillText(name, L + 70, mid + 10);
+    font(ctx, 500, 20);
+    ctx.fillStyle = C.muted;
+    ctx.fillText(fit(ctx, p.team, W - 2 * L - 70 - nameW - 14 - 230), L + 70 + nameW + 14, mid + 10);
+    font(ctx, 600, 24);
     ctx.fillStyle = C.text2;
-    ctx.fillText(title, L, y);
-    const cardsTop = y + 22;
-    const cardW = (W - 2 * L - 24) / 3;
-    let x = L;
-    list.slice(0, 3).forEach((p) => {
-      const w = cardW;
-      const top = p.rank === 1;
-      ctx.strokeStyle = top ? C.gold : C.line;
-      ctx.lineWidth = 1.5;
-      roundRect(ctx, x + 0.5, cardsTop + 0.5, w - 1, 183, 8);
-      ctx.stroke();
-      const tied = list.filter((o) => o.rank === p.rank).length > 1;
-      font(ctx, 600, 15);
-      ctx.fillStyle = C.text3;
-      ctx.fillText(`${tied ? "공동 " : ""}${p.rank}위`, x + 20, cardsTop + 34);
-      font(ctx, 800, 26);
-      ctx.fillStyle = C.text;
-      ctx.fillText(fit(ctx, p.nickname, w - 40), x + 20, cardsTop + 74);
-      font(ctx, 500, 16);
-      ctx.fillStyle = C.muted;
-      ctx.fillText(fit(ctx, p.team, w - 40), x + 20, cardsTop + 100);
-      font(ctx, 800, 44);
-      ctx.fillStyle = top ? C.gold : C.text;
-      ctx.fillText(fmt(p.value), x + 20, cardsTop + 158);
-      x += w + 12;
-    });
-    y += 306;
-  }
+    ctx.textAlign = "right";
+    ctx.fillText(String(p.kills), W - L - 170, mid + 9);
+    font(ctx, 800, 40);
+    ctx.fillStyle = first ? C.gold : C.text;
+    ctx.fillText(p.value.toFixed(2), W - L, mid + 14);
+  });
+  ctx.textAlign = "left";
   font(ctx, 500, 18);
   ctx.fillStyle = C.text3;
   ctx.fillText(dateKo(Date.now()), L, H - 62);

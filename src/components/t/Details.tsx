@@ -93,33 +93,33 @@ export default function Details({ result, rules }: { result: GroupResult; rules:
             </div>
           ))}
         {tab === "players" &&
-          (players.kills.length === 0 ? (
+          (players.length === 0 ? (
             <p className="muted pad">CSV로 올린 라운드가 없어 선수 기록이 없습니다.</p>
           ) : (
-            <div className="pstats">
-              {(
-                [
-                  ["라운드당 킬", players.kills],
-                  ["라운드당 사냥", players.hunting],
-                  ["라운드당 평균 레벨", players.level],
-                ] as const
-              ).map(([title, list]) => (
-                <section key={title} aria-label={title}>
-                  <h3>{title}</h3>
-                  <ol>
-                    {list.map((p) => (
-                      <li key={p.nickname + p.team}>
-                        <span className="rk-s">{p.rank}</span>
-                        <span className="ellipsis">
-                          <b>{p.nickname}</b> <span className="muted">{p.team}</span>
-                        </span>
-                        <span className="num strong">{fmt(p.value)}</span>
-                      </li>
-                    ))}
-                  </ol>
-                </section>
-              ))}
-            </div>
+            <table className="pstats" aria-label="라운드당 킬 상위 선수">
+              <thead>
+                <tr>
+                  <th scope="col">순위</th>
+                  <th scope="col">선수</th>
+                  <th scope="col" className="r">라운드</th>
+                  <th scope="col" className="r">킬</th>
+                  <th scope="col" className="r">라운드당 킬</th>
+                </tr>
+              </thead>
+              <tbody>
+                {players.map((p) => (
+                  <tr key={p.nickname + p.team}>
+                    <td className="rk-s">{p.rank}</td>
+                    <td className="nm">
+                      <b>{p.nickname}</b> <span className="muted">{p.team}</span>
+                    </td>
+                    <td className="r num muted">{p.rounds}</td>
+                    <td className="r num">{p.kills}</td>
+                    <td className="r num strong">{p.value.toFixed(2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           ))}
       </div>
     </div>

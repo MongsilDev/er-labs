@@ -300,7 +300,7 @@ export default function TournamentApp({ initial, groupIdx, basePath, created = f
               방송 화면 주소 복사
             </button>
           )}
-          <ExportMenu disabled={result.played === 0} onBoard={exportBoard} onPlayers={exportPlayers} onCsv={exportCsv} hasPlayers={result.players.kills.length > 0} />
+          <ExportMenu disabled={result.played === 0} onBoard={exportBoard} onPlayers={exportPlayers} onCsv={exportCsv} hasPlayers={result.players.length > 0} />
         </div>
       </div>
 

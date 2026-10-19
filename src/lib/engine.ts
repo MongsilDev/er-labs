@@ -82,7 +82,7 @@ export type NextRound = {
   weatherPick: string | null;
 };
 
-export type PlayerStat = { nickname: string; team: string; value: number; rank: number };
+export type PlayerStat = { nickname: string; team: string; rounds: number; kills: number; value: number; rank: number };
 
 export type GroupResult = {
   standings: Standing[];
@@ -93,7 +93,7 @@ export type GroupResult = {
   next: NextRound | null;
   ended: boolean;
   picks: { roundNo: number; counts: { character: string; count: number; banRounds: number }[] }[];
-  players: { kills: PlayerStat[]; hunting: PlayerStat[]; level: PlayerStat[] };
+  players: PlayerStat[];
 };
 
 const DEFAULT_TEAM = /^team\s*\d+$/i;
@@ -499,7 +499,7 @@ export function computeGroup(input: GroupInput): GroupResult {
     };
   }
 
-  type Acc = { nickname: string; team: string; rounds: number; kills: number; hunting: number; level: number };
+  type Acc = { nickname: string; team: string; rounds: number; kills: number };
   const acc = new Map<string, Acc>();
   for (let r = 1; r <= played; r++) {
     const round = roundByNo.get(r);
@@ -509,19 +509,16 @@ export function computeGroup(input: GroupInput): GroupResult {
       const id = normalize(p.nickname);
       const teamKey = nickTeam.get(id);
       const team = teamKey ? (names.get(teamKey) ?? p.team) : rename(p.team.trim());
-      const a = acc.get(id) ?? { nickname: p.nickname, team, rounds: 0, kills: 0, hunting: 0, level: 0 };
+      const a = acc.get(id) ?? { nickname: p.nickname, team, rounds: 0, kills: 0 };
       a.rounds++;
       a.kills += p.kills;
-      a.hunting += p.hunting;
-      a.level += p.level;
       a.team = team;
       acc.set(id, a);
     }
   }
-  const top = (pick: (a: Acc) => number) =>
-    rank([...acc.values()].filter((a) => a.rounds > 0), (a) => round2(pick(a) / a.rounds))
-      .filter((a) => a.rank <= 3)
-      .map((a) => ({ nickname: a.nickname, team: a.team, value: a.value, rank: a.rank }));
+  const players = rank([...acc.values()], (a) => round2(a.kills / a.rounds))
+    .filter((a) => a.rank <= 10)
+    .map((a) => ({ nickname: a.nickname, team: a.team, rounds: a.rounds, kills: a.kills, value: a.value, rank: a.rank }));
 
   return {
     standings,
@@ -532,7 +529,7 @@ export function computeGroup(input: GroupInput): GroupResult {
     next,
     ended,
     picks,
-    players: { kills: top((a) => a.kills), hunting: top((a) => a.hunting), level: top((a) => a.level) },
+    players,
   };
 }
 

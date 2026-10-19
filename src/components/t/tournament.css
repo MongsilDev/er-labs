@@ -467,20 +467,17 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
 }
-.picks section,
-.pstats section {
+.picks section {
   padding: 14px 16px;
   border-right: 1px solid var(--line-soft);
   border-bottom: 1px solid var(--line-soft);
 }
-.picks h3,
-.pstats h3 {
+.picks h3 {
   font-size: 14px;
   font-weight: 700;
   margin-bottom: 8px;
 }
-.picks ul,
-.pstats ol {
+.picks ul {
   list-style: none;
 }
 .picks li {
@@ -497,16 +494,43 @@
   font-size: 12px;
 }
 .pstats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-}
-.pstats li {
-  display: grid;
-  grid-template-columns: 24px minmax(0, 1fr) auto;
-  gap: 8px;
+  width: 100%;
+  max-width: 720px;
+  border-collapse: collapse;
   font-size: 14px;
-  padding: 6px 0;
-  align-items: center;
+}
+.pstats th,
+.pstats td {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line-soft);
+  text-align: left;
+  white-space: nowrap;
+}
+.pstats th {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+.pstats .r {
+  text-align: right;
+}
+.pstats .nm {
+  width: 100%;
+  max-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pstats .strong {
+  font-weight: 800;
+}
+.pstats tr:last-child td {
+  border-bottom: 0;
+}
+@media (max-width: 560px) {
+  .pstats th,
+  .pstats td {
+    padding: 10px 10px;
+  }
 }
 .rk-s {
   font-weight: 800;

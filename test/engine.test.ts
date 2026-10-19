@@ -444,8 +444,8 @@ describe("선수 기록", () => {
       { team: "A", place: 1, ks: 0, players: [{ nick: "a", kill: 2, level: 18 }, { nick: "b", kill: 6, level: 18 }, { nick: "c", kill: 1, level: 18 }] },
     ]);
     const res = computeGroup(group({ rounds: [r1, r2] }));
-    expect(res.players.kills.map((p) => [p.nickname, p.value, p.rank])).toEqual([["a", 4, 1], ["b", 4, 1], ["c", 1, 3]]);
-    expect(res.players.level[0]).toMatchObject({ value: 19, rank: 1, team: "A" });
+    expect(res.players.map((p) => [p.nickname, p.kills, p.value, p.rank])).toEqual([["a", 8, 4, 1], ["b", 8, 4, 1], ["c", 2, 1, 3]]);
+    expect(res.players[0]).toMatchObject({ rounds: 2, team: "A" });
   });
 });
 
