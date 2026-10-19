@@ -28,6 +28,9 @@ type Typical = { kpn: number; dpn: number; spn: number; hpn: number; hsr: number
 // 같은 family 지표는 같은 사망 수에서 나와 함께 움직이므로 판정에서 하나로 셈
 type Metric = { key: string; label: string; family: string; value: (s: Sample, t: Typical) => number | null; digits: number };
 
+// 기록 수로 보정하는 지표, 최다 킬과 연속 기록은 보정하지 않음
+export const SMOOTHED = new Set(["kd", "kpr", "surv", "kpm", "hs"]);
+
 const div = (a: number, b: number) => (b > 0 ? a / b : 0);
 
 export const METRICS: Record<Kind, Metric[]> = {

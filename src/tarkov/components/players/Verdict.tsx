@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { VERDICT_LABEL, WIDTHS, type Judged, type MetricResult, type Verdict as V } from "@/tarkov/lib/criteria";
+import { SMOOTHED, VERDICT_LABEL, WIDTHS, type Judged, type MetricResult, type Verdict as V } from "@/tarkov/lib/criteria";
 import { dec, pct } from "@/tarkov/lib/format";
 import { arenaModeLabel } from "@/tarkov/lib/labels";
 
@@ -15,8 +15,6 @@ const ARENA_REASON = {
   missing: "판정에 필요한 값이 없습니다.",
 } as const;
 
-// 기록 수로 보정하는 지표. 최다 킬과 연속 기록은 원래 값
-const SMOOTHED = new Set(["kd", "kpr", "surv", "kpm", "hs"]);
 
 const show = (key: string, v: number, digits: number) => (key === "surv" || key === "hs" ? pct(v) : dec(v, digits));
 

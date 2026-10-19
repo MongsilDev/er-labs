@@ -480,6 +480,52 @@ table {
   border-bottom: 0;
 }
 
+.doc h3 {
+  font-size: 14px;
+  margin: 18px 0 6px;
+  color: var(--text-2);
+}
+.doc-table .num {
+  text-align: right;
+}
+.doc-note {
+  font-size: 13px;
+  color: var(--text-3);
+}
+
+/* 판정 배지 */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 800;
+  background: var(--field);
+  border: 1px solid var(--line);
+}
+.badge.warn {
+  background: var(--warn);
+  border-color: var(--warn);
+  color: #111;
+}
+.badge.alert {
+  background: var(--minus);
+  border-color: var(--minus);
+  color: #fff;
+}
+.badge.none {
+  color: var(--text-3);
+  border-style: dashed;
+  background: transparent;
+}
+.badge.sm {
+  height: 24px;
+  padding: 0 8px;
+  font-size: 12px;
+}
+
 /* 검색 */
 .search {
   position: relative;
