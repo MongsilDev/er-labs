@@ -9,7 +9,7 @@ export default async function Home() {
     <>
       <Header user={user} next="/score" />
       <main id="main" className="wrap slim">
-        <h1 className="page-h1">이터널 리턴 도구</h1>
+        <h1 className="page-h1">ER Labs</h1>
         <ul className="tools">
           <li>
             <Link className="panel tool" href="/score">

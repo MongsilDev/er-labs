@@ -4,9 +4,9 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.BASE_URL || "https://er.mongsil.dev"),
-  title: { default: "이터널 리턴 도구", template: "%s - 이터널 리턴 도구" },
+  title: { default: "ER Labs", template: "%s - ER Labs" },
   description: "이터널 리턴 커스텀 게임 결과 CSV로 대회 순위를 계산합니다.",
-  openGraph: { siteName: "이터널 리턴 도구", type: "website", locale: "ko_KR" },
+  openGraph: { siteName: "ER Labs", type: "website", locale: "ko_KR" },
   robots: { index: true, follow: true },
 };
 

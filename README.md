@@ -1,6 +1,6 @@
-# er-tools
+# ER Labs
 
-이터널 리턴 커스텀 게임 결과 CSV로 커뮤니티 대회 순위를 계산하는 사이트입니다. [er.mongsil.dev](https://er.mongsil.dev)에서 쓸 수 있습니다.
+이터널 리턴 도구를 모아 둔 비공식 사이트입니다. 지금은 커스텀 게임 결과 CSV로 커뮤니티 대회 순위를 계산하는 점수 계산기가 있습니다. [er.mongsil.dev](https://er.mongsil.dev)에서 쓸 수 있습니다.
 
 ## 기능
 

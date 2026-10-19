@@ -13,7 +13,7 @@ export const Mark = () => (
         <path d="M33 44h17" stroke="#26f1f6" strokeWidth="7" />
       </g>
     </svg>
-    이터널 리턴 도구
+    ER Labs
   </Link>
 );
 
