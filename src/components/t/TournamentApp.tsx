@@ -267,13 +267,21 @@ export default function TournamentApp({ initial, groupIdx, basePath, created = f
         <div className="t-title">
           <h1>
             {view.name}
-            {example && <span className="chip dashed">예시 데이터</span>}
+            {example && <span className="chip dashed">예시</span>}
           </h1>
           <p className="sub">
             {MODE_LABEL[view.mode]} {view.mode === "points" ? `${view.plannedRounds}라운드` : `최대 ${view.plannedRounds}라운드`}, {PRESET_LABEL[view.rules.preset]} 규칙
             {!example && (
               <>
                 , 대회 코드 <b translate="no">{view.code}</b>
+              </>
+            )}
+            {view.source && (
+              <>
+                , 경기 기록{" "}
+                <a href={view.source.url} target="_blank" rel="noopener noreferrer">
+                  {view.source.name}
+                </a>
               </>
             )}
           </p>

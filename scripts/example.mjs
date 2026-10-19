@@ -1,109 +1,89 @@
-// 예시 대회 데이터. 팀 이름은 KEL 2026 이터널 리턴 팀, 점수와 닉네임은 가상
-import { readFileSync, writeFileSync } from "node:fs";
+// 예시 대회 데이터. 2026 KEL 서킷 4 결승(2026-10-18) 실제 기록을 dak.gg 대회 API에서 받아 CSV에 담기는 값만 남김
+// 감점 두 건은 경기 기록과 공식 순위표(bori.wiki)의 3라운드 점수 차이
+import { writeFileSync } from "node:fs";
 
-let seed = 20261019;
-const rand = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
-const pick = (a) => a[Math.floor(rand() * a.length)];
-const shuffle = (a) => {
-  const b = [...a];
-  for (let i = b.length - 1; i > 0; i--) {
-    const j = Math.floor(rand() * (i + 1));
-    [b[i], b[j]] = [b[j], b[i]];
-  }
-  return b;
+const API = "https://er.dakgg.io/api/v1";
+const FINALS = [8104, 8105, 8106, 8107, 8108, 8109, 8110, 8111];
+const TEAMS = {
+  INW: "인천 웨이브",
+  GNS: "경남 스파클",
+  DTS: "대전 오토암즈",
+  NRG: "뉴 라이즈 강원",
+  ROX: "성남 락스",
+  FN: "FN 세종",
+  GBA: "경북 어센더스",
+  YJS: "양주 웨일즈",
 };
-const gauss = () => Math.sqrt(-2 * Math.log(rand() || 1e-9)) * Math.cos(2 * Math.PI * rand());
 
-const teams = shuffle([
-  "GC 부산 스텔라", "대구 가디언즈", "인천 웨이브", "광주 슬래셔", "대전 오토암즈", "FN 세종", "경기 이네이트", "뉴 라이즈 강원",
-  "충남 CNJ", "전남 이스포츠", "경북 어센더스", "경남 스파클 이스포츠", "제주 쉐도우", "고양 미르", "성남 락스", "양주 웨일즈",
-]);
-const words = shuffle(
-  "하늘곰 바람새 은빛늑대 새벽별 고요한숲 푸른달 작은불꽃 겨울나무 모래시계 파도소리 붉은여우 밤하늘 초록잎 구름다리 별빛길 눈송이 흰고래 노을빛 단풍잎 햇살 번개구름 안개꽃 돌멩이 물방울 산들바람 종이배 연필깎이 지우개 우산 등대지기 나침반 풍차 시계탑 호숫가 언덕길 갈대숲 반딧불 해바라기 민들레 도토리 솔방울 수정구슬 거울 깃털 조약돌 실타래 꽃잎 은하수".split(" "),
-);
-const characters = Object.keys(JSON.parse(readFileSync(new URL("../src/data/characters.json", import.meta.url))));
-const popular = characters.slice(0, 40);
-const RS = [10, 7, 5, 4, 3, 2, 1, 0];
+const get = async (path) => {
+  const res = await fetch(API + path, { headers: { "User-Agent": "er-tools example builder" } });
+  if (!res.ok) throw new Error(`${path} ${res.status}`);
+  return res.json();
+};
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-function group(idx, names, played) {
-  const roster = names.map((n, i) => ({ team: n, players: [0, 1, 2].map((j) => words[idx * 24 + i * 3 + j]) }));
-  const rounds = [];
-  for (let r = 1; r <= played; r++) {
-    const order = shuffle(roster);
-    const players = [];
-    const gameId = 66700000 + idx * 1000 + r * 37;
-    const hot = pick(popular);
-    order.forEach((t, k) => {
-      const place = k + 1;
-      const ks = Math.max(0, Math.round((11 - place * 1.1 + gauss() * 3.5) * 2) / 2);
-      const teamKills = Math.round(ks * 1.25);
-      t.players.forEach((nick, j) => {
-        const character = r === 2 && k < 3 && j === 0 ? hot : pick(popular);
-        players.push({
-          nickname: nick,
-          character,
-          team: t.team,
-          placement: place,
-          totalScore: RS[place - 1] + ks,
-          killScore: ks,
-          kills: Math.max(0, Math.round(teamKills / 3 + gauss())),
-          teamKills,
-          hunting: 30 + Math.round(rand() * 60),
-          level: place < 5 ? 16 + Math.round(rand() * 4) : 12 + Math.round(rand() * 4),
-        });
-      });
-    });
-    rounds.push({ id: idx * 100 + r, roundNo: r, source: "csv", gameId, fileName: `round${r}.csv`, players });
-  }
-  return rounds;
+const characters = new Map((await get("/data/characters?hl=en")).characters.map((c) => [c.id, c.key]));
+const weatherName = new Map((await get("/data/weathers?hl=ko")).weathers.map((w) => [w.key, w.name === "안개" ? "자색안개" : w.name]));
+
+const rounds = [];
+const weather = [];
+for (const [i, id] of FINALS.entries()) {
+  const roundNo = i + 1;
+  const game = await get(`/tournament/games?id=${id}`);
+  const score = new Map(game.scoreInfos.map((s) => [s.teamNumber, s]));
+  const players = game.games
+    .map((p) => {
+      const tag = p.nickname.split("_")[0];
+      const team = TEAMS[tag];
+      if (!team) throw new Error(`모르는 팀 ${p.nickname}`);
+      const s = score.get(p.teamNumber);
+      return {
+        nickname: p.nickname,
+        character: characters.get(p.characterNum) ?? String(p.characterNum),
+        team,
+        placement: p.gameRank,
+        totalScore: s.rankScore + s.killScore,
+        killScore: s.killScore,
+        kills: p.playerKill,
+        teamKills: p.teamKill,
+        hunting: p.monsterKill,
+        level: p.characterLevel,
+      };
+    })
+    .sort((a, b) => a.placement - b.placement || a.nickname.localeCompare(b.nickname));
+  rounds.push({ id: 100 + roundNo, roundNo, source: "csv", gameId: null, fileName: `round${roundNo}.csv`, players });
+  const first = game.games[0];
+  weather.push({ roundNo, main: weatherName.get(first.mainWeather) ?? null, sub: weatherName.get(first.subWeather) ?? null });
+  await sleep(800);
 }
 
-const A = group(0, teams.slice(0, 8), 3);
-const B = group(1, teams.slice(8), 4);
 const view = {
   code: "EXAMPLE",
-  name: "예시 대회",
-  mode: "points",
-  plannedRounds: 4,
-  groupCount: 2,
+  name: "2026 KEL 서킷 4 결승",
+  mode: "checkpoint",
+  plannedRounds: 12,
+  groupCount: 1,
   version: 1,
   updatedAt: 0,
   expiresAt: 0,
   role: null,
   example: true,
+  source: { name: "dak.gg", url: "https://dak.gg/er/esports/kel_2026?sub=circuit_4&major=preliminary_round" },
   logs: null,
   groups: [
     {
       idx: 0,
       label: "A",
-      rounds: A,
+      rounds,
       penalties: [
-        { id: 1, team: A[1].players[6].team, roundNo: 2, kind: "death", count: 1, points: 1, reason: "처치자 불명 사망" },
-        { id: 2, team: A[2].players[12].team, roundNo: 3, kind: "rule", count: 1, points: 5, reason: "지각" },
+        { id: 1, team: TEAMS.GNS, roundNo: 3, kind: "rule", count: 1, points: 1, reason: "공식 집계 차감" },
+        { id: 2, team: TEAMS.NRG, roundNo: 3, kind: "rule", count: 1, points: 1, reason: "공식 집계 차감" },
       ],
-      weather: [
-        { roundNo: 1, main: null, sub: "벼락" },
-        { roundNo: 2, main: null, sub: "무풍" },
-        { roundNo: 3, main: null, sub: "강풍" },
-      ],
-      aliases: {},
-      overrides: {},
-    },
-    {
-      idx: 1,
-      label: "B",
-      rounds: B,
-      penalties: [],
-      weather: [
-        { roundNo: 1, main: null, sub: "강풍" },
-        { roundNo: 2, main: null, sub: "자색안개" },
-        { roundNo: 3, main: null, sub: "무풍" },
-        { roundNo: 4, main: null, sub: "벼락" },
-      ],
+      weather,
       aliases: {},
       overrides: {},
     },
   ],
 };
 writeFileSync(new URL("../src/data/example.json", import.meta.url), JSON.stringify(view));
-console.log("예시 대회", A.length, B.length);
+console.log("예시 대회", rounds.length, "라운드", rounds.reduce((n, r) => n + r.players.length, 0), "명");

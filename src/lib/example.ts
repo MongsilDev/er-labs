@@ -3,6 +3,6 @@ import { presetRules } from "./rules";
 import type { TournamentView } from "./view";
 
 export function exampleView(): TournamentView {
-  const rules = { ...presetRules("masters"), advance: 4 };
+  const rules = presetRules("kel");
   return { ...(data as unknown as Omit<TournamentView, "rules">), rules };
 }

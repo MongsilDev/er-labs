@@ -42,5 +42,5 @@ pnpm build
 ## 데이터
 
 - `src/data/characters.json`은 실험체 영문 이름과 한국어 이름 대응표입니다. 새 실험체가 나오면 `ER_API_KEY=... node scripts/characters.mjs`로 다시 만듭니다.
-- 예시 대회는 KEL 2026 이터널 리턴 팀 이름에 가상 점수와 가상 닉네임을 붙인 데이터입니다. `node scripts/example.mjs`로 다시 만듭니다.
+- 예시 대회는 2026 KEL 서킷 4 결승의 실제 경기 기록입니다. dak.gg 대회 기록에서 결과 CSV에 담기는 값만 가져왔고, 공식 순위표와 다른 3라운드 1점 차감 두 건은 감점으로 넣었습니다. `node scripts/example.mjs`로 다시 만듭니다.
 - 글꼴은 [Pretendard](https://github.com/orioncactus/pretendard)이며 SIL Open Font License를 따릅니다.

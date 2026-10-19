@@ -39,6 +39,7 @@ export type TournamentView = {
   expiresAt: number;
   role: Role;
   example?: boolean;
+  source?: { name: string; url: string };
   groups: GroupView[];
   logs: LogRow[] | null;
 };

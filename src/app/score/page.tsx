@@ -52,7 +52,7 @@ export default async function ScorePage({ searchParams }: { searchParams: Promis
             <OpenCode mine={mine} />
             <section className="panel ex" aria-labelledby="ex-h">
               <div className="ex-hd">
-                <b id="ex-h">예시 대회 A조</b>
+                <b id="ex-h" className="ellipsis">{ex.name}</b>
                 <span className="muted">{res.played}라운드 종료</span>
               </div>
               {top.map((s, i) => (
