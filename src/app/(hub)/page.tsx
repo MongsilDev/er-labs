@@ -40,7 +40,7 @@ export default function Hub() {
             <h1 id="hub-h" className="text-[56px] leading-none font-extrabold tracking-[-1.5px] max-[760px]:text-[44px]">
               Labs
             </h1>
-            <p className="mt-3 text-[18px] text-fg-2">이터널 리턴과 Escape from Tarkov 도구 모음</p>
+            <p className="mt-3 text-[18px] text-fg-2">게임 도구 모음</p>
             <ul className="mt-8 grid gap-2.5">
               {TOOLS.map((t) => (
                 <li key={t.href}>
