@@ -72,7 +72,7 @@ export default function CutChart({ data }: { data: CutData }) {
   }
 
   const hp = hover != null ? points[hover] : null;
-  const tipLeft = hp ? Math.min(Math.max(x(hp.t) - 110, 0), w - 220) : 0;
+  const tipLeft = hp ? Math.min(Math.max(x(hp.t) - 130, 0), w - 260) : 0;
 
   return (
     <div ref={box} className="relative select-none">
@@ -139,7 +139,7 @@ export default function CutChart({ data }: { data: CutData }) {
         {hp && <line x1={x(hp.t)} x2={x(hp.t)} y1={pad.t} y2={h - pad.b} stroke="var(--text-3)" />}
       </svg>
       {hp && (
-        <div className="pointer-events-none absolute top-2 w-[220px] rounded-md border border-line bg-surface px-3 py-2 text-[13px] shadow-lg" style={{ left: tipLeft }}>
+        <div className="pointer-events-none absolute top-2 w-[260px] rounded-md border border-line bg-surface px-3 py-2 text-[13px] shadow-lg" style={{ left: tipLeft }}>
           <div className="mb-1 font-bold">
             {hp.kind === "now" ? "지금" : `${md(hp.t)} 오전 9시${hp.kind === "future" ? " 예상" : ""}`}
           </div>
@@ -149,11 +149,11 @@ export default function CutChart({ data }: { data: CutData }) {
             return (
               <div key={key} className="flex items-baseline gap-2">
                 <span className="size-2 shrink-0 self-center rounded-full" style={{ background: color }} />
-                <span className="text-fg-2">{name}</span>
-                <span className="ml-auto font-bold tabular-nums">
+                <span className="whitespace-nowrap text-fg-2">{name}</span>
+                <span className="ml-auto font-bold whitespace-nowrap tabular-nums">
                   {v.mid != null ? `${int(v.mid)}` : v.a != null ? int(v.a) : v.b != null ? int(v.b) : "-"}
                 </span>
-                <span className="w-[86px] text-right text-[12px] text-fg-3 tabular-nums">
+                <span className="w-[92px] shrink-0 text-right text-[12px] whitespace-nowrap text-fg-3 tabular-nums">
                   {v.mid != null ? `${int(v.lo!)}~${int(v.hi!)}` : v.a != null && v.b != null ? `순위표 ${int(v.b)}` : "순위표"}
                 </span>
               </div>
