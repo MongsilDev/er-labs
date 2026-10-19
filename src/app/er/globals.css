@@ -582,6 +582,36 @@
   .doc-table tr:last-child td {
     border-bottom: 0;
   }
+  /* 좁은 화면에서는 행마다 칸 이름을 붙인 카드로 표시. 몽실봇 처리방침과 같은 방식 */
+  @media (max-width: 760px) {
+    .doc-table.cards table,
+    .doc-table.cards tbody {
+      display: block;
+    }
+    .doc-table.cards thead {
+      display: none;
+    }
+    .doc-table.cards tr {
+      display: block;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line-soft);
+    }
+    .doc-table.cards tr:last-child {
+      border-bottom: 0;
+    }
+    .doc-table.cards td {
+      display: grid;
+      grid-template-columns: 72px minmax(0, 1fr);
+      gap: 10px;
+      padding: 3px 0;
+      border: 0;
+    }
+    .doc-table.cards td::before {
+      content: attr(data-label);
+      color: var(--text-3);
+      font-size: 13px;
+    }
+  }
 
   .seg {
     display: grid;

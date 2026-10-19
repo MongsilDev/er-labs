@@ -33,7 +33,7 @@ export default function Privacy() {
 
         <h2>2. 처리 항목과 보유 기간</h2>
         <h3 className={H3}>이터널 리턴</h3>
-        <div className="doc-table">
+        <div className="doc-table cards">
           <table>
             <thead>
               <tr>
@@ -44,19 +44,19 @@ export default function Privacy() {
             </thead>
             <tbody>
               <tr>
-                <td>게임 닉네임, 실험체, 팀 이름, 경기 순위와 기록</td>
-                <td>운영자가 경기 결과 CSV를 올릴 때</td>
-                <td>대회 마지막 수정 24시간 뒤까지</td>
+                <td data-label="항목">게임 닉네임, 실험체, 팀 이름, 경기 순위와 기록</td>
+                <td data-label="수집 시점">운영자가 경기 결과 CSV를 올릴 때</td>
+                <td data-label="보유 기간">대회 마지막 수정 24시간 뒤까지</td>
               </tr>
               <tr>
-                <td>대회 이름, 감점, 날씨, 변경 기록과 변경한 운영자 이름</td>
-                <td>운영자가 대회를 만들거나 바꿀 때</td>
-                <td>대회 마지막 수정 24시간 뒤까지</td>
+                <td data-label="항목">대회 이름, 감점, 날씨, 변경 기록과 변경한 운영자 이름</td>
+                <td data-label="수집 시점">운영자가 대회를 만들거나 바꿀 때</td>
+                <td data-label="보유 기간">대회 마지막 수정 24시간 뒤까지</td>
               </tr>
               <tr>
-                <td>디스코드 ID, 사용자 이름, 프로필 사진 주소</td>
-                <td>디스코드로 로그인할 때</td>
-                <td>로그인 7일 뒤 또는 로그아웃, 운영하던 대회가 모두 지워질 때까지</td>
+                <td data-label="항목">디스코드 ID, 사용자 이름, 프로필 사진 주소</td>
+                <td data-label="수집 시점">디스코드로 로그인할 때</td>
+                <td data-label="보유 기간">로그인 7일 뒤 또는 로그아웃, 운영하던 대회가 모두 지워질 때까지</td>
               </tr>
             </tbody>
           </table>
@@ -64,7 +64,7 @@ export default function Privacy() {
         <p>디스코드 로그인은 사용자 식별 권한만 요청합니다.<br />디스코드 서버 목록, 메시지, 이메일은 받지 않고, 디스코드 접속 토큰은 저장하지 않습니다.</p>
 
         <h3 className={H3}>Escape from Tarkov</h3>
-        <div className="doc-table">
+        <div className="doc-table cards">
           <table>
             <thead>
               <tr>
@@ -75,19 +75,19 @@ export default function Privacy() {
             </thead>
             <tbody>
               <tr>
-                <td>게임 계정 번호, 닉네임, 마지막 갱신 시각</td>
-                <td>tarkov.dev가 공개하는 이름 목록, 하루 한 번</td>
-                <td>tarkov.dev 목록에 있는 동안</td>
+                <td data-label="항목">게임 계정 번호, 닉네임, 마지막 갱신 시각</td>
+                <td data-label="수집 경로">tarkov.dev가 공개하는 이름 목록, 하루 한 번</td>
+                <td data-label="보유 기간">tarkov.dev 목록에 있는 동안</td>
               </tr>
               <tr>
-                <td>닉네임 변경 이력</td>
-                <td>위 이름 목록을 전날 것과 비교</td>
-                <td>삭제 요청이 있을 때까지</td>
+                <td data-label="항목">닉네임 변경 이력</td>
+                <td data-label="수집 경로">위 이름 목록을 전날 것과 비교</td>
+                <td data-label="보유 기간">삭제 요청이 있을 때까지</td>
               </tr>
               <tr>
-                <td>전적 숫자, 진영, 레벨, 계정 등급, 도전과제 달성 시각, 플레이 시간</td>
-                <td>tarkov.dev가 공개하는 계정 기록.<br />누군가 이 사이트에서 조회할 때와 판정 비교군을 만들 때</td>
-                <td>삭제 요청이 있을 때까지.<br />장비와 아이템 정보는 저장하지 않음</td>
+                <td data-label="항목">전적 숫자, 진영, 레벨, 계정 등급, 도전과제 달성 시각, 플레이 시간</td>
+                <td data-label="수집 경로">tarkov.dev가 공개하는 계정 기록.<br />누군가 이 사이트에서 조회할 때와 판정 비교군을 만들 때</td>
+                <td data-label="보유 기간">삭제 요청이 있을 때까지.<br />장비와 아이템 정보는 저장하지 않음</td>
               </tr>
             </tbody>
           </table>
@@ -98,7 +98,7 @@ export default function Privacy() {
         </p>
 
         <h3 className={H3}>공통</h3>
-        <div className="doc-table">
+        <div className="doc-table cards">
           <table>
             <thead>
               <tr>
@@ -109,14 +109,14 @@ export default function Privacy() {
             </thead>
             <tbody>
               <tr>
-                <td>접속 IP 주소</td>
-                <td>사이트에 접속할 때</td>
-                <td>요청 횟수 제한에만 쓰고 저장하지 않음.<br />서버 메모리에서 1시간 안에 지워짐</td>
+                <td data-label="항목">접속 IP 주소</td>
+                <td data-label="수집 시점">사이트에 접속할 때</td>
+                <td data-label="보유 기간">요청 횟수 제한에만 쓰고 저장하지 않음.<br />서버 메모리에서 1시간 안에 지워짐</td>
               </tr>
               <tr>
-                <td>방문한 페이지 주소, 브라우저와 기기 정보, 방문 통계 쿠키 식별자</td>
-                <td>페이지를 조작하거나 10초 넘게 볼 때</td>
-                <td>수집일로부터 14개월</td>
+                <td data-label="항목">방문한 페이지 주소, 브라우저와 기기 정보, 방문 통계 쿠키 식별자</td>
+                <td data-label="수집 시점">페이지를 조작하거나 10초 넘게 볼 때</td>
+                <td data-label="보유 기간">수집일로부터 14개월</td>
               </tr>
             </tbody>
           </table>
@@ -135,7 +135,7 @@ export default function Privacy() {
         </p>
 
         <h2>5. 처리 위탁과 국외 이전</h2>
-        <div className="doc-table">
+        <div className="doc-table cards">
           <table>
             <thead>
               <tr>
@@ -146,31 +146,31 @@ export default function Privacy() {
             </thead>
             <tbody>
               <tr>
-                <td>
+                <td data-label="받는 곳">
                   Sentry
                   <br />
                   <span className="whitespace-nowrap">compliance@sentry.io</span>
                 </td>
-                <td className="whitespace-nowrap">미국</td>
-                <td>서버 오류 기록.<br />오류가 난 페이지 주소와 오류 내용이 서버 오류가 날 때 전송됨.<br />접속 IP 주소, 쿠키, 요청 내용은 보내지 않음.<br />보유 기간은 Sentry 보관 정책을 따름</td>
+                <td data-label="국가" className="whitespace-nowrap">미국</td>
+                <td data-label="업무와 항목">서버 오류 기록.<br />오류가 난 페이지 주소와 오류 내용이 서버 오류가 날 때 전송됨.<br />접속 IP 주소, 쿠키, 요청 내용은 보내지 않음.<br />보유 기간은 Sentry 보관 정책을 따름</td>
               </tr>
               <tr>
-                <td>
+                <td data-label="받는 곳">
                   Cloudflare
                   <br />
                   <span className="whitespace-nowrap">dpo@cloudflare.com</span>
                 </td>
-                <td className="whitespace-nowrap">미국</td>
-                <td>사이트 접속 중계, 방문 통계, 백업 보관.<br />접속 IP 주소, 요청 정보, 방문한 페이지 주소, 브라우저 종류가 접속할 때마다, Escape from Tarkov 기록의 암호화한 백업본이 매일 전송됨.<br />방문 통계는 쿠키를 쓰지 않음.<br />보유 기간은 Cloudflare 정책을 따르고, 백업본은 최대 5주</td>
+                <td data-label="국가" className="whitespace-nowrap">미국</td>
+                <td data-label="업무와 항목">사이트 접속 중계, 방문 통계, 백업 보관.<br />접속 IP 주소, 요청 정보, 방문한 페이지 주소, 브라우저 종류가 접속할 때마다, Escape from Tarkov 기록의 암호화한 백업본이 매일 전송됨.<br />방문 통계는 쿠키를 쓰지 않음.<br />보유 기간은 Cloudflare 정책을 따르고, 백업본은 최대 5주</td>
               </tr>
               <tr>
-                <td>
+                <td data-label="받는 곳">
                   Google LLC
                   <br />
                   <span className="whitespace-nowrap">googlekrsupport@google.com</span>
                 </td>
-                <td className="whitespace-nowrap">미국</td>
-                <td>Google 애널리틱스 방문 통계 분석.<br />쿠키 식별자, 방문한 페이지 주소, 브라우저와 기기 정보, 접속 IP 주소가 페이지를 조작하거나 10초 넘게 볼 때 전송됨.<br />보유 기간은 수집일로부터 14개월</td>
+                <td data-label="국가" className="whitespace-nowrap">미국</td>
+                <td data-label="업무와 항목">Google 애널리틱스 방문 통계 분석.<br />쿠키 식별자, 방문한 페이지 주소, 브라우저와 기기 정보, 접속 IP 주소가 페이지를 조작하거나 10초 넘게 볼 때 전송됨.<br />보유 기간은 수집일로부터 14개월</td>
               </tr>
             </tbody>
           </table>
