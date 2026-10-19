@@ -4,7 +4,8 @@ RUN corepack enable
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 COPY . .
-ENV NEXT_TELEMETRY_DISABLED=1
+# 정적으로 미리 만드는 페이지의 미리보기 이미지 주소와 통계 비콘에 쓰임
+ENV NEXT_TELEMETRY_DISABLED=1 BASE_URL=https://tarkov.mongsil.dev
 RUN pnpm build
 
 FROM node:24-slim
