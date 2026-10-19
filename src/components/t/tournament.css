@@ -83,6 +83,25 @@
 .slot.done {
   border-color: var(--gold);
 }
+.slot.done .slot-kv {
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+}
+.char {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.char img {
+  flex: none;
+  border-radius: 50%;
+  background: var(--field);
+}
+.chars {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
 .slot-hd {
   display: flex;
   align-items: center;
@@ -571,7 +590,8 @@
   .slot-acts .link {
     min-height: 32px;
   }
-  .slot.next {
+  .slot.next,
+  .slot.done {
     grid-column: 1 / -1;
     order: -1;
   }

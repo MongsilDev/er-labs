@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import type { GroupResult } from "@/lib/engine";
-import { characterName, fmt } from "@/lib/format";
+import { fmt } from "@/lib/format";
 import type { Rules } from "@/lib/rules";
+import Char from "./Char";
 
 type Tab = "rounds" | "picks" | "players";
 
@@ -77,7 +78,7 @@ export default function Details({ result, rules }: { result: GroupResult; rules:
                       .filter((c) => c.count >= 2 || c.banRounds > 0)
                       .map((c) => (
                         <li key={c.character}>
-                          <span>{characterName(c.character)}</span>
+                          <Char name={c.character} />
                           <span className="muted">{c.count}명</span>
                           {c.banRounds > 0 && rules.bans && (
                             <span className="ban">

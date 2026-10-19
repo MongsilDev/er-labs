@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import type { GroupResult } from "@/lib/engine";
-import { characterName, rampColor } from "@/lib/format";
+import { fmt1, rampColor } from "@/lib/format";
 import { MAIN_WEATHERS, SUB_WEATHERS, type Mode } from "@/lib/rules";
 import type { GroupView, Op } from "@/lib/view";
+import Char from "./Char";
 
 type Props = {
   group: GroupView;
@@ -133,7 +134,7 @@ export default function Rounds({ group, result, mode, planned, multi, editable, 
               )}
             </dd>
             <dt>금지 실험체</dt>
-            <dd>{next.bans.length ? next.bans.map(characterName).join(", ") : "없음"}</dd>
+            <dd className={next.bans.length ? "chars" : undefined}>{next.bans.length ? next.bans.map((b) => <Char key={b} name={b} />) : "없음"}</dd>
             {mode !== "points" && (
               <>
                 <dt>체크포인트</dt>
@@ -151,20 +152,17 @@ export default function Rounds({ group, result, mode, planned, multi, editable, 
       )}
 
       {ended && (
-        <section className="panel slot next done" aria-label={multi ? `${group.label}조 경기 종료` : "대회 종료"}>
+        <section className="panel slot done" aria-label={multi ? `${group.label}조 경기 종료` : "대회 종료"}>
           <div className="slot-hd">
             <b>{multi ? `${group.label}조 경기 종료` : "대회 종료"}</b>
           </div>
-          <div className="slot-kv">
-            <span className="muted">1위</span>
-            <span className="ellipsis">{result.standings[0]?.name}</span>
-          </div>
-          {mode === "double" && result.standings[1] && (
-            <div className="slot-kv">
-              <span className="muted">2위</span>
-              <span className="ellipsis">{result.standings[1].name}</span>
+          {result.standings.slice(0, 3).map((s) => (
+            <div key={s.key} className="slot-kv">
+              <span className="muted">{s.rank}위</span>
+              <span className="ellipsis">{s.name}</span>
+              <span className="num">{fmt1(s.total)}</span>
             </div>
-          )}
+          ))}
         </section>
       )}
 
