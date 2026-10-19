@@ -3,7 +3,7 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-export PATH="/Applications/OrbStack.app/Contents/MacOS/xbin:$PATH"
+export PATH="/opt/homebrew/opt/node@24/bin:/Applications/OrbStack.app/Contents/MacOS/xbin:$PATH"
 
 if [ "${SKIP_UI_CHECK:-}" != 1 ]; then
   echo "==> 테스트와 화면 점검"

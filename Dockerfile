@@ -1,6 +1,6 @@
 FROM node:24-slim AS build
 WORKDIR /app
-RUN corepack enable
+RUN npm i -g pnpm@12.11.2
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 COPY . .
