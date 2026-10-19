@@ -3,6 +3,12 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
+  async redirects() {
+    return [
+      { source: "/er/privacy", destination: "/privacy", permanent: true },
+      { source: "/tarkov/privacy", destination: "/privacy", permanent: true },
+    ];
+  },
   async headers() {
     return [
       {

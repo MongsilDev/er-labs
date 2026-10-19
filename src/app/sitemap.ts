@@ -5,15 +5,14 @@ export const dynamic = "force-dynamic";
 
 const PATHS = [
   "",
+  "/privacy",
   "/er",
   "/er/score",
   "/er/example/a",
-  "/er/privacy",
   "/tarkov",
   "/tarkov/players",
   "/tarkov/kord-breach",
   "/tarkov/criteria",
-  "/tarkov/privacy",
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

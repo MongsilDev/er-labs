@@ -95,7 +95,7 @@ const SCREENS: Screen[] = [
   { name: "홈", path: () => "/er" },
   { name: "점수 계산", path: () => "/er/score" },
   { name: "점수 계산 로그인", path: () => "/er/score", login: true },
-  { name: "처리방침", path: () => "/er/privacy" },
+  { name: "처리방침", path: () => "/privacy" },
   { name: "예시 대회 선수 기록", path: () => "/er/example/a", tab: "선수 기록" },
   { name: "대회 보기", path: () => `/er/t/${code}/a` },
   { name: "대회 운영", path: () => `/er/t/${code}/a`, login: true },
@@ -185,7 +185,7 @@ describe("화면 점검", () => {
   });
 
   it("키보드로 옮긴 초점이 화면에 표시된다", async () => {
-    const { page } = await open(SCREENS[6], 1440, "dark");
+    const { page } = await open(SCREENS.find((s) => s.name === "대회 운영")!, 1440, "dark");
     const missing: string[] = [];
     for (let i = 0; i < 40; i++) {
       await page.keyboard.press("Tab");

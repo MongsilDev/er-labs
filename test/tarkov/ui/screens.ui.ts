@@ -106,7 +106,6 @@ const SCREENS: Screen[] = [
   { name: "기록 없는 모드", path: "/tarkov/players/1001?mode=arena" },
   { name: "숨긴 계정", path: "/tarkov/players/1004" },
   { name: "판정 기준", path: "/tarkov/criteria" },
-  { name: "처리방침", path: "/tarkov/privacy" },
   { name: "KORD BREACH", path: "/tarkov/kord-breach" },
   { name: "없는 페이지", path: "/tarkov/players/abc", status: 404 },
 ];
@@ -198,7 +197,7 @@ describe("화면 점검", () => {
   });
 
   it("시뮬레이터는 포인트를 계산하고 빌드를 주소로 되살린다", async () => {
-    const { page } = await open(SCREENS[9], 390, "dark");
+    const { page } = await open(SCREENS.find((s) => s.name === "KORD BREACH")!, 390, "dark");
     const left = page.locator(".kb-left dd");
     await page.getByRole("button", { name: /플리마켓 금지령/ }).click();
     await expect(left.textContent()).resolves.toBe("10");

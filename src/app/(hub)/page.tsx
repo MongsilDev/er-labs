@@ -1,4 +1,5 @@
 import Link from "next/link";
+import HubFooter from "./HubFooter";
 import HubHeader from "./HubHeader";
 import { MarkSvg } from "./Mark";
 
@@ -27,10 +28,7 @@ export default function Hub() {
           ))}
         </ul>
       </main>
-      <footer className="mx-auto mt-8 mb-6 flex w-full max-w-[1280px] gap-4 px-6 text-[13px] text-fg-3 max-[760px]:px-4">
-        <span>labs.mongsil.dev</span>
-        <a href="https://github.com/MongsilDev/labs">GitHub</a>
-      </footer>
+      <HubFooter />
     </>
   );
 }
