@@ -1,0 +1,1018 @@
+{
+ "6512ea46f7a078264a4376e4": {
+  "name": "PMC의 베스트 프렌드",
+  "description": "PMC로 플레이하며 인터체인지(Interchange)에서 스캐브 협동 탈출구로 생존하여 탈출하세요",
+  "icon": true,
+  "rarity": "common",
+  "percent": 2.13,
+  "hidden": false
+ },
+ "6512eb3ddfb0ae1ee75a0376": {
+  "name": "여행객",
+  "description": "PMC로 플레이하며 타르코프의 모든 맵에서 생존하여 탈출하세요",
+  "icon": true,
+  "rarity": "common",
+  "percent": 6.88,
+  "hidden": false
+ },
+ "6512f16bde333c33d5127cbc": {
+  "name": "킬러들의 킬러",
+  "description": "PMC로 플레이하며 밤중에 나타나 후드를 쓰고 특이한 칼을 휘두르는 사람을 사살하세요",
+  "icon": true,
+  "rarity": "common",
+  "percent": 0.09,
+  "hidden": true
+ },
+ "6512f1e3be73cc7f07358ed5": {
+  "name": "스타일의 예술",
+  "description": "PMC로 플레이하며 처음으로 킬라를 사살하세요",
+  "icon": true,
+  "rarity": "common",
+  "percent": 6.68,
+  "hidden": false
+ },
+ "6513eb6e0dc723592b0f9095": {
+  "name": "네 형이나 불러와라",
+  "description": "PMC로 플레이하며 처음으로 타길라를 사살하세요",
+  "icon": true,
+  "rarity": "common",
+  "percent": 11.81,
+  "hidden": false
+ },
+ "6513ed89cf2f1c285e606068": {
+  "name": "제재소의 침묵",
+  "description": "PMC로 플레이하며 처음으로 슈트르만을 사살하세요",
+  "icon": true,
+  "rarity": "common",
+  "percent": 9.97,
+  "hidden": false
+ },
+ "6513ee11a3dd9b6aa7159b4a": {
+  "name": "거래 성사",
+  "description": "PMC로 플레이하며 처음으로 르샬라를 사살하세요",
+  "icon": true,
+  "rarity": "common",
+  "percent": 12.45,
+  "hidden": false
+ },
+ "6513eec00dc723592b0f90cc": {
+  "name": "꿩 사냥",
+  "description": "PMC로 플레이하며 처음으로 글루하를 사살하세요",
+  "icon": true,
+  "rarity": "common",
+  "percent": 6.72,
+  "hidden": false
+ },
+ "6513efa1b49e3253755f47eb": {
+  "name": "요양원 관리인",
+  "description": "PMC로 플레이하며 처음으로 세니타를 사살하세요",
+  "icon": true,
+  "rarity": "common",
+  "percent": 8.68,
+  "hidden": false
+ },
+ "6513f0a10dc723592b0f90cf": {
+  "name": "웃기는 묘지기",
+  "description": "PMC로 플레이하며 처음으로 카반을 사살하세요",
+  "icon": true,
+  "rarity": "common",
+  "percent": 4.35,
+  "hidden": false
+ },
+ "6513f1feec10ff011f17c7ea": {
+  "name": "이제는 세 명이라고?!",
+  "description": "PMC로 플레이하며 처음으로 한 레이드 내에서 나이트, 버드아이, 그리고 빅 파이프를 전부 사살하세요",
+  "icon": true,
+  "rarity": "common",
+  "percent": 5.05,
+  "hidden": false
+ },
+ "6513f28cb49e3253755f47f3": {
+  "name": "눈먼 감시자",
+  "description": "PMC로 플레이하며 처음으로 즈랴치를 사살하세요",
+  "icon": true,
+  "rarity": "common",
+  "percent": 0.74,
+  "hidden": true
+ },
+ "65140ab8ec10ff011f17cc10": {
+  "name": "입으면 안되는 것",
+  "description": "PMC로 플레이하며 킬라를 15회 사살하세요",
+  "icon": true,
+  "rarity": "rare",
+  "percent": 0.3,
+  "hidden": false
+ },
+ "65140b55cf2f1c285e606414": {
+  "name": "망치와 낫",
+  "description": "PMC로 플레이하며 타길라를 15회 사살하세요",
+  "icon": true,
+  "rarity": "rare",
+  "percent": 0.64,
+  "hidden": false
+ },
+ "65140bbec31fcb0e163577b9": {
+  "name": "제재소의 왕",
+  "description": "PMC로 플레이하며 슈트르만을 15회 사살하세요",
+  "icon": true,
+  "rarity": "rare",
+  "percent": 0.54,
+  "hidden": false
+ },
+ "65140c00b1c08b0feb216d50": {
+  "name": "타르코프식 최후의 결전",
+  "description": "PMC로 플레이하며 르샬라를 15회 사살하세요",
+  "icon": true,
+  "rarity": "rare",
+  "percent": 0.58,
+  "hidden": false
+ },
+ "65141032a3dd9b6aa7159ed3": {
+  "name": "또 다른 미제사건",
+  "description": "PMC로 플레이하며 글루하를 15회 사살하세요",
+  "icon": true,
+  "rarity": "rare",
+  "percent": 0.21,
+  "hidden": false
+ },
+ "651411f1cf2f1c285e606423": {
+  "name": "누가 의사 선생님 찾으셨나요?",
+  "description": "PMC로 플레이하며 세니타를 15회 사살하세요",
+  "icon": true,
+  "rarity": "rare",
+  "percent": 0.23,
+  "hidden": false
+ },
+ "651412b8c31fcb0e163577c5": {
+  "name": "늙은 개와 오래된 재주",
+  "description": "PMC로 플레이하며 카반을 15회 사살하세요",
+  "icon": true,
+  "rarity": "rare",
+  "percent": 0.27,
+  "hidden": false
+ },
+ "6514134eec10ff011f17cc26": {
+  "name": "어둠의 목소리가 들린다",
+  "description": "PMC로 플레이하며 나이트를 15회 사살하세요",
+  "icon": true,
+  "rarity": "rare",
+  "percent": 0.92,
+  "hidden": false
+ },
+ "651413e9c31fcb0e163577c9": {
+  "name": "이래야 잘 쐈다고 하는거지",
+  "description": "PMC로 플레이하며 즈랴치를 15회 사살하세요",
+  "icon": true,
+  "rarity": "rare",
+  "percent": 0.07,
+  "hidden": true
+ },
+ "6514143d59647d2cb3213c93": {
+  "name": "ULTRA의 지배자",
+  "description": "PMC로 플레이하며 킬라를 100회 사살하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.14,
+  "hidden": false
+ },
+ "651415feb49e3253755f4b68": {
+  "name": "만수무강 하시옵소서!",
+  "description": "PMC로 플레이하며 보든 보스를 한 번씩 사살하세요",
+  "icon": true,
+  "rarity": "rare",
+  "percent": 0.48,
+  "hidden": false
+ },
+ "6514174fb1c08b0feb216d73": {
+  "name": "아메리칸 스나이퍼의 계승자",
+  "description": "PMC로 플레이하며 500미터가 넘는 거리에 있는 PMC를 헤드샷으로 사살하세요",
+  "icon": true,
+  "rarity": "rare",
+  "percent": 0.22,
+  "hidden": true
+ },
+ "651417d6ec10ff011f17cc31": {
+  "name": "존 윅의 후계자",
+  "description": "PMC로 플레이하며 한 레이드 내에서 권총으로 4명의 PMC를 헤드샷으로 사살하세요",
+  "icon": true,
+  "rarity": "common",
+  "percent": 0.25,
+  "hidden": true
+ },
+ "6514184ec31fcb0e163577d2": {
+  "name": "킬러7",
+  "description": "PMC로 플레이하며 한 레이드 내에서 7명의 PMC를 사살하세요",
+  "icon": true,
+  "rarity": "rare",
+  "percent": 0.71,
+  "hidden": true
+ },
+ "651419eea3dd9b6aa7159ee5": {
+  "name": "눈 먼 분노",
+  "description": "PMC로 플레이하며 섬광탄에 피격된 채로 PMC를 사살하세요",
+  "icon": true,
+  "rarity": "rare",
+  "percent": 6.12,
+  "hidden": false
+ },
+ "65141a3059647d2cb3213c9e": {
+  "name": "조각가",
+  "description": "PMC로 플레이하며 30명의 PMC를 근접 무기로 사살하세요",
+  "icon": true,
+  "rarity": "common",
+  "percent": 0.03,
+  "hidden": false
+ },
+ "65141ab70dc723592b0f9482": {
+  "name": "취권",
+  "description": "PMC로 플레이하며 술에 취한 상태로 PMC를 헤드샷으로 사살하세요",
+  "icon": true,
+  "rarity": "common",
+  "percent": 0.78,
+  "hidden": true
+ },
+ "65141b9859647d2cb3213ca2": {
+  "name": "U-SUCC",
+  "description": "USEC PMC 50명을 사살하세요",
+  "icon": true,
+  "rarity": "common",
+  "percent": 9.58,
+  "hidden": false
+ },
+ "65141bdfcf2f1c285e606446": {
+  "name": "BEAR와 함께",
+  "description": "BEAR PMC 50명 사살하기",
+  "icon": true,
+  "rarity": "common",
+  "percent": 7.52,
+  "hidden": false
+ },
+ "65141c30ec10ff011f17cc3b": {
+  "name": "타르코프에 오신 것을 환영합니다",
+  "description": "처음으로 타르코프에서 사망하세요",
+  "icon": true,
+  "rarity": "common",
+  "percent": 49.17,
+  "hidden": true
+ },
+ "65141c80ec10ff011f17cc3e": {
+  "name": "언제나 처음은 아프지",
+  "description": "처음으로 레이드에서 생존하여 탈출하세요",
+  "icon": true,
+  "rarity": "common",
+  "percent": 41.26,
+  "hidden": true
+ },
+ "65141cd2cf2f1c285e606449": {
+  "name": "시켜만 주십시오",
+  "description": "PMC로 플레이하며 10회 연속으로 생존하여 탈출하세요",
+  "icon": true,
+  "rarity": "rare",
+  "percent": 5.58,
+  "hidden": false
+ },
+ "65141dd6303df252af1c72c9": {
+  "name": "PMC",
+  "description": "PMC로 플레이하며 300회 생존하여 탈출하세요",
+  "icon": true,
+  "rarity": "rare",
+  "percent": 2.99,
+  "hidden": false
+ },
+ "65141e37cf2f1c285e606361": {
+  "name": "그녀가 그랬었지 (That's What She Said)",
+  "description": "PMC로 플레이하며 공장(Factory)의 사무실 구역을 발견하세요",
+  "icon": true,
+  "rarity": "common",
+  "percent": 22.52,
+  "hidden": true
+ },
+ "65141eb5c31fcb0e163577dd": {
+  "name": "로스트",
+  "description": "PMC로 플레이하며 삼림(Woods)에서 추락한 비행기를 발견하세요",
+  "icon": true,
+  "rarity": "common",
+  "percent": 27.87,
+  "hidden": true
+ },
+ "6514321bec10ff011f17ccac": {
+  "name": "반딧불이",
+  "description": "PMC로 플레이하며 등대지기를 처음으로 만나세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 1.34,
+  "hidden": false
+ },
+ "6527d2e2c656a951ad1528c3": {
+  "name": "평화의 담뱃대",
+  "description": "PMC로 플레이하며 빅 파이프를 15회 사살하세요",
+  "icon": true,
+  "rarity": "rare",
+  "percent": 0.23,
+  "hidden": false
+ },
+ "6527d3aac656a951ad1528ce": {
+  "name": "빨간 책",
+  "description": "PMC로 플레이하며 버드아이를 15회 사살하세요",
+  "icon": true,
+  "rarity": "rare",
+  "percent": 0.23,
+  "hidden": false
+ },
+ "6527ee4a647c29201011defe": {
+  "name": "넌 내 형제가 아니야",
+  "description": "스캐브로 플레이하며 스캐브 사살하기",
+  "icon": true,
+  "rarity": "common",
+  "percent": 35.34,
+  "hidden": true
+ },
+ "6529097eccf6aa5f8737b3d0": {
+  "name": "스노우볼",
+  "description": "PMC로 플레이하며 죽지 않고 보든 보스 한 번씩 사살하기",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.08,
+  "hidden": false
+ },
+ "655b49bc91aa9e07687ae47c": {
+  "name": "정의",
+  "description": "PMC로 플레이하며 처음으로 콜론타이 사살하기",
+  "icon": true,
+  "rarity": "common",
+  "percent": 4.74,
+  "hidden": false
+ },
+ "655b4a576689c676ce57acb6": {
+  "name": "진짜 범죄",
+  "description": "PMC로 플레이하며 콜론타이 15번 사살하기",
+  "icon": true,
+  "rarity": "rare",
+  "percent": 0.2,
+  "hidden": false
+ },
+ "660fe21454670811e304c045": {
+  "name": "마슬레니차",
+  "description": "'2024년 마슬레니차' 이벤트 퀘스트 라인을 완수하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.01,
+  "hidden": false
+ },
+ "6634c8886e083a141f4aa3f4": {
+  "name": "리슐리외 추기경",
+  "description": "타르코프의 진짜 배후를 밝혀내고 ‘타르코프 미스터리’ 이벤트 임무를 완수하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.05,
+  "hidden": true
+ },
+ "6634ca69ee506a5c3e61be56": {
+  "name": "평화에 관여함",
+  "description": "피스키퍼의 편에 서서 ‘타르코프 미스터리’ 이벤트 임무 라인을 완수하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.06,
+  "hidden": true
+ },
+ "6634cae870af846d2868dada": {
+  "name": "지역의 대빵",
+  "description": "스키어의 편에 서서 ‘타르코프 미스터리’ 이벤트 임무 라인을 완수하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.33,
+  "hidden": true
+ },
+ "664f1f8768508d74604bf556": {
+  "name": "카파로 향하는 여정",
+  "description": "보안 컨테이너 카파를 획득하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 1.35,
+  "hidden": false
+ },
+ "664f23e44702fd5db50ee732": {
+  "name": "만능 재주꾼",
+  "description": "건스미스 임무 라인을 완수하세요",
+  "icon": true,
+  "rarity": "rare",
+  "percent": 2.55,
+  "hidden": false
+ },
+ "66742c003a67b164a300fcbf": {
+  "name": "구원의 열쇠",
+  "description": "테라피스트를 도와서 생명을 구하고 '구원의 열쇠' 이벤트 임무 라인을 완수하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.28,
+  "hidden": false
+ },
+ "668bf47c781d446fdc083711": {
+  "name": "치열한 경쟁",
+  "description": "편을 골라서 '군비 경쟁' 이벤트 임무 라인을 완수하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.17,
+  "hidden": false
+ },
+ "66b493bc2d8cd3b5e90a3648": {
+  "name": "마라톤",
+  "description": "PMC로 한 번의 레이드에서 모든 지역을 방문하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.26,
+  "hidden": false
+ },
+ "66c328aca91e7d66fa1b0b7b": {
+  "name": "방랑자",
+  "description": "아무 지역에서 지역이동을 하세요",
+  "icon": true,
+  "rarity": "common",
+  "percent": 14.71,
+  "hidden": false
+ },
+ "66c328de9dc78468f4040f35": {
+  "name": "업보를 청산할 시간이다",
+  "description": "PMC로 플레이하며 처음으로 파르티잔을 사살하세요",
+  "icon": true,
+  "rarity": "common",
+  "percent": 11.81,
+  "hidden": false
+ },
+ "66c32996b4c0c017a3319cc3": {
+  "name": "다시 구르는 윤회의 수레바퀴",
+  "description": "PMC로 플레이하며 파르티잔을 15번 사살하세요",
+  "icon": true,
+  "rarity": "rare",
+  "percent": 0.35,
+  "hidden": false
+ },
+ "66e2a7e5919bad697104f4b3": {
+  "name": "하이웨이 투 더 데인저 존",
+  "description": "‘박격포 타격 2024’ 이벤트 임무 라인을 완수하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.25,
+  "hidden": false
+ },
+ "670feb95a4e71050310cc14b": {
+  "name": "완치",
+  "description": "감염자들을 모두 치료하고 ‘할로윈 2024’ 이벤트 임무 라인을 완수하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.19,
+  "hidden": false
+ },
+ "670febed5ee0fc738a0965a4": {
+  "name": "치명적 결과",
+  "description": "바이러스와 함께 모든 감염자를 소탕하고 ‘할로윈 2024’ 이벤트 임무 라인을 완수하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.16,
+  "hidden": false
+ },
+ "675709bef4e2a2ce0f058f56": {
+  "name": "사륜구동",
+  "description": "BTR 조종수의 문제를 어떻게든 해결하세요",
+  "icon": true,
+  "rarity": "rare",
+  "percent": 0.5,
+  "hidden": false
+ },
+ "675998a894008342eb04e47f": {
+  "name": "코로보드",
+  "description": "'코로보드 2024' 이벤트 임무 라인을 완수하고 크리스마스와 신년을 축하하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.11,
+  "hidden": false
+ },
+ "676091c0f457869a94017a23": {
+  "name": "명망 있는 자",
+  "description": "프레스티지 레벨 1을 달성하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 1.33,
+  "hidden": false
+ },
+ "676094451fec2f7426093be6": {
+  "name": "더욱 명망 있는 자",
+  "description": "프레스티지 레벨 2을 달성하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.5,
+  "hidden": false
+ },
+ "67a0e57117e34930e50075f3": {
+  "name": "출구를 찾아서",
+  "description": "'2025년 미궁' 이벤트 임무 라인을 완수하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.23,
+  "hidden": false
+ },
+ "67a0e57b972c11a3f50773b2": {
+  "name": "던전 마스터",
+  "description": "'2025년 미궁' 이벤트 임무와 모든 부가 임무를 완수하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.07,
+  "hidden": false
+ },
+ "67c838a4c566b0028f0f2d07": {
+  "name": "올 인 레드",
+  "description": "차단선 너머의 BEAR 분대에 올인하고 스키어의 '이득이 되는 모험' 임무 라인을 완수하세요",
+  "icon": true,
+  "rarity": "rare",
+  "percent": 0.07,
+  "hidden": false
+ },
+ "67fce0c2f18dc20eae02240b": {
+  "name": "태양이라는 이름의 별",
+  "description": "RShG-2 로켓 발사기로 광신도를 사살하세요",
+  "icon": true,
+  "rarity": "rare",
+  "percent": 0.08,
+  "hidden": true
+ },
+ "6842c25bd02bc07d70054019": {
+  "name": "페이스 유지하기",
+  "description": "프레스티지 레벨 3을 달성하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.22,
+  "hidden": false
+ },
+ "6842c27a38482d35ac0bd847": {
+  "name": "높이, 더 높이!",
+  "description": "프레스티지 레벨 4을 달성하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.11,
+  "hidden": false
+ },
+ "685d3d6b81d993fda109cdb8": {
+  "name": "마지막 한 판",
+  "description": "하드코어 초기화를 경험하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 2.03,
+  "hidden": false
+ },
+ "685d6539127e4806240f3bcd": {
+  "name": "끝까지 간다",
+  "description": "하드코어 초기화의 상처들을 모으세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.12,
+  "hidden": false
+ },
+ "68936a7a672ffe94a509446b": {
+  "name": "타르그라드 이야기",
+  "description": "꿀을 탐하려면 벌침도 각오해야 한다",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.31,
+  "hidden": false
+ },
+ "68d3fe84757f8967ec09099b": {
+  "name": "5점 만점에 5점",
+  "description": "프레스티지 레벨 5을 달성하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.05,
+  "hidden": false
+ },
+ "68d3ff840531ed76e808866c": {
+  "name": "완벽에 한계는 없다",
+  "description": "프레스티지 레벨 6을 달성하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.02,
+  "hidden": false
+ },
+ "68dfdeb7958a19b62b0ae460": {
+  "name": "가볍게 가자",
+  "description": "정식 발매 전 마지막 준비입니다!",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.95,
+  "hidden": false
+ },
+ "68e8f02ff3a1196d1a05f2cb": {
+  "name": "생존자",
+  "description": "타르코프에서 무슨 수를 써서라도 탈출했습니다",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.04,
+  "hidden": false
+ },
+ "68e8f042b8efa2bbeb009d89": {
+  "name": "파멸자",
+  "description": "타르코프에서 탈출했지만 어둠 속으로 추락했습니다",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.1,
+  "hidden": false
+ },
+ "68e8f04eb841bc8ac305350a": {
+  "name": "채무자",
+  "description": "타르코프에서 탈출했지만 자기 자신에게서 도망치지는 못했습니다",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.09,
+  "hidden": false
+ },
+ "68e8f0575eb7e5ce5000ba0a": {
+  "name": "구원자",
+  "description": "타르코프에서 탈출해서 인류의 구원자가 되었습니다",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.32,
+  "hidden": false
+ },
+ "68f76335c3f68167b8029c18": {
+  "name": "생존자 (PVE 존)",
+  "description": "타르코프에서 무슨 수를 써서라도 탈출했습니다",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.04,
+  "hidden": false
+ },
+ "68f76344bc0e8927900279f0": {
+  "name": "파멸자 (PVE 존)",
+  "description": "타르코프에서 탈출했지만, 어둠 속에 떨어지다",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.1,
+  "hidden": false
+ },
+ "68f76353c152253a5b01a612": {
+  "name": "채무자 (PVE 존)",
+  "description": "타르코프에서 탈출했지만 자기 자신에게서 도망치지는 못했습니다",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.09,
+  "hidden": false
+ },
+ "68f7635e006f73031b0336fa": {
+  "name": "구원자 (PVE 존)",
+  "description": "타르코프에서 탈출해서 인류의 구원자가 되었습니다",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.31,
+  "hidden": false
+ },
+ "691212088e10a4e1fb0f48c4": {
+  "name": "약속을 지키는 자",
+  "description": "자신에게 주어진 임무를 끝까지 완수하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 1.52,
+  "hidden": true
+ },
+ "691213563d597b2ef80a21cf": {
+  "name": "비즈니스일 뿐",
+  "description": "프라퍼를 배신하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.95,
+  "hidden": true
+ },
+ "691213956b60607135006811": {
+  "name": "길잡이",
+  "description": "타르코프와 그곳의 주민들을 완벽히 탐험하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 3.36,
+  "hidden": false
+ },
+ "691213c8680e04c5da0571eb": {
+  "name": "지옥불",
+  "description": "블루 파이어에 대해 모든 것을 알아내세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.77,
+  "hidden": false
+ },
+ "691213f0dbcdbbc54402fe00": {
+  "name": "남겨진 빵부스러기",
+  "description": "타르코프에서 수수께끼의 조직이 남긴 흔적을 찾으세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.55,
+  "hidden": false
+ },
+ "6912145e52ddd29bf002d343": {
+  "name": "타인의 눈으로",
+  "description": "광신도들이 무엇을 찾으려고 했는지 알아내세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.53,
+  "hidden": false
+ },
+ "69121487d2f0e6de2f0561ef": {
+  "name": "빚은 갚아야지",
+  "description": "코즐로프에게 무슨 일이 일어났는지 알아내세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.86,
+  "hidden": false
+ },
+ "691214c93d597b2ef80a2206": {
+  "name": "테세우스",
+  "description": "미궁의 비밀을 밝혀내세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.95,
+  "hidden": false
+ },
+ "691214eafc9b2bc7f3042a57": {
+  "name": "우연의 일치(가 아니다)",
+  "description": "BEAR 분대에게 무슨 일이 있었는지 알아내기",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.45,
+  "hidden": false
+ },
+ "69121515e329984a340f00b4": {
+  "name": "장난은 이제 그만!",
+  "description": "케르만의 계략에 넘어가지 마세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.14,
+  "hidden": true
+ },
+ "6912153f761a11e52408fbd2": {
+  "name": "쉬운 길",
+  "description": "테라그룹이 남긴 지시대로 하세요. 뭐가 잘못되기라도 하겠어요?",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.08,
+  "hidden": true
+ },
+ "6912156f3d597b2ef80a2209": {
+  "name": "U턴",
+  "description": "의뢰를 수락한 뒤 마음을 바꾸세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.12,
+  "hidden": true
+ },
+ "6912159adf87c6a94a0b9f34": {
+  "name": "터지기라도 하겠어?",
+  "description": "잘못된 사람들에게 위험한 내용물이 든 케이스를 넘기세요. 딱히 별 다른 선택지가 있던 것도 아니니까요!",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.12,
+  "hidden": true
+ },
+ "691215e8680e04c5da057e57": {
+  "name": "작은 승리들",
+  "description": "테라그룹의 모든 '사소한' 악행에 대한 증거를 모으세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.25,
+  "hidden": false
+ },
+ "691216216cd39d8e1d09173b": {
+  "name": "내가 곧 속도다",
+  "description": "프라퍼의 임무를 3일 내로 완수하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.03,
+  "hidden": true
+ },
+ "6912163e680e04c5da057e5b": {
+  "name": "좋은 일에 쓰기",
+  "description": "테라그룹의 기술을 팔아넘기지 마세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.54,
+  "hidden": true
+ },
+ "6912168c52ddd29bf002d37a": {
+  "name": "빛이 사라질 때",
+  "description": "사제의 눈으로부터 타르코프를 해방시키세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.51,
+  "hidden": true
+ },
+ "693a83434cb1cf587c0a63f9": {
+  "name": "화이트아웃",
+  "description": "크리스마스와 새해를 기념하고 '콜로툰 2025' 이벤트 임무 라인을 완수하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.8,
+  "hidden": false
+ },
+ "6984ab58ee0ae2c0d5075f33": {
+  "name": "덕 헌트",
+  "description": "'2026년 덕 헌트' 이벤트 임무 라인을 완수하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.35,
+  "hidden": false
+ },
+ "69de1be5d378f8aef8008409": {
+  "name": "정타다, 정타!",
+  "description": "스키어를 도와 아레나의 새 시즌 개막을 막고, '카수스 벨리' 이벤트 퀘스트 라인을 완수하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.06,
+  "hidden": false
+ },
+ "69de1c2be33584b09a098e93": {
+  "name": "죽음을 앞둔 자들의 경례",
+  "description": "레프를 도와 아레나의 새 시즌 개막을 도와주고, 카수스 벨리 이벤트 퀘스트 라인을 완수하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.15,
+  "hidden": false
+ },
+ "6a0344563743e4b101070b92": {
+  "name": "빙하의 균열",
+  "description": "쇄빙선 '보레아스' 호의 기록 보관소에 있던 언허드에 관한 데이터를 해독하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.32,
+  "hidden": false
+ },
+ "6a03447fb2e3003f8706a400": {
+  "name": "배의 일부, 우리의 일부",
+  "description": "쇄빙선 보레아스 호의 비밀을 전부 알아내세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.21,
+  "hidden": false
+ },
+ "6a04f93d7a6a2b325906bb5c": {
+  "name": "출항 대기",
+  "description": "'전속전진' 이벤트 퀘스트라인을 완수하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.25,
+  "hidden": false
+ },
+ "6a11d9028fd274eb6207c0bc": {
+  "name": "배에 올라탔다",
+  "description": "PMC로 웨지의 분대원 4명을 사살하세요",
+  "icon": true,
+  "rarity": "common",
+  "percent": 0.9,
+  "hidden": false
+ },
+ "6a11d98a1e4337ff1d0a6dbe": {
+  "name": "용감한 자가 승리한다",
+  "description": "PMC로 웨지의 분대원 60명을 사살하세요",
+  "icon": true,
+  "rarity": "rare",
+  "percent": 0.22,
+  "hidden": false
+ },
+ "6a399cb92c8999ddbd01268b": {
+  "name": "내가 곧 법이노라",
+  "description": "예거를 도와 자연 보호구역의 질서를 되찾고 '와일드 와일드 우드' 이벤트 임무 라인을 완수하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.72,
+  "hidden": false
+ },
+ "6a4fbdaf39f54f9c000f1575": {
+  "name": "고잉 다크",
+  "description": "블랙 디비전 요원들을 상대하고 '블랙아웃' 이벤트 임무 라인을 완수하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.37,
+  "hidden": false
+ },
+ "6a59f63cacaee8fa5d013981": {
+  "name": "아무런 도움 필요 없어",
+  "description": "긍정적 특성 선택 없이 시즌 캐릭터 30레벨을 달성하세요",
+  "icon": true,
+  "rarity": "seasonal",
+  "percent": 0.45,
+  "hidden": false
+ },
+ "6a59f64174b4c1a38702a8a6": {
+  "name": "임포스터",
+  "description": "블랙 디비전의 장비를 착용한 상태로 블랙 디비전 대원 100명을 사살하세요",
+  "icon": true,
+  "rarity": "seasonal",
+  "percent": 0.01,
+  "hidden": false
+ },
+ "6a59f64965aa8755e000b95c": {
+  "name": "신도",
+  "description": "시즌 캐릭터 30레벨을 달성하세요",
+  "icon": true,
+  "rarity": "seasonal",
+  "percent": 0.45,
+  "hidden": false
+ },
+ "6a59f6fb65aa8755e000b95f": {
+  "name": "첫 걸음",
+  "description": "생존자 리그 랭크를 달성하세요",
+  "icon": true,
+  "rarity": "seasonal",
+  "percent": 0,
+  "hidden": false
+ },
+ "6a59f777625222137906a5c5": {
+  "name": "정상에 도달하다",
+  "description": "최종 리그 랭크인 지휘관 랭크를 달성하세요",
+  "icon": true,
+  "rarity": "seasonal",
+  "percent": 0,
+  "hidden": false
+ },
+ "6a5df324129316dcbe0da3da": {
+  "name": "나한테는 다 계획이 있었다고",
+  "description": "10개의 부정적 특성을 고른 후 시즌 캐릭터 30레벨을 달성하세요 (언더독 제외)",
+  "icon": true,
+  "rarity": "seasonal",
+  "percent": 0,
+  "hidden": false
+ },
+ "6a5df6b0c901d2199d017048": {
+  "name": "하나도 좋지만, 두개는 더 좋지",
+  "description": "카파 프로토콜 특성을 선택한 다음 '수집가' 퀘스트를 완수하여 두 번째 보안 컨테이너 컨테이너를 획득하세요",
+  "icon": true,
+  "rarity": "seasonal",
+  "percent": 0,
+  "hidden": false
+ },
+ "6a5df752accb14ca770ccb07": {
+  "name": "유전적 우월성",
+  "description": "다음 특성들을 선택한 상태로 시즌 캐릭터 30레벨을 달성하세요 - 혈우병, 골다공증, 다갈증, 알레르기 체질, 다리 사이의 다리",
+  "icon": true,
+  "rarity": "seasonal",
+  "percent": 0,
+  "hidden": false
+ },
+ "6a5dfd7b5c12f0b8a80c453c": {
+  "name": "우리 집에 있는 하드코어",
+  "description": "보안 컨테이너 파손과 플리마켓 금지령 특성을 선택한 상태로 보안 컨테이너 카파를 획득하세요",
+  "icon": true,
+  "rarity": "seasonal",
+  "percent": 0,
+  "hidden": false
+ },
+ "6a5dfd8653ab08ce0d093aa6": {
+  "name": "그걸 도전이라고 하나?",
+  "description": "다음 특성 중 5개의 특성을 고른 채로 모든 생존가의 길 임무를 완수하세요 - 마라토너, 젊음, 헤라클레스, 혈전성향증, 저갈증, 다식증, 통뼈, 신동",
+  "icon": true,
+  "rarity": "seasonal",
+  "percent": 0,
+  "hidden": false
+ },
+ "6a5dfed95c12f0b8a80c4545": {
+  "name": "천국에서 태어난 기업가",
+  "description": "보호비 특성을 선택한 후 5억 루블, 100만 유로, 100만 달러를 동시에 보유하세요",
+  "icon": true,
+  "rarity": "seasonal",
+  "percent": 0,
+  "hidden": false
+ },
+ "6a5e2d53e88fae7c180232f8": {
+  "name": "일급 비밀",
+  "description": "기밀 문서를 제외한 모든 종류의 테라그룹 문서를 보유하세요",
+  "icon": true,
+  "rarity": "seasonal",
+  "percent": 0,
+  "hidden": false
+ },
+ "6a60f75f1a1222ee000baf0d": {
+  "name": "새 시대의 여명",
+  "description": "시즌 시스템 시작 후 보안 컨테이너 카파를 획득하세요",
+  "icon": true,
+  "rarity": "legendary",
+  "percent": 0.45,
+  "hidden": false
+ },
+ "6a6870b6e37edc03f00a678d": {
+  "name": "원칙보다 이익",
+  "description": "시즌 1 KORD BREACH의 펜스 임무들을 완수하고 알 수 없는 시설에서 찾은 노트북을 펜스나 메카닉에게 제출하세요",
+  "icon": true,
+  "rarity": "seasonal",
+  "percent": 0,
+  "hidden": false
+ },
+ "6a6871871f135181ee0aff56": {
+  "name": "낯선 사람들 사이에서",
+  "description": "시즌 1 KORD BREACH의 등대지기의 임무들을 완수하고 타르코프에서 블랙 디비전의 임무와 작전에 대해 알아내세요",
+  "icon": true,
+  "rarity": "seasonal",
+  "percent": 0,
+  "hidden": false
+ },
+ "6aba7a50d7771f5a3808638d": {
+  "name": "기댈 수 있는 어깨",
+  "description": "타르코프에 새로운 전사를 초대한 뒤 함께 EXFIL 브라더스 프로그램에 참여하세요",
+  "icon": true,
+  "rarity": "common",
+  "percent": 0.04,
+  "hidden": false
+ }
+}

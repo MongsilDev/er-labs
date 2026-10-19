@@ -1,0 +1,38 @@
+import "server-only";
+import { captureException } from "@sentry/node";
+import { headers } from "next/headers";
+import { NextResponse } from "next/server";
+
+export const BASE_URL = (process.env.BASE_URL || "http://localhost:3000").replace(/\/$/, "");
+
+export const json = (data: unknown, status = 200) =>
+  NextResponse.json(data, { status, headers: { "Cache-Control": "no-store" } });
+
+export const fail = (message: string, status = 400) => json({ error: message }, status);
+
+export async function clientIp(): Promise<string> {
+  const h = await headers();
+  return h.get("cf-connecting-ip") || h.get("x-forwarded-for")?.split(",")[0].trim() || "local";
+}
+
+export async function sameOrigin(): Promise<boolean> {
+  const h = await headers();
+  const origin = h.get("origin");
+  if (!origin) return h.get("sec-fetch-site") === "same-origin";
+  const host = h.get("x-forwarded-host") || h.get("host");
+  try {
+    return new URL(origin).host === host;
+  } catch {
+    return false;
+  }
+}
+
+export function handle(fn: () => Response | Promise<Response>): Promise<Response> {
+  return Promise.resolve()
+    .then(fn)
+    .catch((e: unknown) => {
+      console.error("[서버] 처리 실패", e);
+      captureException(e);
+      return fail("서버에서 처리하지 못했습니다. 잠시 뒤 다시 시도해주세요.", 500);
+    });
+}

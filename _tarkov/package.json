@@ -1,0 +1,30 @@
+{
+  "name": "tarkov-labs",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "lint": "eslint",
+    "test": "vitest run",
+    "test:ui": "next build && vitest run --config vitest.ui.config.mts",
+    "refdata": "node scripts/refdata.mjs"
+  },
+  "dependencies": {
+    "@sentry/node": "^11.8.0",
+    "next": "16.3.8",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.8",
+    "playwright": "1.64.1",
+    "typescript": "^5",
+    "vitest": "^5.0.5"
+  }
+}
