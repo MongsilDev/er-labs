@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { computeGroup, type GroupInput } from "../src/lib/engine";
 import { parseRoundCsv } from "../src/lib/parse";
 import { standingsCsv } from "../src/lib/export";
-import { presetRules, type Mode } from "../src/lib/rules";
+import { clampRules, presetRules, type Mode } from "../src/lib/rules";
 import { csv, places, round } from "./helpers";
 
 const T = ["알파", "브라보", "찰리", "델타", "에코", "폭스", "골프", "호텔"];
@@ -456,5 +456,12 @@ describe("순위 CSV", () => {
     expect(text.startsWith("\ufeff순위,팀")).toBe(true);
     expect(text).toContain("'=HYPERLINK(1)");
     expect(text).toContain(",보통,");
+  });
+});
+
+describe("규칙 정리", () => {
+  it("순위 점수표는 항상 8칸이다", () => {
+    expect(clampRules({ placementPoints: [12, 9] }, "custom").placementPoints).toEqual([12, 9, 0, 0, 0, 0, 0, 0]);
+    expect(clampRules({ placementPoints: Array.from({ length: 20 }, () => 1) }, "custom").placementPoints).toHaveLength(8);
   });
 });

@@ -336,7 +336,10 @@ export default function TournamentApp({ initial, groupIdx, basePath, created = f
       )}
 
       <div className={operator ? "cols" : "cols single"}>
-        <Standings result={result} rules={view.rules} mode={view.mode} label={label} />
+        <div className="main-col">
+          <Standings result={result} rules={view.rules} mode={view.mode} label={label} />
+          <Details result={result} rules={view.rules} />
+        </div>
         {operator && (
           <div className="side">
             <Penalties group={group} result={result} rules={view.rules} run={run} />
@@ -345,8 +348,6 @@ export default function TournamentApp({ initial, groupIdx, basePath, created = f
           </div>
         )}
       </div>
-
-      <Details result={result} rules={view.rules} />
 
       {operator && (
         <input

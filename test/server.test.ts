@@ -74,8 +74,9 @@ describe("대회 서버", () => {
   it("직접 입력은 잘못된 순위와 중복 순위를 거부한다", () => {
     const code = t.createTournament(owner, { name: "직접", mode: "points", preset: "masters", plannedRounds: 4, groupCount: 1 });
     const bad = (teams: unknown[]) => () => t.applyOp(code, owner, { op: "add_manual", group: 0, round: 1, teams: teams as never });
-    expect(bad([{ team: "A", placement: 0, killScore: 0 }])).toThrow("순위는 1부터 24까지의 정수로");
-    expect(bad([{ team: "A", placement: "3", killScore: 0 }])).toThrow("순위는 1부터 24까지의 정수로");
+    expect(bad([{ team: "A", placement: 0, killScore: 0 }])).toThrow("순위는 1부터 8까지의 정수로");
+    expect(bad([{ team: "A", placement: "3", killScore: 0 }])).toThrow("순위는 1부터 8까지의 정수로");
+    expect(bad([{ team: "A", placement: 9, killScore: 0 }])).toThrow("순위는 1부터 8까지의 정수로");
     expect(bad([{ team: "A", placement: 1, killScore: 0 }, { team: "B", placement: 1, killScore: 0 }])).toThrow("같은 순위를 두 팀에");
     expect(bad([{ team: "A", placement: 1, killScore: 1e9 }])).toThrow("킬 점수는 0부터 300까지");
     t.applyOp(code, owner, { op: "add_manual", group: 0, round: 1, teams: [{ team: "A", placement: 1, killScore: 2 }] });

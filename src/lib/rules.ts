@@ -80,7 +80,7 @@ export const LIMITS = {
   groups: 8,
   rounds: 12,
   csvBytes: 200_000,
-  teamsPerGroup: 24,
+  teamsPerGroup: 8,
   operators: 10,
 };
 
@@ -91,14 +91,14 @@ export function clampRules(input: Partial<Rules> | undefined, preset: Preset): R
     const n = typeof v === "number" && Number.isFinite(v) ? v : d;
     return Math.min(hi, Math.max(lo, n));
   };
-  const points = Array.isArray(input.placementPoints)
-    ? input.placementPoints.slice(0, LIMITS.teamsPerGroup).map((v) => num(v, -100, 100, 0))
-    : base.placementPoints;
+  const points = Array.from({ length: LIMITS.teamsPerGroup }, (_, i) =>
+    Array.isArray(input.placementPoints) ? num(input.placementPoints[i], -100, 100, 0) : base.placementPoints[i],
+  );
   const cp = input.checkpoint ?? base.checkpoint;
   return {
     preset,
     scoreSource: input.scoreSource === "table" ? "table" : preset === "custom" ? "table" : "csv",
-    placementPoints: points.length ? points : base.placementPoints,
+    placementPoints: points,
     killMultiplier: num(input.killMultiplier, 0, 10, 1),
     tiebreak: (["killScore", "kills", "rankScore", "wins"] as const).includes(input.tiebreak as Tiebreak) ? (input.tiebreak as Tiebreak) : "killScore",
     deathPenalty: input.deathPenalty ?? base.deathPenalty,

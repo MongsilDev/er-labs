@@ -84,6 +84,7 @@
 }
 .rightcol {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
   margin-top: 72px;
 }
@@ -126,6 +127,9 @@
   padding: 10px 0;
   text-decoration: none;
   font-size: 14px;
+  min-width: 0;
+}
+.recent b {
   min-width: 0;
 }
 .recent a:hover b {
@@ -173,7 +177,7 @@
 }
 @media (max-width: 900px) {
   .score-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 24px;
   }
   .rightcol {
@@ -182,7 +186,7 @@
 }
 @media (max-width: 760px) {
   .seg {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .seg label {
     flex-direction: row;

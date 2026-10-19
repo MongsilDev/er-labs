@@ -48,9 +48,3 @@
 .pts.seq {
   margin-top: 10px;
 }
-.row-acts.left {
-  justify-content: flex-start;
-  margin-top: 10px;
-  display: flex;
-  gap: 8px;
-}

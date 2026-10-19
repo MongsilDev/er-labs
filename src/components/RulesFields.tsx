@@ -13,7 +13,7 @@ export default function RulesFields({ rules, mode, rounds, onChange }: { rules: 
           <label className="lbl" htmlFor="rf-adv">진출 표시</label>
           <select id="rf-adv" className="field sm" value={rules.advance} onChange={(e) => set("advance", Number(e.target.value))}>
             <option value={0}>표시 안 함</option>
-            {Array.from({ length: 12 }, (_, i) => (
+            {Array.from({ length: LIMITS.teamsPerGroup - 1 }, (_, i) => (
               <option key={i + 1} value={i + 1}>
                 상위 {i + 1}팀
               </option>
@@ -33,7 +33,7 @@ export default function RulesFields({ rules, mode, rounds, onChange }: { rules: 
       </div>
 
       <fieldset className="checks">
-        <legend className="lbl">규칙</legend>
+        <legend className="lbl">적용할 규칙</legend>
         <label>
           <input type="checkbox" checked={rules.deathPenalty} onChange={(e) => set("deathPenalty", e.target.checked)} />
           처치자 불명 사망 1회 1점 감점
@@ -73,18 +73,6 @@ export default function RulesFields({ rules, mode, rounds, onChange }: { rules: 
                 />
               </label>
             ))}
-          </div>
-          <div className="row-acts left">
-            {rules.placementPoints.length < LIMITS.teamsPerGroup && (
-              <button type="button" className="btn sm" onClick={() => set("placementPoints", [...rules.placementPoints, 0])}>
-                순위 추가
-              </button>
-            )}
-            {rules.placementPoints.length > 1 && (
-              <button type="button" className="btn sm" onClick={() => set("placementPoints", rules.placementPoints.slice(0, -1))}>
-                마지막 순위 빼기
-              </button>
-            )}
           </div>
           <div className="rf-grid" style={{ marginTop: 10 }}>
             <div>
@@ -131,12 +119,12 @@ export default function RulesFields({ rules, mode, rounds, onChange }: { rules: 
                     type="number"
                     inputMode="numeric"
                     min={0}
-                    max={24}
+                    max={LIMITS.teamsPerGroup}
                     aria-label={`${i + 1}라운드 시작 때 체크포인트 팀 수`}
                     value={cp.sequence[i] ?? cp.sequence[cp.sequence.length - 1] ?? 0}
                     onChange={(e) => {
                       const seq = Array.from({ length: rounds }, (_, k) => cp.sequence[k] ?? cp.sequence[cp.sequence.length - 1] ?? 0);
-                      seq[i] = Math.max(0, Math.min(24, Number(e.target.value) || 0));
+                      seq[i] = Math.max(0, Math.min(LIMITS.teamsPerGroup, Number(e.target.value) || 0));
                       set("checkpoint", { ...cp, sequence: seq });
                     }}
                   />

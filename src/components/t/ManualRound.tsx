@@ -74,7 +74,7 @@ export default function ManualRound({
                   />
                 </td>
                 <td>
-                  <input className="field sm" aria-label={`${r.team || i + 1} 순위`} type="number" inputMode="numeric" min={1} max={24} value={r.placement} onChange={(e) => set(i, "placement", e.target.value)} />
+                  <input className="field sm" aria-label={`${r.team || i + 1} 순위`} type="number" inputMode="numeric" min={1} max={8} value={r.placement} onChange={(e) => set(i, "placement", e.target.value)} />
                 </td>
                 <td>
                   <input className="field sm" aria-label={`${r.team || i + 1} 킬 점수`} type="number" inputMode="decimal" min={0} step={0.5} value={r.killScore} onChange={(e) => set(i, "killScore", e.target.value)} />
@@ -83,7 +83,7 @@ export default function ManualRound({
             ))}
           </tbody>
         </table>
-        {rows.length < 24 && (
+        {rows.length < 8 && (
           <button type="button" className="link" onClick={() => setRows([...rows, { team: "", placement: "", killScore: "" }])}>
             팀 추가
           </button>
