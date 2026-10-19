@@ -14,7 +14,11 @@ Escape from Tarkov 도구를 모아 둔 사이트입니다. 계정 전적 조회
 
 ### KORD BREACH 특성 시뮬레이터
 
-시즌 1 특성의 포인트 합계를 계산합니다. 긍정 특성은 포인트를 쓰고 부정 특성은 포인트를 얻습니다. 같은 스탯을 반대로 바꾸는 특성은 함께 고를 수 없습니다.
+시즌 1 Kord Breach 특성으로 빌드를 짜 봅니다. 긍정 특성은 포인트를 쓰고 부정 특성은 포인트를 얻으며, 남은 포인트가 0 아래로 내려가면 부족하다고 표시합니다. 게임에서 함께 고를 수 없는 특성은 고를 수 없고, 어떤 특성 때문인지 카드에 나옵니다. 고른 빌드는 주소에 담겨 그대로 공유할 수 있습니다.
+
+### 계정 조회 화면의 최근 본 계정
+
+프로필을 열면 그 브라우저에만 최근 본 계정 8개가 남습니다. 서버로 보내지 않습니다.
 
 ## 실행
 
@@ -48,7 +52,7 @@ pnpm build
 ## 데이터
 
 - 전적은 [tarkov.dev](https://tarkov.dev)가 공개하는 `players.tarkov.dev` JSON에서 받습니다. 이름 목록은 하루 한 번, 판정 비교군은 최근 30일 안에 갱신된 계정을 초당 1건씩 받습니다. Battlestate Games 서버에는 접속하지 않습니다.
-- `src/data/levels.json`과 `src/data/achievements.json`은 tarkov.dev JSON API의 레벨 표와 업적 정보입니다. `pnpm refdata`로 다시 만듭니다.
+- `src/data/levels.json`, `src/data/achievements.json`, `src/data/season.json`은 tarkov.dev JSON API의 레벨 표, 업적, 시즌 특성입니다. 특성의 이름, 효과, 포인트, 함께 고를 수 없는 관계는 게임 데이터의 한국어 번역 그대로입니다. `pnpm refdata`로 다시 만들고, 이때 특성 아이콘도 `public/kord/perks`에 받습니다. 아이콘을 줄이는 데 macOS `sips`를 씁니다.
 - `test/fixtures`는 실제 프로필 세 개에서 장비와 아이템을 빼고 닉네임과 계정 번호를 바꾼 것입니다.
 - 계정 주인이 삭제를 요청하면 `node scripts/hide.mjs <계정 번호>`로 기록을 지우고 이후 표시하지 않습니다.
 - 글꼴은 [Pretendard](https://github.com/orioncactus/pretendard)이며 SIL Open Font License를 따릅니다.

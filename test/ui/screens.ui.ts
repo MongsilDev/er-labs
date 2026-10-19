@@ -197,6 +197,40 @@ describe("화면 점검", () => {
     await page.context().close();
   });
 
+  it("시뮬레이터는 포인트를 계산하고 빌드를 주소로 되살린다", async () => {
+    const { page } = await open(SCREENS[9], 390, "dark");
+    const left = page.locator(".kb-left dd");
+    await page.getByRole("button", { name: /플리마켓 금지령/ }).click();
+    await expect(left.textContent()).resolves.toBe("10");
+    await page.getByRole("button", { name: /카파 프로토콜/ }).click();
+    await expect(left.textContent()).resolves.toBe("-2");
+    await page.getByText("포인트가 2 부족합니다").waitFor();
+    await page.getByRole("button", { name: /^혈우병/ }).click();
+    const blocked = page.getByRole("button", { name: /혈전성향증/ });
+    await expect(blocked.getAttribute("aria-disabled")).resolves.toBe("true");
+    await blocked.click({ force: true });
+    await expect(blocked.getAttribute("aria-pressed")).resolves.toBe("false");
+    const url = page.url();
+    await page.getByRole("button", { name: "초기화" }).click();
+    await expect(left.textContent()).resolves.toBe("0");
+    const kappa = () => page.getByRole("button", { name: /카파 프로토콜/ }).getAttribute("aria-pressed");
+    await expect(kappa()).resolves.toBe("false");
+    await page.getByRole("button", { name: "되돌리기" }).click();
+    await expect(kappa()).resolves.toBe("true");
+    await page.getByRole("button", { name: "초기화" }).click();
+    await page.goto(url, { waitUntil: "networkidle" });
+    await expect(kappa()).resolves.toBe("true");
+    await expect(page.locator(".kb-left dd").textContent()).resolves.toBe("0");
+    await page.context().close();
+  });
+
+  it("프로필을 열면 계정 조회 화면에 최근 본 계정이 나온다", async () => {
+    const { page } = await open(SCREENS[2], 1440, "dark");
+    await page.goto(`${base}/players`, { waitUntil: "networkidle" });
+    await page.getByRole("link", { name: "Fixture-Alpha" }).waitFor();
+    await page.context().close();
+  });
+
   it("키보드로 옮긴 초점이 화면에 표시된다", async () => {
     const { page } = await open(SCREENS[2], 1440, "dark");
     const missing: string[] = [];
