@@ -55,7 +55,7 @@ export default function Criteria() {
               </tr>
               <tr>
                 <td className="nowrap">공인 계정</td>
-                <td>게임 계정 등급에 셰르파, 특사, 개발자, 채팅 관리자 표시가 있습니다.<br />통계 판정과 따로 표시합니다.</td>
+                <td>게임 계정 등급에 Sherpa, Emissary, Developer, 채팅 관리자 표시가 있습니다.<br />통계 판정과 따로 표시합니다.</td>
               </tr>
             </tbody>
           </table>
@@ -83,11 +83,11 @@ export default function Criteria() {
 
         <h2>지표</h2>
         <ul>
-          <li>시즌, PvP, PvE: PMC K/D, 레이드당 PMC 킬, 생존율, 최장 연속 생존</li>
+          <li>시즌, PvP, PvE: PMC K/D, 레이드당 PMC 사살, 생존율, 연속 생존 횟수</li>
           <li>아레나: K/D, 헤드샷 비율, 시간당 킬, 한 경기 최다 킬</li>
         </ul>
         <p>
-          PMC K/D, 레이드당 PMC 킬, 생존율은 모두 사망 횟수에서 나와 함께 움직이므로 한 묶음으로 셉니다.<br />아레나의 K/D와 시간당 킬도 한 묶음입니다.<br />실력이 좋아 K/D와
+          PMC K/D, 레이드당 PMC 사살, 생존율은 모두 사망 횟수에서 나와 함께 움직이므로 한 묶음으로 셉니다.<br />아레나의 K/D와 시간당 킬도 한 묶음입니다.<br />실력이 좋아 K/D와
           생존율이 함께 높은 계정이 묶음 두 개를 넘은 것으로 판정되지 않게 하려는 것입니다.
         </p>
         <p>

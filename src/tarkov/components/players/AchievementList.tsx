@@ -47,7 +47,7 @@ export default function AchievementList({ rows }: { rows: AchievementRow[] }) {
   return (
     <>
       <div className="ach-bar">
-        <div className="seg" role="group" aria-label="업적 정렬">
+        <div className="seg" role="group" aria-label="도전과제 정렬">
           {SORTS.map((s) => (
             <button key={s.key} type="button" aria-pressed={sort === s.key} onClick={() => setSort(s.key)}>
               {s.label}

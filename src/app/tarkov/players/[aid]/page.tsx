@@ -104,8 +104,8 @@ function EftStats({ s, hide }: { s: EftSummary; hide: string[] }) {
         list={[
           ["PMC K/D", dec(div(s.pmcKills, s.kia))],
           ["생존율", pct(div(s.survived, s.raids))],
-          ["레이드당 PMC 킬", dec(div(s.pmcKills, s.raids))],
-          ["최장 연속 생존", int(s.streak)],
+          ["레이드당 PMC 사살", dec(div(s.pmcKills, s.raids))],
+          ["연속 생존 횟수", int(s.streak)],
         ]}
       />
       <Facts
@@ -127,9 +127,9 @@ function EftStats({ s, hide }: { s: EftSummary; hide: string[] }) {
             rows: [
               ["PMC K/D", dec(div(s.pmcKills, s.kia))],
               ["생존율", pct(div(s.survived, s.raids))],
-              ["PMC 킬", int(s.pmcKills)],
-              ["전체 킬", int(s.kills)],
-              ["레이드당 전체 킬", dec(div(s.kills, s.raids))],
+              ["PMC 사살", int(s.pmcKills)],
+              ["사살", int(s.kills)],
+              ["레이드당 사살", dec(div(s.kills, s.raids))],
               ["경험치", int(s.experience)],
             ],
           },
@@ -266,9 +266,9 @@ function Achievements({ s }: { s: Summary }) {
   return (
     <section className="block">
       <h2 className="h2">
-        업적 <span className="muted num">{s.achievements.length}</span>
+        도전과제 <span className="muted num">{s.achievements.length}</span>
       </h2>
-      {rows.length > 0 ? <AchievementList rows={rows} /> : <p className="sub">아레나 업적은 공개된 이름 자료가 없어 개수만 표시합니다.</p>}
+      {rows.length > 0 ? <AchievementList rows={rows} /> : <p className="sub">아레나 도전과제는 공개된 이름 자료가 없어 개수만 표시합니다.</p>}
     </section>
   );
 }
@@ -278,18 +278,18 @@ const SKILL_NAME = skillsData as Record<string, string>;
 const MASTERING = masteringData as Record<string, { weapon: string | null; level2: number; level3: number }>;
 
 const SLOTS: [string, string][] = [
-  ["FirstPrimaryWeapon", "주무기"],
-  ["SecondPrimaryWeapon", "보조 주무기"],
-  ["Holster", "권총"],
-  ["Scabbard", "근접 무기"],
-  ["Headwear", "머리"],
+  ["FirstPrimaryWeapon", "주무기 1"],
+  ["SecondPrimaryWeapon", "주무기 2"],
+  ["Holster", "권총집"],
+  ["Scabbard", "칼집"],
+  ["Headwear", "모자"],
   ["Earpiece", "헤드셋"],
   ["FaceCover", "얼굴"],
-  ["Eyewear", "눈"],
+  ["Eyewear", "안경"],
   ["ArmorVest", "방탄복"],
   ["TacticalVest", "전술 조끼"],
   ["Backpack", "배낭"],
-  ["SecuredContainer", "보안 컨테이너"],
+  ["SecuredContainer", "파우치"],
   ["ArmBand", "완장"],
 ];
 
@@ -377,7 +377,7 @@ function Mastery({ s }: { s: EftSummary }) {
   return (
     <section className="block">
       <h2 className="h2">
-        무기 숙련 <span className="muted num">{list.length}</span>
+        무기 숙련도 <span className="muted num">{list.length}</span>
       </h2>
       <ul className="mlist">{list.slice(0, 10).map(row)}</ul>
       {list.length > 10 && (
@@ -399,8 +399,8 @@ function Scav({ s }: { s: EftSummary }) {
       <div className="tiles">
         <Tile label="레이드" value={int(v.raids)} />
         <Tile label="생존율" value={pct(div(v.survived, v.raids))} />
-        <Tile label="킬" value={int(v.kills)} />
-        <Tile label="PMC 킬" value={int(v.pmcKills)} />
+        <Tile label="사살" value={int(v.kills)} />
+        <Tile label="PMC 사살" value={int(v.pmcKills)} />
       </div>
     </section>
   );
@@ -529,7 +529,7 @@ function Trend({ list }: { list: Summary[] }) {
                   <th>레이드</th>
                   <th>PMC K/D</th>
                   <th>생존율</th>
-                  <th>PMC 킬</th>
+                  <th>PMC 사살</th>
                 </>
               ) : (
                 <>

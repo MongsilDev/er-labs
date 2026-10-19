@@ -30,9 +30,9 @@ const div = (a: number, b: number) => (b > 0 ? a / b : 0);
 export const METRICS: Record<Kind, Metric[]> = {
   eft: [
     { key: "kd", label: "PMC K/D", family: "combat", digits: 2, value: (s, t) => div(s.kills + PRIOR * t.kpn, Math.max(1, s.deaths + PRIOR * t.dpn)) },
-    { key: "kpr", family: "combat", label: "레이드당 PMC 킬", digits: 2, value: (s, t) => div(s.kills + PRIOR * t.kpn, s.n + PRIOR) },
+    { key: "kpr", family: "combat", label: "레이드당 PMC 사살", digits: 2, value: (s, t) => div(s.kills + PRIOR * t.kpn, s.n + PRIOR) },
     { key: "surv", family: "combat", label: "생존율", digits: 3, value: (s, t) => div(s.survived + PRIOR * t.spn, s.n + PRIOR) },
-    { key: "streak", family: "streak", label: "최장 연속 생존", digits: 0, value: (s) => s.streak },
+    { key: "streak", family: "streak", label: "연속 생존 횟수", digits: 0, value: (s) => s.streak },
   ],
   arena: [
     { key: "kd", label: "K/D", family: "kill", digits: 2, value: (s, t) => div(s.kills + PRIOR * t.kpn, Math.max(1, s.deaths + PRIOR * t.dpn)) },
