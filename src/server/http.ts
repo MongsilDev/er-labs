@@ -1,4 +1,5 @@
 import "server-only";
+import { captureException } from "@sentry/node";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { currentUser, sameOrigin, type User } from "./auth";
@@ -34,6 +35,7 @@ export function handle(fn: () => Response | Promise<Response>): Promise<Response
       if (e instanceof OpError) return fail(e.message, 400);
       if (e instanceof SyntaxError) return fail("요청 형식이 잘못됐습니다.", 400);
       console.error("[서버] 처리 실패", e);
+      captureException(e);
       return fail("서버에서 처리하지 못했습니다. 잠시 뒤 다시 시도해주세요.", 500);
     });
 }

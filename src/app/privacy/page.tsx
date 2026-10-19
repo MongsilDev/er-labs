@@ -80,6 +80,15 @@ export default async function Privacy() {
             <tbody>
               <tr>
                 <td>
+                  Sentry
+                  <br />
+                  <span className="nowrap">compliance@sentry.io</span>
+                </td>
+                <td className="nowrap">미국</td>
+                <td>서버 오류 기록. 오류가 난 페이지 주소와 오류 내용이 서버 오류가 날 때 전송됨. 접속 IP 주소, 쿠키, 요청 내용은 보내지 않음. 보유 기간은 Sentry 보관 정책을 따름</td>
+              </tr>
+              <tr>
+                <td>
                   Cloudflare
                   <br />
                   <span className="nowrap">dpo@cloudflare.com</span>
@@ -91,8 +100,8 @@ export default async function Privacy() {
           </table>
         </div>
         <p>
-          디스코드로 로그인하면 미국 회사인 디스코드의 로그인 화면으로 이동하며, 몽실봇 디스코드 앱을 통해 로그인합니다. 이 국외 이전은 서비스 제공에 필요한 처리 위탁이며,
-          개인정보 보호법 제28조의8 제1항 제3호에 따릅니다.
+          디스코드로 로그인하면 미국 회사인 디스코드의 로그인 화면으로 이동하며, 몽실봇 디스코드 앱을 통해 로그인합니다. 위 국외 이전과 디스코드 로그인은 서비스 제공에
+          필요한 처리 위탁이며, 개인정보 보호법 제28조의8 제1항 제3호에 따릅니다.
         </p>
 
         <h2>6. 쿠키와 브라우저 저장소</h2>
