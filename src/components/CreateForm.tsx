@@ -84,7 +84,7 @@ export default function CreateForm({ loggedIn, autoCreate }: { loggedIn: boolean
           className="field"
           autoComplete="off"
           maxLength={LIMITS.nameLength}
-          placeholder="가을 커뮤니티 컵"
+          placeholder="제2회 루미아 컵"
           value={name}
           onChange={(e) => setName(e.target.value)}
           aria-invalid={error === "대회 이름을 입력해주세요." || undefined}

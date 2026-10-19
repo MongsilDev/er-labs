@@ -171,6 +171,24 @@ a {
   border: 1px solid var(--line);
   border-radius: 8px;
 }
+.link {
+  background: none;
+  border: 0;
+  padding: 2px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: var(--line-strong);
+  text-underline-offset: 3px;
+}
+.link:hover {
+  color: var(--text);
+}
+.link.danger {
+  color: var(--minus);
+}
 .btn {
   display: inline-flex;
   align-items: center;

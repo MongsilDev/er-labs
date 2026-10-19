@@ -34,7 +34,7 @@ import { db, now, tx } from "./db";
 
 const CODE_ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
 const MODES: Mode[] = ["points", "checkpoint", "double"];
-const PRESETS: Preset[] = ["masters", "kel", "custom"];
+const PRESETS: Preset[] = ["masters", "custom"];
 
 type TRow = {
   id: number;

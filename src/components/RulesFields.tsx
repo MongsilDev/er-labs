@@ -76,12 +76,12 @@ export default function RulesFields({ rules, mode, rounds, onChange }: { rules: 
           </div>
           <div className="row-acts left">
             {rules.placementPoints.length < LIMITS.teamsPerGroup && (
-              <button type="button" className="link" onClick={() => set("placementPoints", [...rules.placementPoints, 0])}>
+              <button type="button" className="btn sm" onClick={() => set("placementPoints", [...rules.placementPoints, 0])}>
                 순위 추가
               </button>
             )}
             {rules.placementPoints.length > 1 && (
-              <button type="button" className="link" onClick={() => set("placementPoints", rules.placementPoints.slice(0, -1))}>
+              <button type="button" className="btn sm" onClick={() => set("placementPoints", rules.placementPoints.slice(0, -1))}>
                 마지막 순위 빼기
               </button>
             )}

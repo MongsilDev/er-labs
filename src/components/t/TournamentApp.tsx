@@ -270,7 +270,7 @@ export default function TournamentApp({ initial, groupIdx, basePath, created = f
             {example && <span className="chip dashed">예시</span>}
           </h1>
           <p className="sub">
-            {MODE_LABEL[view.mode]} {view.mode === "points" ? `${view.plannedRounds}라운드` : `최대 ${view.plannedRounds}라운드`}, {PRESET_LABEL[view.rules.preset]} 규칙
+            {MODE_LABEL[view.mode]} {view.mode === "points" ? `${view.plannedRounds}라운드` : `최대 ${view.plannedRounds}라운드`}, {view.rules.preset === "custom" ? "직접 정한 규칙" : PRESET_LABEL.masters}
             {!example && (
               <>
                 , 대회 코드 <b translate="no">{view.code}</b>

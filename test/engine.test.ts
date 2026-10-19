@@ -416,8 +416,10 @@ describe("체크포인트", () => {
     const r5 = places(5, ["호텔", ...T.filter((t) => t !== "호텔")]);
     const masters = computeGroup(group({ plannedRounds: 12, rounds: [...four, r5], penalties: pen }, "checkpoint"));
     expect(masters.next?.checkpoint).toContain("알파");
-    const kel = computeGroup(group({ rules: presetRules("kel"), plannedRounds: 12, rounds: [...four, r5], penalties: pen }, "checkpoint"));
-    expect(kel.next?.checkpoint).not.toContain("알파");
+    const rules = presetRules("masters");
+    rules.checkpoint.penaltyKeeps = false;
+    const strict = computeGroup(group({ rules, plannedRounds: 12, rounds: [...four, r5], penalties: pen }, "checkpoint"));
+    expect(strict.next?.checkpoint).not.toContain("알파");
   });
 
   it("점수 체크포인트는 기준 점수를 넘긴 다음 라운드부터 준다", () => {

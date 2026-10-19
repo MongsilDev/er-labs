@@ -1,5 +1,5 @@
 export type Mode = "points" | "checkpoint" | "double";
-export type Preset = "masters" | "kel" | "custom";
+export type Preset = "masters" | "custom";
 
 export type Tiebreak = "killScore" | "kills" | "rankScore" | "wins";
 
@@ -35,8 +35,7 @@ export const PLACEMENT_POINTS = [10, 7, 5, 4, 3, 2, 1, 0];
 export const CHECKPOINT_SEQUENCE = [0, 0, 0, 0, 2, 3, 5, 7, 8];
 
 export const PRESET_LABEL: Record<Preset, string> = {
-  masters: "마스터즈 현행",
-  kel: "KEL 2026",
+  masters: "공식 규정",
   custom: "직접 입력",
 };
 
@@ -62,7 +61,7 @@ export function presetRules(preset: Preset): Rules {
       sequence: [...CHECKPOINT_SEQUENCE],
       points: 70,
       keep: false,
-      penaltyKeeps: preset !== "kel",
+      penaltyKeeps: true,
     },
   };
 }
