@@ -236,6 +236,7 @@ describe("화면 점검", () => {
     await page.goto(`${base}/players/1001?mode=season`, { waitUntil: "networkidle" });
     await page.getByRole("heading", { name: /고른 시즌 특성/ }).waitFor();
     await page.getByRole("heading", { name: "스캐브 레이드" }).waitFor();
+    await page.getByRole("heading", { name: /^스킬/ }).waitFor();
     const n = await page.locator(".perks li").count();
     await page.getByRole("link", { name: "시뮬레이터에서 열기" }).click();
     await page.waitForURL(/\/kord-breach\?b=/);

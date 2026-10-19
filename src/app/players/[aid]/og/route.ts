@@ -3,7 +3,7 @@ import { toSample } from "@/lib/sample";
 import { verdict } from "@/server/baseline";
 import { isHidden } from "@/server/db";
 import { profileImage } from "@/server/og";
-import { account, load } from "@/server/profiles";
+import { account, displayName, load } from "@/server/profiles";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +19,7 @@ export async function GET(req: Request, ctx: Ctx) {
   const res = aid ? await load(mode, aid) : null;
   const s = res?.summary ?? null;
   const v = s ? verdict(mode, aid, toSample(s)) : null;
-  const img = await profileImage(s?.name || acc?.name || `#${raw}`, mode, s, v);
+  const img = await profileImage(aid ? displayName(aid, acc, s) : `#${raw}`, mode, s, v);
   img.headers.set("Cache-Control", "public, max-age=600");
   return img;
 }

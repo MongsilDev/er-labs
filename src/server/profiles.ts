@@ -23,8 +23,13 @@ function remember(mode: Mode, s: Summary) {
   const row = conn.prepare("SELECT name FROM accounts WHERE aid = ?").get(s.aid) as { name: string } | undefined;
   if (!row) conn.prepare("INSERT INTO accounts (aid, name, name_lc) VALUES (?, ?, ?)").run(s.aid, s.name, s.name.toLowerCase());
   else if (row.name !== s.name) {
-    // 색인보다 오래된 프로필이면 이름을 되돌리지 않음
-    const newer = (conn.prepare(`SELECT u_${mode.key} AS u FROM accounts WHERE aid = ?`).get(s.aid) as { u: number | null }).u ?? 0;
+    // 다른 모드까지 포함해 가장 최근 기록보다 오래된 프로필이면 이름을 되돌리지 않음
+    const newer =
+      (
+        conn
+          .prepare("SELECT MAX(COALESCE(u_pvp, 0), COALESCE(u_season, 0), COALESCE(u_pve, 0), COALESCE(u_arena, 0)) AS u FROM accounts WHERE aid = ?")
+          .get(s.aid) as { u: number }
+      ).u;
     if (s.updated >= newer) {
       conn.prepare("UPDATE accounts SET name = ?, name_lc = ? WHERE aid = ?").run(s.name, s.name.toLowerCase(), s.aid);
       conn.prepare("INSERT INTO names (aid, old_name, new_name, seen_at) VALUES (?, ?, ?, ?)").run(s.aid, row.name, s.name, s.updated);
@@ -66,6 +71,12 @@ export function account(aid: number): Account | null {
     | undefined;
   if (!row) return null;
   return { aid: row.aid, name: row.name, modes: { pvp: row.u_pvp, season: row.u_season, pve: row.u_pve, arena: row.u_arena } };
+}
+
+// 이 모드 기록이 다른 모드보다 오래됐으면 색인의 최신 이름을 씀
+export function displayName(aid: number, acc: Account | null, s: Summary | null): string {
+  const latest = acc ? Math.max(...Object.values(acc.modes).map((u) => u ?? 0)) : 0;
+  return (s && s.updated >= latest ? s.name : acc?.name) || s?.name || `#${aid}`;
 }
 
 export function nameHistory(aid: number): { old: string; next: string; at: number }[] {

@@ -21,6 +21,17 @@ describe("EFT 프로필", () => {
     expect(parseEft(fx("pvp-season", 1003)).scav).toBeNull();
   });
 
+  it("스킬, 무기 숙련, 장비를 읽고 빠진 카운터는 0으로 둠", () => {
+    const s = parseEft(fx("pvp-season", 1001));
+    expect(s.skills!.length).toBeGreaterThan(0);
+    expect(s.skills!.every((k, i, a) => i === 0 || a[i - 1].level >= k.level)).toBe(true);
+    expect(s.mastery!.length).toBeGreaterThan(0);
+    // 픽스처는 장비를 지운 상태라 장비는 따로 만든 입력으로 확인
+    const equipment = { Id: "root", Items: [{ _id: "root", _tpl: "x" }, { _id: "a", _tpl: "b", parentId: "root", slotId: "SecuredContainer" }, { _id: "c", _tpl: "d", parentId: "a", slotId: "main" }] };
+    expect(parseEft({ equipment }).gear).toEqual([{ slot: "SecuredContainer", tpl: "b" }]);
+    expect(parseEft({ pmcStats: { eft: { overAllCounters: { Items: [{ Key: ["Sessions", "Pmc"], Value: 3 }] } } } }).mia).toBe(0);
+  });
+
   it("레벨은 tarkov.dev 화면과 같음", () => {
     // 9706 계정을 tarkov.dev에서 열었을 때 레벨 29
     expect(parseEft(fx("profile", 1003)).level).toBe(29);

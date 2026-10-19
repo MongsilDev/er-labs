@@ -3,6 +3,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import badges from "@/data/level-badges.json";
+import itemsData from "@/data/items.json";
+import masteringData from "@/data/mastering.json";
+import skillsData from "@/data/skills.json";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import AchievementList, { type AchievementRow } from "@/components/players/AchievementList";
@@ -18,7 +21,7 @@ import { PERK, encodeBuild, type Perk } from "@/lib/kord";
 import { achievementInfo, type ArenaSummary, type EftSummary, type Summary } from "@/lib/summary";
 import { verdict } from "@/server/baseline";
 import { isHidden } from "@/server/db";
-import { account, load, nameHistory, snapshots } from "@/server/profiles";
+import { account, displayName, load, nameHistory, snapshots } from "@/server/profiles";
 import "./profile.css";
 
 export const dynamic = "force-dynamic";
@@ -156,6 +159,107 @@ function Achievements({ s }: { s: Summary }) {
   );
 }
 
+const ITEMS = itemsData as Record<string, string>;
+const SKILL_NAME = skillsData as Record<string, string>;
+const MASTERING = masteringData as Record<string, { weapon: string | null; level2: number; level3: number }>;
+
+const SLOTS: [string, string][] = [
+  ["FirstPrimaryWeapon", "주무기"],
+  ["SecondPrimaryWeapon", "보조 주무기"],
+  ["Holster", "권총"],
+  ["Scabbard", "근접 무기"],
+  ["Headwear", "머리"],
+  ["Earpiece", "헤드셋"],
+  ["FaceCover", "얼굴"],
+  ["Eyewear", "눈"],
+  ["ArmorVest", "방탄복"],
+  ["TacticalVest", "전술 조끼"],
+  ["Backpack", "배낭"],
+  ["SecuredContainer", "보안 컨테이너"],
+  ["ArmBand", "완장"],
+];
+
+function Gear({ s }: { s: EftSummary }) {
+  const rows = SLOTS.map(([slot, label]) => ({ label, tpl: s.gear?.find((g) => g.slot === slot)?.tpl })).filter(
+    (r): r is { label: string; tpl: string } => !!r.tpl && !!ITEMS[r.tpl],
+  );
+  if (!rows.length) return null;
+  return (
+    <section className="block">
+      <h2 className="h2">마지막 장비</h2>
+      <p className="sub">tarkov.dev 기록이 갱신된 시점에 캐릭터가 입고 있던 장비입니다.</p>
+      <ul className="gear">
+        {rows.map((r) => (
+          <li key={r.label}>
+            <Image src={`/api/icon/${r.tpl}`} alt="" width={44} height={44} unoptimized />
+            <span className="gear-text">
+              <span className="small muted">{r.label}</span>
+              <b className="ellipsis" title={ITEMS[r.tpl]}>
+                {ITEMS[r.tpl]}
+              </b>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function Skills({ s }: { s: EftSummary }) {
+  const list = s.skills ?? [];
+  if (!list.length) return null;
+  const chip = (k: { id: string; level: number }) => (
+    <li key={k.id} className={k.level >= 51 ? "elite" : undefined}>
+      <Image src={`/img/skill/${k.id}.webp`} alt="" width={28} height={28} unoptimized />
+      <span className="ellipsis">{SKILL_NAME[k.id]}</span>
+      <b className="num">{k.level >= 51 ? "엘리트" : dec(k.level, 1)}</b>
+    </li>
+  );
+  return (
+    <section className="block">
+      <h2 className="h2">
+        스킬 <span className="muted num">{list.length}</span>
+      </h2>
+      <ul className="skills">{list.slice(0, 12).map(chip)}</ul>
+      {list.length > 12 && (
+        <details className="more">
+          <summary>나머지 {list.length - 12}개 보기</summary>
+          <ul className="skills">{list.slice(12).map(chip)}</ul>
+        </details>
+      )}
+    </section>
+  );
+}
+
+function Mastery({ s }: { s: EftSummary }) {
+  const list = (s.mastery ?? []).filter((m) => MASTERING[m.id]).slice(0, 8);
+  if (!list.length) return null;
+  return (
+    <section className="block">
+      <h2 className="h2">무기 숙련</h2>
+      <ul className="gear mastery">
+        {list.map((m) => {
+          const def = MASTERING[m.id];
+          // tarkov.dev와 같게 기준값을 넘으면 다음 단계
+          const level = m.progress > def.level3 ? 3 : m.progress > def.level2 ? 2 : 1;
+          return (
+            <li key={m.id}>
+              {def.weapon ? <Image src={`/api/icon/${def.weapon}`} alt="" width={44} height={44} unoptimized /> : <span className="gear-blank" />}
+              <span className="gear-text">
+                <b className="ellipsis">{m.id}</b>
+                <span className="small muted num">
+                  {level}단계, {int(m.progress)}
+                  {level < 3 ? ` / ${int(level === 2 ? def.level3 : def.level2)}` : ""}
+                </span>
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
 function Scav({ s }: { s: EftSummary }) {
   const v = s.scav;
   if (!v) return null;
@@ -278,16 +382,19 @@ export default async function Profile({ params, searchParams }: Props) {
   const acc = account(aid);
   const mode = pickMode(acc?.modes ?? null, (await searchParams).mode);
   const arenaMode = MODES.find((m) => m.key === "arena")!;
-  const [res, arena] = await Promise.all([
+  // 아레나 JSON의 등급 값에는 Unheard가 빠져 있어 EFT 기록의 등급을 함께 씀
+  const eftMode = mode.key === "arena" && acc ? MODES.filter((m) => m.key !== "arena" && acc.modes[m.key]).sort((a, b) => acc.modes[b.key]! - acc.modes[a.key]!)[0] : undefined;
+  const [res, other] = await Promise.all([
     load(mode, aid),
-    mode.key !== "arena" && acc?.modes.arena ? load(arenaMode, aid) : Promise.resolve(null),
+    mode.key !== "arena" && acc?.modes.arena ? load(arenaMode, aid) : eftMode ? load(eftMode, aid) : Promise.resolve(null),
   ]);
+  const arena = mode.key !== "arena" ? other : null;
   const s = res.summary;
   const registered = s?.kind === "arena" ? s.registered : arena?.summary?.kind === "arena" ? arena.summary.registered : null;
-  const name = s?.name || acc?.name || `#${aid}`;
+  const name = displayName(aid, acc, s);
   const history = nameHistory(aid);
   const v = s ? verdict(mode, aid, toSample(s)) : null;
-  const chips = s ? memberChips(s.member) : [];
+  const chips = s ? memberChips(s.member | (other?.summary?.member ?? 0)) : [];
   const eft = s?.kind === "eft" ? s : null;
 
   return (
@@ -295,7 +402,7 @@ export default async function Profile({ params, searchParams }: Props) {
       <Header crumb={{ href: "/players", label: "계정 조회" }} />
       <main id="main" className="wrap profile">
         <SearchBox compact />
-        {(s?.name || acc?.name) && <Remember aid={aid} name={(s?.name || acc?.name)!} />}
+        {name !== `#${aid}` && <Remember aid={aid} name={name} />}
 
         <section className="panel phead">
           <div className="pname">
@@ -379,6 +486,9 @@ export default async function Profile({ params, searchParams }: Props) {
             {s.kind === "eft" ? <EftStats s={s} /> : <ArenaStats s={s} />}
             {eft?.perks?.length ? <SeasonPerks ids={eft.perks} /> : null}
             {eft && <Scav s={eft} />}
+            {eft && <Gear s={eft} />}
+            {eft && <Skills s={eft} />}
+            {eft && <Mastery s={eft} />}
             <Achievements s={s} />
           </>
         )}

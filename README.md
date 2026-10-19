@@ -8,7 +8,7 @@ Escape from Tarkov 도구를 모아 둔 사이트입니다. 계정 전적 조회
 
 - 닉네임 앞부분이나 계정 번호로 찾습니다. tarkov.dev에서 한 번 이상 조회된 계정만 찾을 수 있습니다.
 - 시즌, PvP, PvE, 아레나 전적을 탭으로 나눠 보여 줍니다. 아레나는 헤드샷 비율, 한 경기 최다 킬, 최고 연속 킬, 모드별 기록까지 나옵니다.
-- EFT 모드에는 스캐브 레이드 전적도 나옵니다. 시즌 모드에서는 그 계정이 고른 Kord Breach 특성을 보여 주고, 같은 조합을 특성 시뮬레이터에서 열 수 있습니다.
+- EFT 모드에는 스캐브 레이드 전적, 스킬 레벨, 무기 숙련, 기록이 갱신될 때 입고 있던 장비도 나옵니다. 시즌 모드에서는 그 계정이 고른 Kord Breach 특성을 보여 주고, 같은 조합을 특성 시뮬레이터에서 열 수 있습니다.
 - 판정 배지는 플레이 시간과 레이드 수가 비슷한 계정들 사이에서 PMC K/D, 생존율 같은 지표가 어디쯤인지 보여 줍니다. 통계 기준이며 부정행위의 증거가 아닙니다. 계산 방식은 사이트의 판정 기준 페이지에 있습니다.
 - 닉네임 변경과 이 사이트에서 받은 전적 기록이 쌓입니다.
 - 기록이 오래됐으면 tarkov.dev에서 그 계정을 열고 돌아오면 됩니다. 탭으로 돌아오면 자동으로 다시 불러옵니다.
@@ -53,7 +53,7 @@ pnpm build
 ## 데이터
 
 - 전적은 [tarkov.dev](https://tarkov.dev)가 공개하는 `players.tarkov.dev` JSON에서 받습니다. 이름 목록은 하루 한 번, 판정 비교군은 최근 30일 안에 갱신된 계정을 초당 1건씩 받습니다. Battlestate Games 서버에는 접속하지 않습니다.
-- `src/data/levels.json`, `src/data/achievements.json`, `src/data/season.json`은 tarkov.dev JSON API의 레벨 표, 업적, 시즌 특성입니다. 특성의 이름, 효과, 포인트, 함께 고를 수 없는 관계는 게임 데이터의 한국어 번역 그대로입니다. `pnpm refdata`로 다시 만들고, 이때 특성 아이콘은 `public/kord/perks`에, 업적 아이콘과 레벨, 프레스티지 배지는 `public/img`에 받습니다. 아이콘을 줄이는 데 macOS `sips`를 씁니다.
+- `src/data/levels.json`, `src/data/achievements.json`, `src/data/season.json`은 tarkov.dev JSON API의 레벨 표, 업적, 시즌 특성입니다. 특성의 이름, 효과, 포인트, 함께 고를 수 없는 관계는 게임 데이터의 한국어 번역 그대로입니다. `pnpm refdata`로 다시 만들고, 이때 특성 아이콘은 `public/kord/perks`에, 업적, 스킬 아이콘과 레벨, 프레스티지 배지는 `public/img`에 받습니다. 장비와 무기 아이콘은 종류가 많아 화면에서 처음 쓰일 때 서버가 받아 데이터 폴더의 `icons`에 둡니다. 아이콘을 줄이는 데 macOS `sips`를 씁니다.
 - `test/fixtures`는 실제 프로필 세 개에서 장비와 아이템을 빼고 닉네임과 계정 번호를 바꾼 것입니다.
 - 계정 주인이 삭제를 요청하면 `node scripts/hide.mjs <계정 번호>`로 기록을 지우고 이후 표시하지 않습니다.
 - 글꼴은 [Pretendard](https://github.com/orioncactus/pretendard)이며 SIL Open Font License를 따릅니다.

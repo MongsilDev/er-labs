@@ -118,20 +118,22 @@ export default function Simulator() {
   return (
     <div className="kord">
       <div className="kb-bar">
-        <dl className="kb-sum" role="status" aria-live="polite">
-          <div>
-            <dt>얻은 포인트</dt>
-            <dd className="num">{earned}</dd>
-          </div>
-          <div>
-            <dt>쓴 포인트</dt>
-            <dd className="num">{-spent}</dd>
-          </div>
-          <div className={left < 0 ? "kb-left bad" : "kb-left"}>
-            <dt>남은 포인트</dt>
-            <dd className="num">{left}</dd>
-          </div>
-        </dl>
+        <div role="status" aria-live="polite">
+          <dl className="kb-sum">
+            <div>
+              <dt>얻은 포인트</dt>
+              <dd className="num">{earned}</dd>
+            </div>
+            <div>
+              <dt>쓴 포인트</dt>
+              <dd className="num">{-spent}</dd>
+            </div>
+            <div className={left < 0 ? "kb-left bad" : "kb-left"}>
+              <dt>남은 포인트</dt>
+              <dd className="num">{left}</dd>
+            </div>
+          </dl>
+        </div>
         {left < 0 && <span className="kb-warn">포인트가 {-left} 부족합니다</span>}
         <div className="kb-acts">
           <button

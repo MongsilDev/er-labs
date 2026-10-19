@@ -1,5 +1,6 @@
 import achievementsData from "@/data/achievements.json";
 import levels from "@/data/levels.json";
+import skillNames from "@/data/skills.json";
 
 // players.tarkov.dev 프로필 JSON에서 화면과 판정에 쓰는 숫자만 뽑음. 없는 필드는 null
 
@@ -36,6 +37,9 @@ export type EftSummary = Base & {
   // 예전 스냅숏에는 없는 필드
   scav?: { raids: number; survived: number; kia: number; kills: number; pmcKills: number } | null;
   perks?: string[];
+  skills?: { id: string; level: number }[];
+  mastery?: { id: string; progress: number }[];
+  gear?: { slot: string; tpl: string }[];
 };
 
 export type ArenaModeStats = {
@@ -105,7 +109,8 @@ export function parseEft(raw: unknown): EftSummary {
     return m;
   };
   const pmc = counters("pmcStats");
-  const c = (k: string) => pmc.get(k) ?? null;
+  // 카운터가 있는 프로필에서 빠진 항목은 한 번도 일어나지 않은 것
+  const c = (k: string) => pmc.get(k) ?? (pmc.size ? 0 : null);
   const scav = counters("scavStats");
   const sc = (k: string) => scav.get(k) ?? 0;
   const b = base(p);
@@ -135,7 +140,33 @@ export function parseEft(raw: unknown): EftSummary {
       ? { raids: sc("Sessions/Scav"), survived: sc("ExitStatus/Survived/Scav"), kia: sc("ExitStatus/Killed/Scav"), kills: sc("Kills"), pmcKills: sc("KilledPmc") }
       : null,
     perks: arr(p.selectedSeasonalPerkIds).filter((x): x is string => typeof x === "string"),
+    ...gearAndSkills(p),
   };
+}
+
+const SKILLS = skillNames as Record<string, string>;
+const str = (v: unknown) => (typeof v === "string" ? v : "");
+
+// tarkov.dev와 같게 스킬 레벨은 Progress / 100, 한 번도 쓰지 않은 스킬은 뺌
+function gearAndSkills(p: Record<string, unknown>) {
+  const sk = obj(p.skills);
+  const skills = arr(sk.Common)
+    .map(obj)
+    .filter((x) => (num(x.Progress) ?? 0) > 0 && (num(x.LastAccess) ?? 0) > 0 && SKILLS[str(x.Id)])
+    .map((x) => ({ id: str(x.Id), level: num(x.Progress)! / 100 }))
+    .sort((a, b) => b.level - a.level);
+  const mastery = arr(sk.Mastering)
+    .map(obj)
+    .filter((x) => (num(x.Progress) ?? 0) > 0)
+    .map((x) => ({ id: String(x.Id), progress: num(x.Progress)! }))
+    .sort((a, b) => b.progress - a.progress);
+  const eq = obj(p.equipment);
+  const root = str(eq.Id) || str(eq.id);
+  const gear = arr(eq.Items ?? eq.items)
+    .map(obj)
+    .filter((x) => root && str(x.parentId) === root && str(x.slotId) && str(x._tpl))
+    .map((x) => ({ slot: str(x.slotId), tpl: str(x._tpl) }));
+  return { skills, mastery, gear };
 }
 
 function arenaStats(raw: unknown): ArenaModeStats {

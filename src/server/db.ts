@@ -63,9 +63,11 @@ CREATE TABLE IF NOT EXISTS meta (
 
 const g = globalThis as unknown as { __tlDb?: DatabaseSync };
 
+export const dataDir = () => process.env.DATA_DIR || join(process.cwd(), "data");
+
 export function db(): DatabaseSync {
   if (!g.__tlDb) {
-    const dir = process.env.DATA_DIR || join(process.cwd(), "data");
+    const dir = dataDir();
     mkdirSync(dir, { recursive: true });
     const conn = new DatabaseSync(join(dir, "tarkov-labs.db"));
     conn.exec(SCHEMA);
