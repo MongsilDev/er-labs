@@ -129,8 +129,8 @@ export default function Simulator() {
 
   return (
     <div className="kord">
-      <div className="kb-bar" role="status" aria-live="polite">
-        <dl className="kb-sum">
+      <div className="kb-bar">
+        <dl className="kb-sum" role="status" aria-live="polite">
           <div>
             <dt>얻은 포인트</dt>
             <dd className="num">{earned}</dd>
