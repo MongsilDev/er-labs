@@ -35,30 +35,34 @@ export default function Verdict({ v, mode, official }: { v: V; mode: string; off
               </>
             )}
           </p>
-          <div className="table-scroll">
-            <table className="grid-table vtable">
-              <thead>
-                <tr>
-                  <th>지표</th>
-                  <th>보정값</th>
-                  <th>비교군 평균</th>
-                  <th>상위 10%</th>
-                  <th>상위 1%</th>
-                </tr>
-              </thead>
-              <tbody>
-                {v.metrics.map((m) => (
-                  <tr key={m.key} className={m.level === 2 ? "lv2" : m.level === 1 ? "lv1" : undefined}>
-                    <td className="nowrap">{m.label}</td>
-                    <td className="num strong">{show(m.key, m.value, m.digits)}</td>
-                    <td className="num">{show(m.key, m.mean, m.digits)}</td>
-                    <td className="num">{show(m.key, m.p90, m.digits)}</td>
-                    <td className="num">{show(m.key, m.p99, m.digits)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ul className="vbars">
+            {v.metrics.map((m) => {
+              const max = Math.max(m.p99, m.value) * 1.08 || 1;
+              const at = (x: number) => `${Math.min(100, (x / max) * 100)}%`;
+              return (
+                <li key={m.key} className={m.level === 2 ? "lv2" : m.level === 1 ? "lv1" : undefined}>
+                  <div className="vbar-head">
+                    <b>{m.label}</b>
+                    <span className="vbar-val">
+                      <span className="small muted">보정값</span>
+                      <span className="num strong">{show(m.key, m.value, m.digits)}</span>
+                    </span>
+                  </div>
+                  <div className="vbar" aria-hidden="true">
+                    <i className="fill" style={{ width: at(m.value) }} />
+                    <i className="mark mean" style={{ left: at(m.mean) }} />
+                    <i className="mark p90" style={{ left: at(m.p90) }} />
+                    <i className="mark p99" style={{ left: at(m.p99) }} />
+                  </div>
+                  <div className="vbar-foot small muted num">
+                    <span>평균 {show(m.key, m.mean, m.digits)}</span>
+                    <span>상위 10% {show(m.key, m.p90, m.digits)}</span>
+                    <span>상위 1% {show(m.key, m.p99, m.digits)}</span>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
         </>
       )}
     </section>

@@ -83,15 +83,31 @@ function Facts({ groups }: { groups: { title: string; rows: Fact[] }[] }) {
   );
 }
 
-function EftStats({ s }: { s: EftSummary }) {
+// 판정 막대에 이미 나온 지표는 빼고 4개까지
+function KeyTiles({ list, hide }: { list: Fact[]; hide: string[] }) {
+  const shown = list.filter(([label]) => !hide.includes(label)).slice(0, 4);
+  if (!shown.length) return null;
+  return (
+    <div className="tiles key">
+      {shown.map(([label, value]) => (
+        <Tile key={label} strong label={label} value={value} />
+      ))}
+    </div>
+  );
+}
+
+function EftStats({ s, hide }: { s: EftSummary; hide: string[] }) {
   return (
     <>
-      <div className="tiles key">
-        <Tile strong label="PMC K/D" value={dec(div(s.pmcKills, s.kia))} />
-        <Tile strong label="생존율" value={pct(div(s.survived, s.raids))} />
-        <Tile strong label="레이드당 PMC 킬" value={dec(div(s.pmcKills, s.raids))} />
-        <Tile strong label="최장 연속 생존" value={int(s.streak)} />
-      </div>
+      <KeyTiles
+        hide={hide}
+        list={[
+          ["PMC K/D", dec(div(s.pmcKills, s.kia))],
+          ["생존율", pct(div(s.survived, s.raids))],
+          ["레이드당 PMC 킬", dec(div(s.pmcKills, s.raids))],
+          ["최장 연속 생존", int(s.streak)],
+        ]}
+      />
       <Facts
         groups={[
           {
@@ -109,6 +125,8 @@ function EftStats({ s }: { s: EftSummary }) {
           {
             title: "전투와 계정",
             rows: [
+              ["PMC K/D", dec(div(s.pmcKills, s.kia))],
+              ["생존율", pct(div(s.survived, s.raids))],
               ["PMC 킬", int(s.pmcKills)],
               ["전체 킬", int(s.kills)],
               ["레이드당 전체 킬", dec(div(s.kills, s.raids))],
@@ -121,18 +139,23 @@ function EftStats({ s }: { s: EftSummary }) {
   );
 }
 
-function ArenaStats({ s }: { s: ArenaSummary }) {
+function ArenaStats({ s, hide }: { s: ArenaSummary; hide: string[] }) {
   const t = s.total;
   if (!t) return <p className="sub">아레나 경기 기록이 없습니다.</p>;
   const per = (v: number) => dec(t.games ? v / t.games : null, 1);
   return (
     <>
-      <div className="tiles key">
-        <Tile strong label="K/D" value={dec(div(t.kills, t.deaths))} />
-        <Tile strong label="승률" value={pct(div(t.wins, t.games))} />
-        <Tile strong label="헤드샷 비율" value={pct(div(t.headshots, t.kills))} />
-        <Tile strong label="경기당 피해량" value={int(t.games ? t.damage / t.games : null)} />
-      </div>
+      <KeyTiles
+        hide={hide}
+        list={[
+          ["K/D", dec(div(t.kills, t.deaths))],
+          ["승률", pct(div(t.wins, t.games))],
+          ["헤드샷 비율", pct(div(t.headshots, t.kills))],
+          ["경기당 피해량", int(t.games ? t.damage / t.games : null)],
+          ["경기당 킬", per(t.kills)],
+          ["최고 ARP", int(s.overall?.bestArp || null)],
+        ]}
+      />
       <Facts
         groups={[
           {
@@ -171,9 +194,10 @@ function ArenaStats({ s }: { s: ArenaSummary }) {
           {
             title: "평균과 등급",
             rows: [
+              ["K/D", dec(div(t.kills, t.deaths))],
+              ["헤드샷 비율", pct(div(t.headshots, t.kills))],
               ["경기당 킬", per(t.kills)],
               ["경기당 어시스트", per(t.assists)],
-              ["경기당 사망", per(t.deaths)],
               ["시간당 킬", dec(s.seconds ? t.kills / (s.seconds / 3600) : null, 1)],
               ["플레이 시간", hours(s.seconds)],
               ["최고 ARP", int(s.overall?.bestArp || null)],
@@ -189,6 +213,7 @@ function ArenaStats({ s }: { s: ArenaSummary }) {
               <thead>
                 <tr>
                   <th>모드</th>
+                  <th className="opt">승패</th>
                   <th>경기</th>
                   <th>승률</th>
                   <th>K/D</th>
@@ -205,6 +230,11 @@ function ArenaStats({ s }: { s: ArenaSummary }) {
                 {s.modes.map((m) => (
                   <tr key={m.key}>
                     <td className="nowrap">{arenaModeLabel(m.key)}</td>
+                    <td className="opt wl-cell">
+                      <span className="wl" style={{ width: `${(m.stats.games / s.modes[0].stats.games) * 100}%` }} aria-hidden="true">
+                        <i style={{ width: `${(m.stats.wins / Math.max(1, m.stats.games)) * 100}%` }} />
+                      </span>
+                    </td>
                     <td className="num">{int(m.stats.games)}</td>
                     <td className="num">{pct(div(m.stats.wins, m.stats.games), 0)}</td>
                     <td className="num">{dec(div(m.stats.kills, m.stats.deaths))}</td>
@@ -297,6 +327,7 @@ function Skills({ s }: { s: EftSummary }) {
       <Image src={`/img/skill/${k.id}.webp`} alt="" width={28} height={28} unoptimized />
       <span className="ellipsis">{SKILL_NAME[k.id]}</span>
       <b className="num">{k.level >= 51 ? "엘리트" : dec(k.level, 1)}</b>
+      {k.level < 51 && <i className="sk-bar" style={{ width: `${(k.level % 1) * 100}%` }} aria-hidden="true" />}
     </li>
   );
   return (
@@ -316,30 +347,45 @@ function Skills({ s }: { s: EftSummary }) {
 }
 
 function Mastery({ s }: { s: EftSummary }) {
-  const list = (s.mastery ?? []).filter((m) => MASTERING[m.id]).slice(0, 8);
+  const list = (s.mastery ?? []).filter((m) => MASTERING[m.id]);
   if (!list.length) return null;
+  const row = (m: { id: string; progress: number }) => {
+    const def = MASTERING[m.id];
+    // tarkov.dev와 같게 기준값을 넘으면 다음 단계
+    const level = m.progress > def.level3 ? 3 : m.progress > def.level2 ? 2 : 1;
+    const goal = level === 3 ? null : level === 2 ? def.level3 : def.level2;
+    return (
+      <li key={m.id}>
+        {def.weapon ? <Image src={`/api/icon/${def.weapon}`} alt="" width={40} height={40} unoptimized /> : <span className="gear-blank" />}
+        <div className="m-body">
+          <div className="m-top">
+            <b className="ellipsis">{m.id}</b>
+            <span className="pips" aria-label={`${level}단계`}>
+              {[1, 2, 3].map((n) => (
+                <i key={n} className={n <= level ? "on" : undefined} />
+              ))}
+            </span>
+          </div>
+          <div className="m-bar" aria-hidden="true">
+            <i style={{ width: `${goal ? Math.min(100, (m.progress / goal) * 100) : 100}%` }} />
+          </div>
+          <span className="small muted num">{goal ? `${int(m.progress)} / ${int(goal)}` : `${int(m.progress)}, 최고 단계`}</span>
+        </div>
+      </li>
+    );
+  };
   return (
     <section className="block">
-      <h2 className="h2">무기 숙련</h2>
-      <ul className="gear mastery">
-        {list.map((m) => {
-          const def = MASTERING[m.id];
-          // tarkov.dev와 같게 기준값을 넘으면 다음 단계
-          const level = m.progress > def.level3 ? 3 : m.progress > def.level2 ? 2 : 1;
-          return (
-            <li key={m.id}>
-              {def.weapon ? <Image src={`/api/icon/${def.weapon}`} alt="" width={44} height={44} unoptimized /> : <span className="gear-blank" />}
-              <span className="gear-text">
-                <b className="ellipsis">{m.id}</b>
-                <span className="small muted num">
-                  {level}단계, {int(m.progress)}
-                  {level < 3 ? ` / ${int(level === 2 ? def.level3 : def.level2)}` : ""}
-                </span>
-              </span>
-            </li>
-          );
-        })}
-      </ul>
+      <h2 className="h2">
+        무기 숙련 <span className="muted num">{list.length}</span>
+      </h2>
+      <ul className="mlist">{list.slice(0, 10).map(row)}</ul>
+      {list.length > 10 && (
+        <details className="more">
+          <summary>나머지 {list.length - 10}개 보기</summary>
+          <ul className="mlist">{list.slice(10).map(row)}</ul>
+        </details>
+      )}
     </section>
   );
 }
@@ -559,6 +605,7 @@ export default async function Profile({ params, searchParams }: Props) {
   const v = s ? verdict(mode, aid, toSample(s)) : null;
   const chips = s ? memberChips(s.member | (other?.summary?.member ?? 0)) : [];
   const eft = s?.kind === "eft" ? s : null;
+  const barred = v && v.state !== "none" ? v.metrics.map((m) => m.label) : [];
 
   return (
     <>
@@ -646,7 +693,7 @@ export default async function Profile({ params, searchParams }: Props) {
         {s && (
           <>
             {v && <Verdict v={v} mode={mode.key} official={chips.some((c) => c.official)} />}
-            {s.kind === "eft" ? <EftStats s={s} /> : <ArenaStats s={s} />}
+            {s.kind === "eft" ? <EftStats s={s} hide={barred} /> : <ArenaStats s={s} hide={barred} />}
             {eft && <SeasonProgress s={eft} />}
             {s.kind === "arena" && <ArenaPasses s={s} />}
             {eft?.perks?.length ? <SeasonPerks ids={eft.perks} /> : null}

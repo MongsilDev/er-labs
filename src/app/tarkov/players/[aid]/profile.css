@@ -99,14 +99,75 @@
   border-style: dashed;
   background: transparent;
 }
-.vtable td.strong {
-  font-weight: 700;
+.vbars {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 32px;
+  margin-top: 4px;
 }
-.vtable tr.lv1 td.strong {
+.vbar-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+}
+.vbar-val {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.vbar-head .strong {
+  font-size: 22px;
+  font-weight: 800;
+}
+.vbars .lv1 .strong {
   color: var(--warn);
 }
-.vtable tr.lv2 td.strong {
+.vbars .lv2 .strong {
   color: var(--minus);
+}
+.vbar {
+  position: relative;
+  height: 6px;
+  margin: 8px 0 6px;
+  border-radius: 3px;
+  background: var(--field);
+}
+.vbar .fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 3px;
+  background: var(--accent);
+}
+.vbars .lv1 .fill {
+  background: var(--warn);
+}
+.vbars .lv2 .fill {
+  background: var(--minus);
+}
+.vbar .mark {
+  position: absolute;
+  top: -4px;
+  width: 2px;
+  height: 14px;
+  margin-left: -1px;
+  background: var(--text);
+}
+.vbar .mark.mean {
+  background: var(--text);
+}
+.vbar .mark.p90,
+.vbar .mark.p99 {
+  width: 0;
+  background: none;
+  border-left: 2px dotted var(--text-3);
+}
+.vbar-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 14px;
 }
 
 .tiles {
@@ -272,7 +333,8 @@
   .tiles.key {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .facts {
+  .facts,
+  .vbars {
     grid-template-columns: minmax(0, 1fr);
   }
   .tiles.key .tile b {
@@ -425,7 +487,7 @@
   height: 44px;
   object-fit: contain;
   border-radius: 5px;
-  background: #1c1e1a;
+  background: var(--field);
 }
 .gear-text {
   display: grid;
@@ -463,6 +525,95 @@
   margin-left: auto;
   font-weight: 800;
 }
+.skills li {
+  position: relative;
+  overflow: hidden;
+}
+.sk-bar {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--line-strong);
+}
+.mlist {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+.mlist li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 10px 14px 10px 10px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.mlist img,
+.mlist .gear-blank {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  border-radius: 5px;
+  background: var(--field);
+}
+.m-body {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: 4px;
+}
+.m-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+.pips {
+  display: flex;
+  gap: 3px;
+  margin-left: auto;
+}
+.pips i {
+  width: 4px;
+  height: 12px;
+  border-radius: 1px;
+  background: var(--line);
+}
+.pips i.on {
+  background: var(--accent);
+}
+.m-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--field);
+  overflow: hidden;
+}
+.m-bar i {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+.wl-cell {
+  width: 22%;
+  min-width: 120px;
+}
+.wl {
+  display: block;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--line-strong);
+  overflow: hidden;
+}
+.wl i {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
 .skills li.elite {
   border-color: var(--accent);
 }
@@ -473,17 +624,8 @@
   .gear {
     grid-template-columns: minmax(0, 1fr);
   }
-  .gear.mastery {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .gear.mastery li {
-    gap: 8px;
-    padding: 6px 8px 6px 6px;
-  }
-  .gear.mastery img,
-  .gear.mastery .gear-blank {
-    width: 34px;
-    height: 34px;
+  .mlist {
+    grid-template-columns: minmax(0, 1fr);
   }
   .skills {
     grid-template-columns: repeat(2, minmax(0, 1fr));
