@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import Actions from "@/components/players/Actions";
+import { Remember } from "@/components/players/Recent";
 import SearchBox from "@/components/players/SearchBox";
 import Verdict from "@/components/players/Verdict";
 import { date, dateTime, dec, div, hours, int, pct } from "@/lib/format";
@@ -259,10 +260,11 @@ export default async function Profile({ params, searchParams }: Props) {
       <Header crumb={{ href: "/players", label: "계정 조회" }} />
       <main id="main" className="wrap profile">
         <SearchBox compact />
+        {(s?.name || acc?.name) && <Remember aid={aid} name={(s?.name || acc?.name)!} />}
 
         <section className="panel phead">
           <div className="pname">
-            <h1 className="ellipsis">{name}</h1>
+            <h1 className="ellipsis" translate="no">{name}</h1>
             {s?.side && <span className="chip">{sideLabel(s.side)}</span>}
             {chips.map((c) => (
               <span key={c.label} className={c.official ? "chip official" : "chip"}>
@@ -353,8 +355,8 @@ export default async function Profile({ params, searchParams }: Props) {
                 <tbody>
                   {history.map((h) => (
                     <tr key={`${h.at}-${h.old}`}>
-                      <td>{h.old}</td>
-                      <td>{h.next}</td>
+                      <td translate="no">{h.old}</td>
+                      <td translate="no">{h.next}</td>
                       <td className="num nowrap">{date(h.at)}</td>
                     </tr>
                   ))}

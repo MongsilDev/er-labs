@@ -16,6 +16,12 @@ export default function SearchBox({ autoFocus, compact }: { autoFocus?: boolean;
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
   const seq = useRef(0);
+  const input = useRef<HTMLInputElement>(null);
+
+  // 휴대폰에서는 키보드가 화면을 가리지 않게 자동 초점을 주지 않음
+  useEffect(() => {
+    if (autoFocus && matchMedia("(pointer: fine)").matches) input.current?.focus();
+  }, [autoFocus]);
   const listId = useId();
 
   useEffect(() => {
@@ -75,7 +81,8 @@ export default function SearchBox({ autoFocus, compact }: { autoFocus?: boolean;
           autoComplete="off"
           spellCheck={false}
           maxLength={32}
-          autoFocus={autoFocus}
+          ref={input}
+          name="q"
           value={q}
           role="combobox"
           aria-expanded={shown && hits.length > 0}
@@ -116,7 +123,7 @@ export default function SearchBox({ autoFocus, compact }: { autoFocus?: boolean;
                 go(h);
               }}
             >
-              <b className="ellipsis">{h.name}</b>
+              <b className="ellipsis" translate="no">{h.name}</b>
               <span className="muted small num">#{h.aid}</span>
               {h.last && <span className="muted small num hit-date">{DAY.format(new Date(h.last))}</span>}
             </li>
