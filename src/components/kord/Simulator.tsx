@@ -26,9 +26,15 @@ const EXCLUSIVE = (() => {
   return m;
 })();
 
-// 주소에는 id 끝 6자리만 넣음
-const short = (id: string) => id.slice(-6);
-const BY_SHORT = new Map(PERSONAL.map((p) => [short(p.id), p.id]));
+// 주소에는 선택 여부를 비트로 묶어 36진수로 넣음. id 앞부분이 생성 시각이라 새 특성은 뒤 비트에 붙음, 53개까지
+const ORDER = PERSONAL.map((p) => p.id).sort();
+
+const encode = (sel: Set<string>) => ORDER.reduce((n, id, i) => (sel.has(id) ? n + 2 ** i : n), 0).toString(36);
+
+function decode(raw: string) {
+  const n = /^[0-9a-z]{1,10}$/.test(raw) ? parseInt(raw, 36) : 0;
+  return ORDER.filter((_, i) => Math.floor(n / 2 ** i) % 2 === 1);
+}
 
 const signed = (n: number) => (n > 0 ? `+${n}` : String(n));
 
@@ -83,17 +89,14 @@ export default function Simulator() {
   useEffect(() => {
     const raw = new URLSearchParams(location.search).get("b");
     if (!raw) return;
-    const ids = raw
-      .split(".")
-      .map((s) => BY_SHORT.get(s))
-      .filter((x): x is string => Boolean(x));
+    const ids = decode(raw);
     // eslint-disable-next-line react-hooks/set-state-in-effect -- 주소의 빌드는 브라우저에서만 읽을 수 있음
     if (ids.length) setSel(new Set(ids));
   }, []);
 
   useEffect(() => {
     const url = new URL(location.href);
-    if (sel.size) url.searchParams.set("b", [...sel].map(short).join("."));
+    if (sel.size) url.searchParams.set("b", encode(sel));
     else url.searchParams.delete("b");
     history.replaceState(null, "", url);
   }, [sel]);
