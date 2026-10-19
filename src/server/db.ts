@@ -112,7 +112,7 @@ export function db(): DatabaseSync {
   if (!g.__erDb) {
     const dir = process.env.DATA_DIR || join(process.cwd(), "data");
     mkdirSync(dir, { recursive: true });
-    const conn = new DatabaseSync(join(dir, "er-tools.db"));
+    const conn = new DatabaseSync(join(dir, "er-labs.db"));
     conn.exec(SCHEMA);
     g.__erDb = conn;
   }

@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
 import { csv } from "./helpers";
 
-process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "er-tools-test-"));
+process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "er-labs-test-"));
 
 const owner = { id: "1", name: "개최자", avatar: null };
 const op = { id: "2", name: "운영자", avatar: null };
