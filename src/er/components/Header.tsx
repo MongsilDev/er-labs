@@ -6,6 +6,7 @@ import UserMenu from "./UserMenu";
 export default function Header({
   user,
   crumb,
+  crumbHref = "/er/score",
   wide,
   right,
   login = true,
@@ -13,13 +14,14 @@ export default function Header({
 }: {
   user: User | null;
   crumb?: string;
+  crumbHref?: string;
   wide?: boolean;
   right?: React.ReactNode;
   login?: boolean;
   next?: string;
 }) {
   return (
-    <SiteHeader crumb={crumb ? { href: "/er/score", label: crumb } : undefined} wide={wide}>
+    <SiteHeader crumb={crumb ? { href: crumbHref, label: crumb } : undefined} wide={wide}>
       {right}
       {user ? (
         <UserMenu name={user.name} avatar={avatarUrl(user)} />

@@ -4,6 +4,9 @@ import SiteHeader from "@/components/SiteHeader";
 import ExampleBoard from "@/er/components/ExampleBoard";
 import ThemeToggle from "@/er/components/ThemeToggle";
 import { tournamentCount } from "@/er/server/tournament";
+import { int as rp, TIERS, tens } from "@/er/lib/cut";
+import { getCut } from "@/er/server/cut";
+import DecayMini from "@/er/components/cut/DecayMini";
 import { ACCENT as TARKOV_ACCENT } from "@/tarkov/components/Mark";
 import { date, int } from "@/tarkov/lib/format";
 import { COMMON, PERSONAL } from "@/tarkov/lib/kord";
@@ -64,7 +67,8 @@ function Tool({ game, accent, href, name, desc, children, stats, className = "" 
 
 const signed = (n: number) => (n > 0 ? `+${n}` : String(n));
 
-export default function Hub() {
+export default async function Hub() {
+  const cut = await getCut();
   const indexed = Number(getMeta("indexed_at")) || null;
   const plus = PERSONAL.filter((p) => (p.points ?? 0) < 0);
   const minus = PERSONAL.filter((p) => (p.points ?? 0) > 0);
@@ -81,9 +85,8 @@ export default function Hub() {
           <p className="text-[15px] text-fg-3">게임 도구 모음</p>
         </div>
 
-        <div className="grid grid-cols-3 gap-3 max-[1100px]:grid-cols-2 max-[760px]:grid-cols-1">
+        <div className="grid grid-cols-2 gap-3 max-[760px]:grid-cols-1">
           <Tool
-            className="max-[1100px]:col-span-2 max-[760px]:col-span-1"
             game="이터널 리턴"
             accent={ER_ACCENT}
             href="/er/score"
@@ -92,6 +95,50 @@ export default function Hub() {
             stats={[{ label: "진행 중인 대회", value: `${int(tournamentCount())}개` }]}
           >
             <ExampleBoard rows={3} bare />
+          </Tool>
+
+          <Tool
+            game="이터널 리턴"
+            accent={ER_ACCENT}
+            href="/er/cut"
+            name="이터컷 예측"
+            desc="휴면 강등을 반영한 아시아1 컷과 시즌 종료 예상"
+            stats={
+              cut
+                ? [
+                    { label: "이터니티 컷 위 휴면", value: `${rp(cut.tiers.eternity.decay.reduce((n, [, c]) => n + c, 0) + cut.tiers.eternity.decayStay)}명` },
+                    { label: "데미갓 컷 위 휴면", value: `${rp(cut.tiers.demigod.decay.reduce((n, [, c]) => n + c, 0) + cut.tiers.demigod.decayStay)}명` },
+                  ]
+                : []
+            }
+          >
+            {cut ? (
+              <div className="cut">
+                <ul className="grid">
+                  {TIERS.map(({ key, name, color }) => {
+                    const tier = cut.tiers[key];
+                    const end = tier.forecast?.[tier.forecast.length - 1];
+                    return (
+                      <li key={key} className="flex items-baseline gap-3 border-t border-line-soft py-2 first:border-t-0 first:pt-0">
+                        <span className="text-[14px] font-bold">{name}</span>
+                        <span className="ml-auto text-[14px] font-extrabold tabular-nums">
+                          {tier.estimated ? "약 " : ""}
+                          {tier.cut != null ? rp(tier.cut) : "-"}
+                        </span>
+                        {end && (
+                          <span className="w-[96px] text-right text-[13px] text-fg-3 tabular-nums">
+                            종료 <b className="font-extrabold" style={{ color }}>{tens(end[1])}</b>
+                          </span>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+                <DecayMini data={cut} />
+              </div>
+            ) : (
+              <p className="text-[13px] text-fg-3">지금은 컷 정보를 가져올 수 없습니다.</p>
+            )}
           </Tool>
 
           <Tool

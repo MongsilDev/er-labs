@@ -148,6 +148,15 @@
 }
 
 @layer components {
+  /* 이터컷 예측. 몽실봇 카드와 같은 티어 색 */
+  .cut {
+    --et: #e84c7d;
+    --dg: #d9a24a;
+  }
+  :root[data-theme="light"] .cut {
+    --et: #c42f63;
+    --dg: #9c6a12;
+  }
   .wrap {
     margin: 0 auto;
     padding: 24px;

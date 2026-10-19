@@ -1,6 +1,7 @@
 import { type ChildProcess, spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import { cpSync, existsSync, mkdtempSync, readdirSync, rmSync } from "node:fs";
+import { cpSync, existsSync, mkdtempSync, readFileSync, readdirSync, rmSync } from "node:fs";
+import { createServer as createHttpServer, type Server } from "node:http";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -21,6 +22,7 @@ const LONG_TEAM = "아주아주긴팀이름입니다정말로";
 const TEAMS = [LONG_TEAM, "모래성", "번개팀", "새벽길", "은하수", "파도", "단풍", "등대"];
 
 let server: ChildProcess;
+let cutApi: Server;
 let base = "";
 let browser: Browser;
 let code = "";
@@ -66,12 +68,17 @@ beforeAll(async () => {
   for (const dir of ["public", "assets"]) cpSync(join(ROOT, dir), join(STANDALONE, dir), { recursive: true });
   cpSync(join(ROOT, ".next/static"), join(STANDALONE, ".next/static"), { recursive: true });
   await seed();
+  // 이터컷 예측은 몽실봇 /api/cut 대신 고정 응답을 받음
+  const cut = readFileSync(join(ROOT, "test/er/fixtures/cut.json"));
+  cutApi = createHttpServer((_, res) => res.writeHead(200, { "content-type": "application/json" }).end(cut));
+  const cutPort = await freePort();
+  await new Promise<void>((r) => cutApi.listen(cutPort, "127.0.0.1", r));
   const port = await freePort();
   base = `http://localhost:${port}`;
   // 운영 .env가 섞이지 않게 환경 변수를 직접 지정
   server = spawn(process.execPath, ["server.js"], {
     cwd: STANDALONE,
-    env: { NODE_ENV: "production", PATH: process.env.PATH ?? "", PORT: String(port), HOSTNAME: "127.0.0.1", BASE_URL: base, DATA_DIR: DATA, DISCORD_CLIENT_ID: "1111", JOBS: "0" },
+    env: { NODE_ENV: "production", PATH: process.env.PATH ?? "", PORT: String(port), HOSTNAME: "127.0.0.1", BASE_URL: base, DATA_DIR: DATA, DISCORD_CLIENT_ID: "1111", JOBS: "0", CUT_API: `http://127.0.0.1:${cutPort}/api/cut` },
     stdio: "ignore",
   });
   for (let i = 0; i < 50; i++) {
@@ -84,6 +91,7 @@ beforeAll(async () => {
 afterAll(async () => {
   await browser?.close();
   server?.kill();
+  cutApi?.close();
   rmSync(DATA, { recursive: true, force: true });
   if (readdirSync(SHOTS).length === 0) rmSync(SHOTS, { recursive: true });
 });
@@ -93,6 +101,7 @@ type Screen = { name: string; path: () => string; login?: boolean; tab?: string;
 const SCREENS: Screen[] = [
   { name: "Labs", path: () => "/" },
   { name: "점수 계산", path: () => "/er/score" },
+  { name: "이터컷 예측", path: () => "/er/cut" },
   { name: "점수 계산 로그인", path: () => "/er/score", login: true },
   { name: "처리방침", path: () => "/privacy" },
   { name: "예시 대회 선수 기록", path: () => "/er/example/a", tab: "선수 기록" },
@@ -173,6 +182,18 @@ describe("화면 점검", () => {
       }
     }
   }
+
+  it("이터컷 예측에 RP를 넣으면 진단이 좁은 화면 안에 나온다", async () => {
+    const screen = SCREENS.find((x) => x.name === "이터컷 예측")!;
+    const { page, errors } = await open(screen, 390, "dark");
+    await page.fill("#my-rp", "9050");
+    await expect(page.getByText("가능성").first().isVisible()).resolves.toBe(true);
+    await page.locator("svg[role=img]").hover({ position: { x: 200, y: 120 } });
+    const p = await page.evaluate(inspect);
+    await page.context().close();
+    expect(p).toEqual({ overflow: 0, undefinedClass: [], unstyled: [] });
+    expect(errors).toEqual([]);
+  });
 
   it("방송 화면은 1920x1080 안에 들어간다", async () => {
     const ctx = await browser.newContext({ viewport: { width: 1920, height: 1080 } });

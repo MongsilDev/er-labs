@@ -1,0 +1,149 @@
+import type { Metadata } from "next";
+import Footer from "@/components/SiteFooter";
+import CutChart from "@/er/components/cut/CutChart";
+import DecayCalendar from "@/er/components/cut/DecayCalendar";
+import RpCheck from "@/er/components/cut/RpCheck";
+import Header from "@/er/components/Header";
+import { type CutTier, daysLeft, int, TIERS, tens } from "@/er/lib/cut";
+import { timeKo } from "@/er/lib/format";
+import { currentUser } from "@/er/server/auth";
+import { getCut } from "@/er/server/cut";
+
+export const metadata: Metadata = {
+  title: "이터컷 예측",
+  description: "아시아1 이터니티와 데미갓 컷을 휴면 강등까지 반영해 계산하고 시즌 종료 컷을 예상합니다.",
+};
+export const dynamic = "force-dynamic";
+
+function TierCard({ name, color, tier }: { name: string; color: string; tier: CutTier }) {
+  const end = tier.forecast?.[tier.forecast.length - 1];
+  return (
+    <section className="panel p-5" aria-label={`${name} 컷`}>
+      <h2 className="flex items-center gap-2 text-[15px] font-bold text-fg-2">
+        <span className="size-2.5 rounded-full" style={{ background: color }} aria-hidden="true" />
+        {name} {int(tier.place)}위
+      </h2>
+      <p className="mt-2 flex items-baseline gap-2">
+        <span className="text-[40px] leading-none font-extrabold tracking-[-1px] tabular-nums">
+          {tier.estimated && <span className="mr-1 text-[22px] text-fg-3">약</span>}
+          {tier.cut != null ? int(tier.cut) : "-"}
+        </span>
+        <span className="text-[14px] font-semibold text-fg-3">RP</span>
+      </p>
+      <p className="mt-1.5 text-[13px] text-fg-3 tabular-nums">
+        순위표 {tier.board != null ? int(tier.board) : "-"}
+        {tier.dropped ? ` | 휴면 강등으로 내려갈 ${int(tier.dropped)}명 제외` : ""}
+      </p>
+      {end && (
+        <dl className="mt-4 flex flex-wrap items-baseline gap-x-6 gap-y-1 border-t border-line-soft pt-3">
+          <div className="flex items-baseline gap-2">
+            <dt className="text-[13px] text-fg-3">종료 예상</dt>
+            <dd className="text-[22px] font-extrabold tabular-nums" style={{ color }}>
+              {tens(end[1])}
+            </dd>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <dt className="text-[13px] text-fg-3">범위</dt>
+            <dd className="text-[15px] font-bold tabular-nums text-fg-2">
+              {tens(end[2])}~{tens(end[3])}
+            </dd>
+          </div>
+        </dl>
+      )}
+    </section>
+  );
+}
+
+function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
+  return (
+    <section className="panel p-5 max-[760px]:p-4" aria-labelledby={id}>
+      <h2 className="mb-4 text-[17px] font-extrabold" id={id}>
+        {title}
+      </h2>
+      {children}
+    </section>
+  );
+}
+
+export default async function CutPage() {
+  const [user, data] = await Promise.all([currentUser(), getCut()]);
+  const left = data?.season.end ? daysLeft(data.season.end * 1000, data.updatedAt * 1000) : null;
+  return (
+    <>
+      <Header user={user} crumb="이터컷 예측" crumbHref="/er/cut" next="/er/cut" />
+      <main id="main" className="wrap cut">
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 pt-3 pb-5">
+          <h1 className="text-[28px] font-extrabold tracking-[-0.5px]">이터컷 예측</h1>
+          {data && (
+            <p className="text-[14px] text-fg-3">
+              {data.season.name} | 아시아1{left != null ? ` | 종료 D-${left}` : ""} | {timeKo(data.updatedAt * 1000)} 기준
+            </p>
+          )}
+        </div>
+        {!data ? (
+          <p className="panel px-5 py-4" role="status">
+            지금은 컷 정보를 가져올 수 없습니다.
+            <br />
+            잠시 뒤 다시 열어주세요.
+          </p>
+        ) : (
+          <div className="grid gap-4">
+            <div className="grid grid-cols-2 gap-4 max-[760px]:grid-cols-1">
+              {TIERS.map(({ key, name, color }) => (
+                <TierCard key={key} name={name} color={color} tier={data.tiers[key]} />
+              ))}
+            </div>
+            <Section id="chart-h" title="컷 추이와 종료 예상">
+              <div className="mb-3 flex flex-wrap gap-x-5 gap-y-1 text-[13px] text-fg-3">
+                {TIERS.map(({ key, name, color }) => (
+                  <span key={key} className="flex items-center gap-1.5">
+                    <span className="h-[3px] w-4 rounded-full" style={{ background: color }} aria-hidden="true" />
+                    {name}
+                  </span>
+                ))}
+                <span>굵은 선 휴면 반영 컷</span>
+                <span>흐린 선 순위표 컷</span>
+                <span>점선과 띠 종료 예상</span>
+              </div>
+              <CutChart data={data} />
+            </Section>
+            <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-4 max-[1000px]:grid-cols-[minmax(0,1fr)]">
+              <Section id="decay-h" title="휴면 강등 일정">
+                <DecayCalendar data={data} />
+              </Section>
+              <Section id="check-h" title="내 RP 진단">
+                <RpCheck data={data} />
+              </Section>
+            </div>
+            <Section id="method-h" title="계산 방법">
+              <ul className="grid gap-2 text-[14px] text-fg-2">
+                <li>
+                  휴면 반영 컷은 {data.rule.dormantDays}일 넘게 랭크 게임을 안 한 계정을 시즌 종료까지 깎일 RP로 다시 줄 세운 {int(data.tiers.eternity.place)}위와{" "}
+                  {int(data.tiers.demigod.place)}위입니다.
+                  <br />
+                  깎이는 규칙은 오래 쉬었다 돌아온 플레이어 398명의 RP 변화로 맞췄고, 353명과 맞습니다.
+                </li>
+                <li>
+                  종료 예상은 날마다 오전 9시 컷의 상승 추세에 지난 두 시즌 마지막 14일의 급등을 더한 값입니다.
+                  <br />
+                  이번 시즌 기록으로 시험하면 7일 뒤 예상은 평균 6점, 24일 뒤 예상은 45~70점 틀렸습니다.
+                  <br />
+                  범위는 그 오차의 80% 구간입니다.
+                </li>
+                <li>
+                  데미갓 컷은 순위표가 1000위까지라, 휴면 계정이 빠진 자리를 채울 1000위 밖 계정을 추정합니다.
+                </li>
+                <li>
+                  몽실봇이 매시 아시아1 상위 1000명 순위표를 기록해 계산합니다.
+                  <br />
+                  디스코드 /이터컷 명령과 같은 값입니다.
+                </li>
+              </ul>
+            </Section>
+          </div>
+        )}
+      </main>
+      <Footer />
+    </>
+  );
+}
