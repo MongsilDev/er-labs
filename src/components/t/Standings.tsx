@@ -74,7 +74,7 @@ export default function Standings({ result, rules, mode, label }: { result: Grou
                 <td className="c-bar">
                   <Bar s={s} max={max} rounds={played} />
                 </td>
-                <td className="r c-extra num">{s.wins || ""}</td>
+                <td className={s.wins ? "r c-extra num" : "r c-extra num muted"}>{s.wins}</td>
                 <td className="r c-extra num">{fmt(s.rankScore)}</td>
                 <td className="r c-ks num">{rules.tiebreak === "kills" ? fmt(s.kills) : fmt1(s.killScore)}</td>
                 {anyPenalty && <td className="r c-pen num">{s.penalty > 0 ? `-${fmt(s.penalty)}` : ""}</td>}

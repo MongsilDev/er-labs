@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
 import { api } from "@/lib/client";
 import { timeKo } from "@/lib/format";
-import { LIMITS, MODE_LABEL, PRESET_LABEL, presetRules, type Mode, type Preset, type Rules } from "@/lib/rules";
+import { LIMITS, PRESET_LABEL, presetRules, type Mode, type Preset, type Rules } from "@/lib/rules";
 import type { InviteRow, MemberRow, TournamentView } from "@/lib/view";
 import Avatar from "./Avatar";
+import ModeSeg from "./ModeSeg";
 import RulesFields from "./RulesFields";
 import "./manage.css";
 
@@ -224,17 +225,8 @@ function Settings({ view, onSaved, onError }: { view: TournamentView; onSaved: (
           <label className="lbl" htmlFor="s-name">대회 이름</label>
           <input id="s-name" className="field" maxLength={LIMITS.nameLength} value={name} onChange={(e) => setName(e.target.value)} autoComplete="off" />
         </div>
-        <div className="grid4">
-          <div>
-            <label className="lbl" htmlFor="s-mode">진행 방식</label>
-            <select id="s-mode" className="field" value={mode} onChange={(e) => setMode(e.target.value as Mode)}>
-              {(Object.keys(MODE_LABEL) as Mode[]).map((m) => (
-                <option key={m} value={m}>
-                  {MODE_LABEL[m]}
-                </option>
-              ))}
-            </select>
-          </div>
+        <ModeSeg mode={mode} onChange={setMode} />
+        <div className="three">
           <div>
             <label className="lbl" htmlFor="s-rule">규칙</label>
             <select

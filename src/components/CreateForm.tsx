@@ -3,16 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/client";
-import { LIMITS, MODE_LABEL, PRESET_LABEL, presetRules, type Mode, type Preset, type Rules } from "@/lib/rules";
+import { LIMITS, PRESET_LABEL, presetRules, type Mode, type Preset, type Rules } from "@/lib/rules";
 import type { CreateInput } from "@/lib/view";
+import ModeSeg from "./ModeSeg";
 import RulesFields from "./RulesFields";
 
 const DRAFT = "er-draft";
-const MODES: [Mode, string][] = [
-  ["points", "라운드 수 고정"],
-  ["checkpoint", "1위 확정 시 종료"],
-  ["double", "2위 확정 시 종료"],
-];
 
 export default function CreateForm({ loggedIn, autoCreate }: { loggedIn: boolean; autoCreate: boolean }) {
   const router = useRouter();
@@ -90,27 +86,14 @@ export default function CreateForm({ loggedIn, autoCreate }: { loggedIn: boolean
           aria-invalid={error === "대회 이름을 입력해주세요." || undefined}
         />
       </div>
-      <fieldset>
-        <legend className="lbl">진행 방식</legend>
-        <div className="seg">
-          {MODES.map(([m, small]) => (
-            <label key={m}>
-              <input
-                type="radio"
-                name="mode"
-                checked={mode === m}
-                onChange={() => {
-                  setMode(m);
-                  if (m !== "points" && rounds < 9) setRounds(12);
-                  if (m === "points" && rounds === 12) setRounds(4);
-                }}
-              />
-              {MODE_LABEL[m]}
-              <small>{small}</small>
-            </label>
-          ))}
-        </div>
-      </fieldset>
+      <ModeSeg
+        mode={mode}
+        onChange={(m) => {
+          setMode(m);
+          if (m !== "points" && rounds < 9) setRounds(12);
+          if (m === "points" && rounds === 12) setRounds(4);
+        }}
+      />
       <div className="three">
         <div>
           <label className="lbl" htmlFor="c-rule">규칙</label>

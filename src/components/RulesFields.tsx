@@ -11,7 +11,7 @@ export default function RulesFields({ rules, mode, rounds, onChange }: { rules: 
       <div className="rf-grid">
         <div>
           <label className="lbl" htmlFor="rf-adv">진출 표시</label>
-          <select id="rf-adv" className="field sm" value={rules.advance} onChange={(e) => set("advance", Number(e.target.value))}>
+          <select id="rf-adv" className="field" value={rules.advance} onChange={(e) => set("advance", Number(e.target.value))}>
             <option value={0}>표시 안 함</option>
             {Array.from({ length: LIMITS.teamsPerGroup - 1 }, (_, i) => (
               <option key={i + 1} value={i + 1}>
@@ -22,7 +22,7 @@ export default function RulesFields({ rules, mode, rounds, onChange }: { rules: 
         </div>
         <div>
           <label className="lbl" htmlFor="rf-tie">동점일 때</label>
-          <select id="rf-tie" className="field sm" value={rules.tiebreak} onChange={(e) => set("tiebreak", e.target.value as Tiebreak)}>
+          <select id="rf-tie" className="field" value={rules.tiebreak} onChange={(e) => set("tiebreak", e.target.value as Tiebreak)}>
             {(Object.keys(TIEBREAK_LABEL) as Tiebreak[]).map((t) => (
               <option key={t} value={t}>
                 {TIEBREAK_LABEL[t]}
@@ -77,7 +77,7 @@ export default function RulesFields({ rules, mode, rounds, onChange }: { rules: 
           <div className="rf-grid" style={{ marginTop: 10 }}>
             <div>
               <label className="lbl" htmlFor="rf-km">킬 점수 1당 점수</label>
-              <input id="rf-km" className="field sm" type="number" inputMode="decimal" step={0.5} min={0} value={rules.killMultiplier} onChange={(e) => set("killMultiplier", Number(e.target.value) || 0)} />
+              <input id="rf-km" className="field" type="number" inputMode="decimal" step={0.5} min={0} value={rules.killMultiplier} onChange={(e) => set("killMultiplier", Number(e.target.value) || 0)} />
             </div>
           </div>
         </fieldset>
@@ -89,7 +89,7 @@ export default function RulesFields({ rules, mode, rounds, onChange }: { rules: 
           <div className="rf-grid">
             <div>
               <label className="lbl" htmlFor="rf-cpt">받는 조건</label>
-              <select id="rf-cpt" className="field sm" value={cp.type} onChange={(e) => set("checkpoint", { ...cp, type: e.target.value as Rules["checkpoint"]["type"] })}>
+              <select id="rf-cpt" className="field" value={cp.type} onChange={(e) => set("checkpoint", { ...cp, type: e.target.value as Rules["checkpoint"]["type"] })}>
                 <option value="sequential">라운드별 상위 팀</option>
                 <option value="points">기준 점수 도달</option>
               </select>
@@ -97,12 +97,12 @@ export default function RulesFields({ rules, mode, rounds, onChange }: { rules: 
             {cp.type === "points" ? (
               <div>
                 <label className="lbl" htmlFor="rf-cpp">기준 점수</label>
-                <input id="rf-cpp" className="field sm" type="number" inputMode="numeric" min={1} value={cp.points} onChange={(e) => set("checkpoint", { ...cp, points: Number(e.target.value) || 1 })} />
+                <input id="rf-cpp" className="field" type="number" inputMode="numeric" min={1} value={cp.points} onChange={(e) => set("checkpoint", { ...cp, points: Number(e.target.value) || 1 })} />
               </div>
             ) : (
               <div>
                 <label className="lbl" htmlFor="rf-cpk">순위가 밀리면</label>
-                <select id="rf-cpk" className="field sm" value={cp.keep ? "keep" : "lose"} onChange={(e) => set("checkpoint", { ...cp, keep: e.target.value === "keep" })}>
+                <select id="rf-cpk" className="field" value={cp.keep ? "keep" : "lose"} onChange={(e) => set("checkpoint", { ...cp, keep: e.target.value === "keep" })}>
                   <option value="lose">체크포인트 해제</option>
                   <option value="keep">계속 유지</option>
                 </select>

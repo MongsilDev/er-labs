@@ -64,11 +64,6 @@
 .settings .rules-fields {
   margin-top: 0;
 }
-.grid4 {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-}
 @media (max-width: 760px) {
   .li {
     flex-wrap: wrap;
@@ -79,8 +74,5 @@
   }
   .li.inv .acts {
     margin-left: 0;
-  }
-  .grid4 {
-    grid-template-columns: 1fr 1fr;
   }
 }
