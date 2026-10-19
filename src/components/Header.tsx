@@ -6,9 +6,12 @@ import UserMenu from "./UserMenu";
 export const Mark = () => (
   <Link className="mark" href="/">
     <svg viewBox="0 0 64 64" aria-hidden="true">
-      <rect x="10" y="36" width="11" height="18" fill="#1cc0c8" />
-      <rect x="26.5" y="22" width="11" height="32" fill="#26F1F6" />
-      <rect x="43" y="10" width="11" height="44" fill="#FFD621" />
+      <rect width="64" height="64" rx="15" fill="#000" />
+      <rect x=".5" y=".5" width="63" height="63" rx="14.5" fill="none" stroke="#fff" strokeOpacity=".14" />
+      <g fill="none" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M15 21l11 11-11 11" stroke="#f5f5f7" strokeWidth="6" />
+        <path d="M33 44h17" stroke="#26f1f6" strokeWidth="7" />
+      </g>
     </svg>
     이터널 리턴 도구
   </Link>
