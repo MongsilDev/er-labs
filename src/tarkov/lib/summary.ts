@@ -35,6 +35,8 @@ export type EftSummary = Base & {
   streak: number | null;
   lastActive: number | null;
   // 예전 스냅숏에는 없는 필드
+  left?: number | null;
+  experience?: number | null;
   scav?: { raids: number; survived: number; kia: number; kills: number; pmcKills: number } | null;
   perks?: string[];
   skills?: { id: string; level: number }[];
@@ -56,7 +58,10 @@ export type ArenaModeStats = {
   assists: number;
   headshots: number;
   maxGameKills: number;
-  killStreak: number;
+  // 예전 스냅숏의 killStreak는 연속 킬이 아닌 LongestKillStreak 값이라 이름을 바꿈
+  bestKillStreak?: number;
+  bestWinStreak?: number;
+  bestLoseStreak?: number;
   teamKills: number;
   roundMvp: number;
   matchMvp: number;
@@ -64,12 +69,16 @@ export type ArenaModeStats = {
   damage: number;
 };
 
+// Overall 카운터에만 있는 현재 연속 기록과 최고 ARP
+export type ArenaOverall = { killStreak: number; loseStreak: number; bestArp: number };
+
 export type ArenaSummary = Base & {
   kind: "arena";
   seconds: number | null;
   registered: number | null;
   total: ArenaModeStats | null;
   modes: { key: string; stats: ArenaModeStats }[];
+  overall?: ArenaOverall | null;
   passes?: { id: string; level: number }[];
 };
 
@@ -140,7 +149,9 @@ export function parseEft(raw: unknown): EftSummary {
     raids: c("Sessions/Pmc"),
     survived: c("ExitStatus/Survived/Pmc"),
     kia: c("ExitStatus/Killed/Pmc"),
-    mia: c("ExitStatus/Left/Pmc"),
+    mia: c("ExitStatus/MissingInAction/Pmc"),
+    left: c("ExitStatus/Left/Pmc"),
+    experience: num(info.experience),
     runner: c("ExitStatus/Runner/Pmc"),
     transit: c("ExitStatus/Transit/Pmc"),
     kills: c("Kills"),
@@ -197,7 +208,9 @@ function arenaStats(raw: unknown): ArenaModeStats {
     assists: n("Assists"),
     headshots: n("Headshots"),
     maxGameKills: n("MaxGameKillsCount"),
-    killStreak: n("LongestKillStreak"),
+    bestKillStreak: n("MaxKillsWithoutDeaths"),
+    bestWinStreak: n("LongestWinStreak"),
+    bestLoseStreak: n("LongestLoseStreak"),
     teamKills: n("TeammateKills"),
     roundMvp: n("RoundMvpCount"),
     matchMvp: n("MatchMvpCount"),
@@ -206,8 +219,8 @@ function arenaStats(raw: unknown): ArenaModeStats {
   };
 }
 
-const SUM: (keyof ArenaModeStats)[] = ["games", "wins", "losses", "kills", "deaths", "assists", "headshots", "teamKills", "roundMvp", "matchMvp", "aces", "damage"];
-const MAX: (keyof ArenaModeStats)[] = ["maxGameKills", "killStreak"];
+const SUM = ["games", "wins", "losses", "kills", "deaths", "assists", "headshots", "teamKills", "roundMvp", "matchMvp", "aces", "damage"] as const;
+const MAX = ["maxGameKills", "bestKillStreak", "bestWinStreak", "bestLoseStreak"] as const;
 
 export function parseArena(raw: unknown): ArenaSummary {
   const p = obj(raw);
@@ -221,11 +234,18 @@ export function parseArena(raw: unknown): ArenaSummary {
     .sort((a, b) => b.stats.games - a.stats.games);
   let total: ArenaModeStats | null = null;
   if (modes.length) {
-    total = arenaStats({});
+    const t = arenaStats({});
     for (const m of modes) {
-      for (const k of SUM) total[k] += m.stats[k];
-      for (const k of MAX) total[k] = Math.max(total[k], m.stats[k]);
+      for (const k of SUM) t[k] += m.stats[k];
+      for (const k of MAX) t[k] = Math.max(t[k] ?? 0, m.stats[k] ?? 0);
     }
+    total = t;
+  }
+  const ov = obj(obj(Object.entries(obj(stat.arenaOverAllCounters)).find(([k]) => k.endsWith("Overall"))?.[1]).Counters);
+  if (total) {
+    // 모드를 넘나든 연속 기록은 Overall 값이 더 큼
+    for (const [k, src] of [["bestKillStreak", "MaxKillsWithoutDeaths"], ["bestWinStreak", "LongestWinStreak"], ["bestLoseStreak", "LongestLoseStreak"]] as const)
+      total[k] = Math.max(total[k] ?? 0, num(ov[src]) ?? 0);
   }
   return {
     ...base(p),
@@ -234,6 +254,7 @@ export function parseArena(raw: unknown): ArenaSummary {
     registered: num(info.registrationDate),
     total,
     modes,
+    overall: Object.keys(ov).length ? { killStreak: num(ov.KillsWithoutDeaths) ?? 0, loseStreak: num(ov.LoseStreak) ?? 0, bestArp: num(ov.BestArp) ?? 0 } : null,
     passes: Object.entries(obj(info.battlePassesLevels))
       .map(([id, v]) => ({ id, level: num(v) ?? 0 }))
       .filter((x) => x.level > 0)

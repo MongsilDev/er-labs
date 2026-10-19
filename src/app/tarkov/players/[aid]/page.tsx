@@ -60,6 +60,29 @@ function Tile({ label, value, strong }: { label: string; value: string; strong?:
   );
 }
 
+type Fact = [string, string];
+
+function Facts({ groups }: { groups: { title: string; rows: Fact[] }[] }) {
+  return (
+    <section className="block">
+      <h2 className="h2">상세 기록</h2>
+      <div className="facts">
+        {groups.map((g) => (
+          <dl key={g.title} className="panel fact-group">
+            <h3>{g.title}</h3>
+            {g.rows.map(([label, value]) => (
+              <div key={label}>
+                <dt>{label}</dt>
+                <dd className="num">{value}</dd>
+              </div>
+            ))}
+          </dl>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function EftStats({ s }: { s: EftSummary }) {
   return (
     <>
@@ -69,16 +92,31 @@ function EftStats({ s }: { s: EftSummary }) {
         <Tile strong label="레이드당 PMC 킬" value={dec(div(s.pmcKills, s.raids))} />
         <Tile strong label="최장 연속 생존" value={int(s.streak)} />
       </div>
-      <div className="tiles">
-        <Tile label="레이드" value={int(s.raids)} />
-        <Tile label="생존" value={int(s.survived)} />
-        <Tile label="사망" value={int(s.kia)} />
-        <Tile label="실종" value={int(s.mia)} />
-        <Tile label="도주" value={int(s.runner)} />
-        <Tile label="지역 이동" value={int(s.transit)} />
-        <Tile label="PMC 킬" value={int(s.pmcKills)} />
-        <Tile label="전체 킬" value={int(s.kills)} />
-      </div>
+      <Facts
+        groups={[
+          {
+            title: "레이드 결과",
+            rows: [
+              ["레이드", int(s.raids)],
+              ["생존", int(s.survived)],
+              ["사망", int(s.kia)],
+              ["실종", int(s.mia)],
+              ["이탈", int(s.left)],
+              ["도주", int(s.runner)],
+              ["지역 이동", int(s.transit)],
+            ],
+          },
+          {
+            title: "전투와 계정",
+            rows: [
+              ["PMC 킬", int(s.pmcKills)],
+              ["전체 킬", int(s.kills)],
+              ["레이드당 전체 킬", dec(div(s.kills, s.raids))],
+              ["경험치", int(s.experience)],
+            ],
+          },
+        ]}
+      />
     </>
   );
 }
@@ -86,24 +124,63 @@ function EftStats({ s }: { s: EftSummary }) {
 function ArenaStats({ s }: { s: ArenaSummary }) {
   const t = s.total;
   if (!t) return <p className="sub">아레나 경기 기록이 없습니다.</p>;
+  const per = (v: number) => dec(t.games ? v / t.games : null, 1);
   return (
     <>
       <div className="tiles key">
         <Tile strong label="K/D" value={dec(div(t.kills, t.deaths))} />
+        <Tile strong label="승률" value={pct(div(t.wins, t.games))} />
         <Tile strong label="헤드샷 비율" value={pct(div(t.headshots, t.kills))} />
-        <Tile strong label="한 경기 최다 킬" value={int(t.maxGameKills)} />
-        <Tile strong label="최고 연속 킬" value={int(t.killStreak)} />
+        <Tile strong label="경기당 피해량" value={int(t.games ? t.damage / t.games : null)} />
       </div>
-      <div className="tiles">
-        <Tile label="경기" value={int(t.games)} />
-        <Tile label="승률" value={pct(div(t.wins, t.games), 0)} />
-        <Tile label="킬" value={int(t.kills)} />
-        <Tile label="사망" value={int(t.deaths)} />
-        <Tile label="시간당 킬" value={dec(s.seconds ? t.kills / (s.seconds / 3600) : null, 1)} />
-        <Tile label="헤드샷" value={int(t.headshots)} />
-        <Tile label="팀킬" value={int(t.teamKills)} />
-        <Tile label="매치 MVP" value={int(t.matchMvp)} />
-      </div>
+      <Facts
+        groups={[
+          {
+            title: "전투",
+            rows: [
+              ["킬", int(t.kills)],
+              ["사망", int(t.deaths)],
+              ["어시스트", int(t.assists)],
+              ["헤드샷", int(t.headshots)],
+              ["피해량", int(t.damage)],
+              ["팀킬", int(t.teamKills)],
+            ],
+          },
+          {
+            title: "결과",
+            rows: [
+              ["경기", int(t.games)],
+              ["승리", int(t.wins)],
+              ["패배", int(t.losses)],
+              ["라운드 MVP", int(t.roundMvp)],
+              ["매치 MVP", int(t.matchMvp)],
+              ["에이스", int(t.aces)],
+            ],
+          },
+          {
+            title: "연속 기록",
+            rows: [
+              ["현재 연속 킬", int(s.overall?.killStreak)],
+              ["최고 연속 킬", int(t.bestKillStreak)],
+              ["한 경기 최다 킬", int(t.maxGameKills)],
+              ["최고 연승", int(t.bestWinStreak)],
+              ["현재 연패", int(s.overall?.loseStreak)],
+              ["최장 연패", int(t.bestLoseStreak)],
+            ],
+          },
+          {
+            title: "평균과 등급",
+            rows: [
+              ["경기당 킬", per(t.kills)],
+              ["경기당 어시스트", per(t.assists)],
+              ["경기당 사망", per(t.deaths)],
+              ["시간당 킬", dec(s.seconds ? t.kills / (s.seconds / 3600) : null, 1)],
+              ["플레이 시간", hours(s.seconds)],
+              ["최고 ARP", int(s.overall?.bestArp || null)],
+            ],
+          },
+        ]}
+      />
       {s.modes.length > 1 && (
         <section className="block">
           <h2 className="h2">모드별</h2>
@@ -115,9 +192,12 @@ function ArenaStats({ s }: { s: ArenaSummary }) {
                   <th>경기</th>
                   <th>승률</th>
                   <th>K/D</th>
+                  <th>경기당 킬</th>
                   <th>헤드샷</th>
+                  <th>경기당 피해량</th>
                   <th>최다 킬</th>
                   <th>연속 킬</th>
+                  <th className="opt">라운드 MVP</th>
                   <th className="opt">팀킬</th>
                 </tr>
               </thead>
@@ -128,9 +208,12 @@ function ArenaStats({ s }: { s: ArenaSummary }) {
                     <td className="num">{int(m.stats.games)}</td>
                     <td className="num">{pct(div(m.stats.wins, m.stats.games), 0)}</td>
                     <td className="num">{dec(div(m.stats.kills, m.stats.deaths))}</td>
+                    <td className="num">{dec(div(m.stats.kills, m.stats.games), 1)}</td>
                     <td className="num">{pct(div(m.stats.headshots, m.stats.kills), 0)}</td>
+                    <td className="num">{int(m.stats.games ? m.stats.damage / m.stats.games : null)}</td>
                     <td className="num">{int(m.stats.maxGameKills)}</td>
-                    <td className="num">{int(m.stats.killStreak)}</td>
+                    <td className="num">{int(m.stats.bestKillStreak)}</td>
+                    <td className="num opt">{int(m.stats.roundMvp)}</td>
                     <td className="num opt">{int(m.stats.teamKills)}</td>
                   </tr>
                 ))}

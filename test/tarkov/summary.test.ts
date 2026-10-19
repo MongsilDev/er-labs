@@ -10,8 +10,9 @@ describe("EFT 프로필", () => {
   it("카운터와 계정 정보를 읽음", () => {
     const s = parseEft(fx("profile", 1001));
     expect(s).toMatchObject({ kind: "eft", aid: 1001, name: "Fixture-Alpha", side: "Bear", member: 1026, prestige: 3 });
-    expect(s).toMatchObject({ raids: 1055, survived: 457, kia: 574, mia: 7, runner: 7, transit: 10, kills: 2623, pmcKills: 266, deaths: 581, streak: 9 });
+    expect(s).toMatchObject({ raids: 1055, survived: 457, kia: 574, mia: 0, left: 7, runner: 7, transit: 10, kills: 2623, pmcKills: 266, deaths: 581, streak: 9 });
     expect(s.seconds).toBe(8843228);
+    expect(s.experience).toBe(816954);
     expect(s.achievements).toHaveLength(22);
   });
   it("시즌 프로필의 스캐브 전적과 고른 특성을 읽음", () => {
@@ -73,10 +74,13 @@ describe("아레나 프로필", () => {
     expect(s.seconds).toBe(377453);
     expect(s.registered).toBe(1786871943);
     const cp = s.modes.find((m) => m.key === "UnrankedCheckPoint")!.stats;
-    expect(cp).toMatchObject({ games: 21, kills: 546, deaths: 581, headshots: 301, maxGameKills: 45, killStreak: 23, teamKills: 14 });
+    expect(cp).toMatchObject({ games: 21, kills: 546, deaths: 581, headshots: 301, maxGameKills: 45, bestKillStreak: 7, bestWinStreak: 5, bestLoseStreak: 2, teamKills: 14 });
+    expect(cp).not.toHaveProperty("killStreak");
     const sum = s.modes.reduce((a, m) => a + m.stats.kills, 0);
     expect(s.total!.kills).toBe(sum);
     expect(s.total!.maxGameKills).toBe(Math.max(...s.modes.map((m) => m.stats.maxGameKills)));
+    expect(s.total).toMatchObject({ bestKillStreak: 7, bestWinStreak: 5, bestLoseStreak: 27 });
+    expect(s.overall).toEqual({ killStreak: 0, loseStreak: 20, bestArp: 1475 });
   });
   it("배틀패스 단계를 최근 시즌부터 읽음", () => {
     expect(parseArena(fx("arena", 1003)).passes).toEqual([
