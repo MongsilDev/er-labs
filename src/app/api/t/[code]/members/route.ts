@@ -14,7 +14,7 @@ export async function GET(_req: NextRequest, ctx: Ctx) {
   });
 }
 
-type Body = { action: "invite" | "cancel" | "remove" | "transfer" | "leave"; token?: string; user?: string };
+type Body = { action: "invite" | "cancel" | "remove" | "transfer" | "leave"; token?: string; user?: string; uses?: number };
 
 export async function POST(req: NextRequest, ctx: Ctx) {
   return handle(async () => {
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest, ctx: Ctx) {
     const body = await readJson<Body>(req);
     switch (body.action) {
       case "invite":
-        return json({ token: createInvite(code, g.user) });
+        return json({ token: createInvite(code, g.user, body.uses ?? 1) });
       case "cancel":
         cancelInvite(code, g.user, String(body.token ?? ""));
         break;

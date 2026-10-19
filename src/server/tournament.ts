@@ -548,19 +548,32 @@ export function members(code: string, user: User): { members: MemberRow[]; invit
     .all(t.id) as { id: string; name: string; avatar: string | null; role: "owner" | "operator"; joined_at: number }[];
   const invites =
     role === "owner"
-      ? (db().prepare("SELECT token, created_at FROM invites WHERE tournament_id = ? ORDER BY created_at").all(t.id) as { token: string; created_at: number }[]).map(
-          (i) => ({ token: i.token, createdAt: i.created_at }),
-        )
+      ? (
+          db().prepare("SELECT token, created_at, uses_left FROM invites WHERE tournament_id = ? ORDER BY created_at").all(t.id) as {
+            token: string;
+            created_at: number;
+            uses_left: number;
+          }[]
+        ).map((i) => ({ token: i.token, createdAt: i.created_at, usesLeft: i.uses_left }))
       : [];
   return { members: list.map((m) => ({ id: m.id, name: m.name, avatar: m.avatar, role: m.role, joinedAt: m.joined_at })), invites };
 }
 
-export function createInvite(code: string, user: User): string {
+function inviteSlots(tournamentId: number): number {
+  const ops = db().prepare("SELECT COUNT(*) AS n FROM members WHERE tournament_id = ? AND role = 'operator'").get(tournamentId) as { n: number };
+  const pending = db().prepare("SELECT COALESCE(SUM(uses_left), 0) AS n FROM invites WHERE tournament_id = ?").get(tournamentId) as { n: number };
+  return LIMITS.operators - ops.n - pending.n;
+}
+
+export function createInvite(code: string, user: User, uses = 1): string {
   const t = requireOwner(code, user);
-  const pending = db().prepare("SELECT COUNT(*) AS n FROM invites WHERE tournament_id = ?").get(t.id) as { n: number };
-  if (pending.n >= LIMITS.operators) throw new OpError("사용 전 초대 링크가 너무 많습니다. 쓰지 않을 링크를 취소해주세요.");
+  const n = Math.floor(Number(uses));
+  if (!Number.isFinite(n) || n < 1) throw new OpError("인원은 1명 이상이어야 합니다.");
+  const slots = inviteSlots(t.id);
+  if (slots <= 0) throw new OpError(`운영자는 ${LIMITS.operators}명까지입니다. 쓰지 않을 초대 링크를 취소해주세요.`);
+  if (n > slots) throw new OpError(`지금은 ${slots}명까지 더 초대할 수 있습니다.`);
   const tk = token(12);
-  db().prepare("INSERT INTO invites(token, tournament_id, created_by, created_at) VALUES (?, ?, ?, ?)").run(tk, t.id, user.id, now());
+  db().prepare("INSERT INTO invites(token, tournament_id, created_by, created_at, uses_left) VALUES (?, ?, ?, ?, ?)").run(tk, t.id, user.id, now(), n);
   return tk;
 }
 
@@ -569,27 +582,28 @@ export function cancelInvite(code: string, user: User, tk: string) {
   db().prepare("DELETE FROM invites WHERE token = ? AND tournament_id = ?").run(tk, t.id);
 }
 
-export type InviteInfo = { code: string; name: string; mode: Mode; plannedRounds: number; groupCount: number; inviter: string } | null;
+export type InviteInfo = { code: string; name: string; mode: Mode; plannedRounds: number; groupCount: number; inviter: string; usesLeft: number } | null;
 
 export function inviteInfo(tk: string): InviteInfo {
   const row = db()
     .prepare(
-      "SELECT t.code, t.name, t.mode, t.planned_rounds, t.group_count, u.name AS inviter FROM invites i JOIN tournaments t ON t.id = i.tournament_id LEFT JOIN users u ON u.id = i.created_by WHERE i.token = ?",
+      "SELECT t.code, t.name, t.mode, t.planned_rounds, t.group_count, u.name AS inviter, i.uses_left FROM invites i JOIN tournaments t ON t.id = i.tournament_id LEFT JOIN users u ON u.id = i.created_by WHERE i.token = ?",
     )
-    .get(tk) as { code: string; name: string; mode: Mode; planned_rounds: number; group_count: number; inviter: string | null } | undefined;
+    .get(tk) as { code: string; name: string; mode: Mode; planned_rounds: number; group_count: number; inviter: string | null; uses_left: number } | undefined;
   if (!row) return null;
-  return { code: row.code, name: row.name, mode: row.mode, plannedRounds: row.planned_rounds, groupCount: row.group_count, inviter: row.inviter ?? "개최자" };
+  return { code: row.code, name: row.name, mode: row.mode, plannedRounds: row.planned_rounds, groupCount: row.group_count, inviter: row.inviter ?? "개최자", usesLeft: row.uses_left };
 }
 
 export function acceptInvite(tk: string, user: User): { code: string; already: boolean } {
   return tx(() => {
-    const inv = db().prepare("SELECT tournament_id FROM invites WHERE token = ?").get(tk) as { tournament_id: number } | undefined;
-    if (!inv) throw new OpError("이미 사용했거나 취소된 초대 링크입니다. 개최자에게 새 링크를 요청해주세요.");
+    const inv = db().prepare("SELECT tournament_id, uses_left FROM invites WHERE token = ?").get(tk) as { tournament_id: number; uses_left: number } | undefined;
+    if (!inv) throw new OpError("인원이 다 찼거나 취소된 초대 링크입니다. 개최자에게 새 링크를 요청해주세요.");
     const t = db().prepare("SELECT * FROM tournaments WHERE id = ?").get(inv.tournament_id) as TRow;
     if (roleOf(t, user)) return { code: t.code, already: true };
     const n = db().prepare("SELECT COUNT(*) AS n FROM members WHERE tournament_id = ? AND role = 'operator'").get(t.id) as { n: number };
     if (n.n >= LIMITS.operators) throw new OpError(`운영자는 ${LIMITS.operators}명까지입니다. 개최자에게 문의해주세요.`);
-    db().prepare("DELETE FROM invites WHERE token = ?").run(tk);
+    if (inv.uses_left > 1) db().prepare("UPDATE invites SET uses_left = uses_left - 1 WHERE token = ?").run(tk);
+    else db().prepare("DELETE FROM invites WHERE token = ?").run(tk);
     db().prepare("INSERT INTO members(tournament_id, user_id, role, joined_at) VALUES (?, ?, 'operator', ?)").run(t.id, user.id, now());
     bump(t, user, "운영자로 참여");
     return { code: t.code, already: false };

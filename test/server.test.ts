@@ -54,7 +54,7 @@ describe("대회 서버", () => {
     expect(() => t.applyOp(code, stranger, { op: "set_weather", group: 0, round: 1, sub: "무풍" })).toThrow("이 대회의 운영자만 바꿀 수 있습니다.");
     const token = t.createInvite(code, owner);
     expect(t.acceptInvite(token, op)).toEqual({ code, already: false });
-    expect(() => t.acceptInvite(token, stranger)).toThrow("이미 사용했거나 취소된 초대 링크입니다.");
+    expect(() => t.acceptInvite(token, stranger)).toThrow("인원이 다 찼거나 취소된 초대 링크입니다.");
     expect(() => t.applyOp(code, op, { op: "update_settings", name: "바꿈" })).toThrow("대회 설정은 개최자만 바꿀 수 있습니다.");
     expect(() => t.createInvite(code, op)).toThrow("개최자만 할 수 있습니다.");
     t.transferOwner(code, owner, op.id);
@@ -62,6 +62,20 @@ describe("대회 서버", () => {
     expect(t.loadView(code, owner)!.role).toBe("operator");
     t.removeMember(code, op, owner.id);
     expect(t.loadView(code, owner)!.role).toBeNull();
+  });
+
+  it("인원을 정한 초대 링크는 그 인원만큼 쓰고 운영자 자리를 넘지 않는다", () => {
+    const code = t.createTournament(owner, { name: "여럿", mode: "points", preset: "masters", plannedRounds: 4, groupCount: 1 });
+    const token = t.createInvite(code, owner, 2);
+    expect(t.members(code, owner).invites[0].usesLeft).toBe(2);
+    expect(t.acceptInvite(token, op)).toEqual({ code, already: false });
+    expect(t.acceptInvite(token, op)).toEqual({ code, already: true });
+    expect(t.inviteInfo(token)?.usesLeft).toBe(1);
+    expect(t.acceptInvite(token, stranger)).toEqual({ code, already: false });
+    expect(t.inviteInfo(token)).toBeNull();
+    expect(() => t.createInvite(code, owner, 9)).toThrow("지금은 8명까지 더 초대할 수 있습니다.");
+    t.createInvite(code, owner, 8);
+    expect(() => t.createInvite(code, owner, 1)).toThrow("운영자는 10명까지입니다.");
   });
 
   it("조와 라운드 수는 기록이 있는 범위 아래로 줄일 수 없다", () => {

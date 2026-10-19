@@ -17,6 +17,7 @@ export default function Manage({ view, me, initialMembers, initialInvites }: { v
   const [list, setList] = useState(initialMembers);
   const [invites, setInvites] = useState(initialInvites);
   const [msg, setMsg] = useState<{ text: string; bad?: boolean } | null>(null);
+  const [uses, setUses] = useState(1);
   const [confirm, setConfirm] = useState<null | { kind: "transfer" | "remove"; user: MemberRow } | { kind: "delete" }>(null);
   const owner = view.role === "owner";
   const origin = useSyncExternalStore(
@@ -25,13 +26,15 @@ export default function Manage({ view, me, initialMembers, initialInvites }: { v
     () => "",
   );
   const inviteUrl = (t: string) => `${origin}/i/${t}`;
+  const slots = LIMITS.operators - list.filter((m) => m.role === "operator").length - invites.reduce((n, i) => n + i.usesLeft, 0);
+  const pick = Math.min(uses, Math.max(1, slots));
 
   const reload = async () => {
     const d = await api.members(view.code);
     setList(d.members.map((m) => ({ ...m, avatar: m.avatar ? `https://cdn.discordapp.com/avatars/${m.id}/${m.avatar}.webp?size=64` : null })));
     setInvites(d.invites);
   };
-  const act = async (body: { action: string; token?: string; user?: string }, done?: string) => {
+  const act = async (body: { action: string; token?: string; user?: string; uses?: number }, done?: string) => {
     try {
       const r = await api.member(view.code, body);
       if (done) setMsg({ text: done });
@@ -99,7 +102,7 @@ export default function Manage({ view, me, initialMembers, initialInvites }: { v
       {owner && (
         <section className="panel box" aria-labelledby="i-h">
           <h2 className="h2" id="i-h">
-            초대 링크 <span className="muted">링크 하나에 한 명, 대회가 지워지면 함께 만료</span>
+            초대 링크 <span className="muted">정한 인원만큼 쓸 수 있고, 대회가 지워지면 함께 만료</span>
           </h2>
           {invites.length > 0 && (
             <ul className="ul">
@@ -108,6 +111,7 @@ export default function Manage({ view, me, initialMembers, initialInvites }: { v
                   <code className="ellipsis" translate="no">
                     {inviteUrl(i.token).replace(/^https?:\/\//, "")}
                   </code>
+                  <span className="left nowrap">남은 {i.usesLeft}명</span>
                   <span className="acts">
                     <button
                       type="button"
@@ -131,24 +135,42 @@ export default function Manage({ view, me, initialMembers, initialInvites }: { v
               ))}
             </ul>
           )}
-          <button
-            type="button"
-            className="btn primary"
-            style={{ marginTop: 12 }}
-            onClick={async () => {
-              const r = await act({ action: "invite" });
-              if (r?.token) {
-                try {
-                  await navigator.clipboard.writeText(inviteUrl(r.token));
-                  setMsg({ text: "초대 링크를 만들고 복사했습니다. 운영을 맡길 사람에게 보내주세요." });
-                } catch {
-                  setMsg({ text: "초대 링크를 만들었습니다. 아래 목록에서 복사해주세요." });
-                }
-              }
-            }}
-          >
-            초대 링크 만들기
-          </button>
+          {slots > 0 ? (
+            <div className="inv-new">
+              <label className="lbl" htmlFor="inv-uses">
+                인원
+              </label>
+              <select id="inv-uses" className="field" value={pick} onChange={(e) => setUses(Number(e.target.value))}>
+                {Array.from({ length: slots }, (_, k) => (
+                  <option key={k + 1} value={k + 1}>
+                    {k + 1}명
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                className="btn primary"
+                onClick={async () => {
+                  const r = await act({ action: "invite", uses: pick });
+                  if (r?.token) {
+                    setUses(1);
+                    try {
+                      await navigator.clipboard.writeText(inviteUrl(r.token));
+                      setMsg({ text: `초대 링크를 만들고 복사했습니다. ${pick}명까지 이 링크로 운영자가 될 수 있습니다.` });
+                    } catch {
+                      setMsg({ text: "초대 링크를 만들었습니다. 위 목록에서 복사해주세요." });
+                    }
+                  }
+                }}
+              >
+                초대 링크 만들기
+              </button>
+            </div>
+          ) : (
+            <p className="muted small" style={{ marginTop: 12 }}>
+              운영자 자리 {LIMITS.operators}개가 모두 찼습니다. 더 초대하려면 쓰지 않을 링크를 취소하거나 운영자를 빼주세요.
+            </p>
+          )}
         </section>
       )}
 

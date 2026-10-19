@@ -69,7 +69,7 @@ export type Op =
 export type OpResult = { ok: boolean; version: number; notices: string[]; errors: string[]; undo?: { op: Op; label: string } };
 
 export type MemberRow = { id: string; name: string; avatar: string | null; role: "owner" | "operator"; joinedAt: number };
-export type InviteRow = { token: string; createdAt: number };
+export type InviteRow = { token: string; createdAt: number; usesLeft: number };
 export type MyTournament = {
   code: string;
   name: string;

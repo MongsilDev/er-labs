@@ -19,7 +19,7 @@ export const api = {
   create: (input: CreateInput) => call<{ code: string }>("/api/t", { method: "POST", body: JSON.stringify(input) }),
   remove: (code: string, confirm: string) => call<{ ok: true }>(`/api/t/${code}`, { method: "DELETE", body: JSON.stringify({ confirm }) }),
   members: (code: string) => call<{ members: MemberRow[]; invites: InviteRow[] }>(`/api/t/${code}/members`),
-  member: (code: string, body: { action: string; token?: string; user?: string }) =>
+  member: (code: string, body: { action: string; token?: string; user?: string; uses?: number }) =>
     call<{ ok?: true; token?: string }>(`/api/t/${code}/members`, { method: "POST", body: JSON.stringify(body) }),
   accept: (token: string) => call<{ code: string; already: boolean }>(`/api/i/${token}`, { method: "POST" }),
 };

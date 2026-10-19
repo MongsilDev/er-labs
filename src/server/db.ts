@@ -42,7 +42,8 @@ CREATE TABLE IF NOT EXISTS invites (
   token TEXT PRIMARY KEY,
   tournament_id INTEGER NOT NULL REFERENCES tournaments(id) ON DELETE CASCADE,
   created_by TEXT NOT NULL,
-  created_at INTEGER NOT NULL
+  created_at INTEGER NOT NULL,
+  uses_left INTEGER NOT NULL DEFAULT 1
 );
 CREATE TABLE IF NOT EXISTS rounds (
   id INTEGER PRIMARY KEY,
@@ -114,6 +115,8 @@ export function db(): DatabaseSync {
     mkdirSync(dir, { recursive: true });
     const conn = new DatabaseSync(join(dir, "er-labs.db"));
     conn.exec(SCHEMA);
+    const cols = conn.prepare("PRAGMA table_info(invites)").all() as { name: string }[];
+    if (!cols.some((c) => c.name === "uses_left")) conn.exec("ALTER TABLE invites ADD COLUMN uses_left INTEGER NOT NULL DEFAULT 1");
     g.__erDb = conn;
   }
   return g.__erDb;
