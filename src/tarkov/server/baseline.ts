@@ -1,6 +1,6 @@
 import "server-only";
 import { captureException } from "@sentry/node";
-import { combine, judge, MIN_N, WIDTHS, type Sample, type Verdict } from "@/tarkov/lib/criteria";
+import { combine, judge, MIN_N, TARGET_PEERS, WIDTHS, type Sample, type Verdict } from "@/tarkov/lib/criteria";
 import { MODES, type Mode } from "@/tarkov/lib/modes";
 import { modeSample, toSample } from "@/tarkov/lib/sample";
 import { parse, type Summary } from "@/tarkov/lib/summary";
@@ -61,7 +61,11 @@ export async function crawl(): Promise<number> {
             const s = sum ? toSample(sum) : null;
             // 받지 못한 계정도 같은 갱신 시각으로 표시해 다시 고르지 않음
             save(mode.key, c.aid, c.u, s ?? { hours: 0, n: 0, kills: 0, deaths: 0, survived: 0, streak: 0, headshots: 0, maxGameKills: 0 });
-            if (sum?.kind === "arena") for (const m of sum.modes) save(ARENA_PREFIX + m.key, c.aid, c.u, modeSample(m.stats));
+            if (sum?.kind === "arena") {
+              for (const m of sum.modes) save(ARENA_PREFIX + m.key, c.aid, c.u, modeSample(m.stats));
+              // 모드 기록이 없는 계정도 표시 행을 남겨 모드별 재수집 대상에서 뺌
+              if (!sum.modes.length) save(ARENA_PREFIX + "-", c.aid, c.u, { hours: 0, n: 0, kills: 0, deaths: 0, survived: 0, streak: 0, headshots: 0, maxGameKills: 0 });
+            }
             done++;
           } catch (e) {
             fails++;
@@ -90,7 +94,7 @@ export function peers(key: string, aid: number, s: Sample): { rows: Sample[]; wi
   let last: Sample[] = [];
   for (const w of WIDTHS) {
     last = q.all(key, aid, s.hours * (1 - w), s.hours * (1 + w), Math.floor(s.n * (1 - w)), Math.ceil(s.n * (1 + w)), PEER_LIMIT) as Sample[];
-    if (last.length >= 30) return { rows: last, width: w };
+    if (last.length >= TARGET_PEERS) return { rows: last, width: w };
   }
   return { rows: last, width: WIDTHS[WIDTHS.length - 1] };
 }

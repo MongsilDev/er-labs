@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Footer from "@/components/SiteFooter";
 import Header from "@/tarkov/components/Header";
-import { ALERT, MIN_N, MIN_PEERS, PRIOR, WARN, WIDTHS } from "@/tarkov/lib/criteria";
+import { ALERT, MIN_N, MIN_PEERS, PAIR, PRIOR, TARGET_PEERS, WARN, WIDTHS } from "@/tarkov/lib/criteria";
 import { int } from "@/tarkov/lib/format";
 import { baselineCounts } from "@/tarkov/server/baseline";
 
@@ -35,16 +35,17 @@ export default function Criteria() {
             <tbody>
               <tr>
                 <td className="nowrap">특이점 없음</td>
-                <td>모든 지표가 비교군 상위 {pct(WARN)} 안쪽입니다.</td>
+                <td>확인 필요와 이상 수치 조건에 해당하지 않습니다.<br />지표 하나가 상위 {pct(WARN)}를 넘는 것만으로는 표시하지 않습니다.</td>
               </tr>
               <tr>
                 <td className="nowrap">확인 필요</td>
-                <td>한 묶음의 지표가 비교군 상위 {pct(WARN)}를 넘습니다.</td>
+                <td>지표 하나가 비교군 상위 {pct(ALERT)}를 넘거나, 서로 다른 묶음의 지표 두 개 이상이 상위 {pct(WARN)}를 넘습니다.</td>
               </tr>
               <tr>
                 <td className="nowrap">이상 수치</td>
                 <td>
-                  지표 하나 이상이 비교군 상위 {pct(ALERT)}를 넘거나, 서로 다른 묶음의 지표 두 개 이상이 상위 {pct(WARN)}를 넘습니다.
+                  상위 {pct(ALERT)}를 넘은 지표가 있고 서로 다른 묶음의 지표 두 개 이상이 상위 {pct(PAIR)}를 넘습니다.<br />또는 지표 하나가 상위 {pct(ALERT)} 값보다 상위{" "}
+                  {pct(WARN)}와 {pct(ALERT)} 값의 차이만큼 더 높습니다.
                 </td>
               </tr>
               <tr>
@@ -61,15 +62,16 @@ export default function Criteria() {
           </table>
         </div>
         <p>&quot;정상&quot;이라는 배지는 두지 않습니다.<br />공개 전적만으로는 정상임을 보증할 수 없기 때문입니다.</p>
+        <p>2026년 10월 19일 기준으로 시즌, PvP, PvE 비교군 계정 전체에 이 기준을 적용하면 이상 수치는 2~3%, 확인 필요는 6% 안팎입니다.</p>
 
         <h2>비교군</h2>
         <p>
           고정된 기준값을 쓰지 않습니다.<br />같은 K/D라도 플레이 시간과 레이드 수에 따라 뜻이 다르기 때문입니다.<br />판정할 계정과 플레이 시간, 레이드 수가 모두 ±
-          {Math.round(WIDTHS[0] * 100)}% 안인 계정을 먼저 찾고, {MIN_PEERS}명이 안 되면 범위를{" "}
+          {Math.round(WIDTHS[0] * 100)}% 안인 계정을 먼저 찾고, {TARGET_PEERS}명이 안 되면 범위를{" "}
           {WIDTHS.slice(1)
             .map((w) => `±${Math.round(w * 100)}%`)
             .join(", ")}
-          로 차례로 넓힙니다.<br />아레나는 모드마다 킬이 나오는 정도가 달라 모드별로 판정합니다.<br />30경기 이상 한 모드마다, 같은 모드를 경기 수가 비슷하게 한 계정과 비교하고, 계정 배지는 모드별 판정 중 가장 높은 단계를 씁니다.
+          로 차례로 넓힙니다.<br />아레나는 모드마다 킬이 나오는 정도가 달라 모드별로 판정합니다.<br />{MIN_N}경기 이상 한 모드마다, 같은 모드를 경기 수가 비슷하게 한 계정과 비교하고, 계정 배지는 모드별 판정 중 가장 높은 단계를 씁니다.
         </p>
         <p>
           비교군은 tarkov.dev에서 최근 30일 안에 갱신된 계정의 공개 전적을 천천히 받아 만듭니다.

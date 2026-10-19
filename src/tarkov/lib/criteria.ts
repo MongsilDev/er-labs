@@ -15,10 +15,13 @@ export type Kind = "eft" | "arena";
 
 export const MIN_N = 30;
 export const MIN_PEERS = 30;
+// 비교군이 30명이면 상위 1% 값이 사실상 최댓값이라 100명이 될 때까지 범위를 넓힘
+export const TARGET_PEERS = 100;
 export const PRIOR = 20;
-export const WIDTHS = [0.1, 0.15, 0.2, 0.3];
+export const WIDTHS = [0.1, 0.15, 0.2, 0.3, 0.5];
 export const WARN = 0.9;
 export const ALERT = 0.99;
+export const PAIR = 0.95;
 
 type Typical = { kpn: number; dpn: number; spn: number; hpn: number; hsr: number };
 
@@ -71,7 +74,7 @@ export function typical(peers: Sample[]): Typical {
   };
 }
 
-export type MetricResult = { key: string; label: string; family: string; digits: number; value: number; p90: number; p99: number; mean: number; level: 0 | 1 | 2 };
+export type MetricResult = { key: string; label: string; family: string; digits: number; value: number; p90: number; p99: number; mean: number; level: 0 | 1 | 2; pair: boolean; far: boolean };
 
 export type Judged = { state: "clear" | "warn" | "alert"; peers: number; width: number; metrics: MetricResult[] };
 export type Unjudged = { state: "none"; reason: "few" | "peers" | "missing" };
@@ -100,14 +103,18 @@ export function judge(kind: Kind, player: Sample, peers: Sample[], width: number
     if (vals.length < MIN_PEERS) continue;
     const p90 = quantile(vals, WARN);
     const p99 = quantile(vals, ALERT);
+    const p95 = quantile(vals, PAIR);
     const level = v > p99 && p99 > 0 ? 2 : v > p90 && p90 > 0 ? 1 : 0;
-    metrics.push({ key: m.key, label: m.label, family: m.family, digits: m.digits, value: v, p90, p99, mean: trimmedMean(vals), level });
+    const far = p99 > 0 && v > p99 + (p99 - p90);
+    metrics.push({ key: m.key, label: m.label, family: m.family, digits: m.digits, value: v, p90, p99, mean: trimmedMean(vals), level, pair: p95 > 0 && v > p95, far });
   }
   if (!metrics.length) return { state: "none", reason: "missing" };
-  const alerts = metrics.filter((m) => m.level === 2).length;
-  const warns = new Set(metrics.filter((m) => m.level >= 1).map((m) => m.family)).size;
-  const state = alerts >= 1 || warns >= 2 ? "alert" : warns === 1 ? "warn" : "clear";
-  return { state, peers: peers.length, width, metrics };
+  // 운영 비교군 전체에 적용해 이상 수치가 3% 안팎, 확인 필요가 6% 안팎이 되도록 정한 규칙
+  const families = (pick: (m: MetricResult) => boolean) => new Set(metrics.filter(pick).map((m) => m.family)).size;
+  const top1 = metrics.some((m) => m.level === 2);
+  const alert = (top1 && families((m) => m.pair) >= 2) || metrics.some((m) => m.far);
+  const warn = top1 || families((m) => m.level >= 1) >= 2;
+  return { state: alert ? "alert" : warn ? "warn" : "clear", peers: peers.length, width, metrics };
 }
 
 export const VERDICT_LABEL = { clear: "특이점 없음", warn: "확인 필요", alert: "이상 수치", none: "판정 불가" } as const;

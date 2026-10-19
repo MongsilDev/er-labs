@@ -63,6 +63,8 @@ export type ArenaModeStats = {
   bestWinStreak?: number;
   bestLoseStreak?: number;
   teamKills: number;
+  // 10-19 이전 스냅숏에는 없음
+  knifeKills?: number;
   roundMvp: number;
   matchMvp: number;
   aces: number;
@@ -212,6 +214,7 @@ function arenaStats(raw: unknown): ArenaModeStats {
     bestWinStreak: n("LongestWinStreak"),
     bestLoseStreak: n("LongestLoseStreak"),
     teamKills: n("TeammateKills"),
+    knifeKills: n("KnifeKills"),
     roundMvp: n("RoundMvpCount"),
     matchMvp: n("MatchMvpCount"),
     aces: n("Ace"),
@@ -237,6 +240,7 @@ export function parseArena(raw: unknown): ArenaSummary {
     const t = arenaStats({});
     for (const m of modes) {
       for (const k of SUM) t[k] += m.stats[k];
+      t.knifeKills = (t.knifeKills ?? 0) + (m.stats.knifeKills ?? 0);
       for (const k of MAX) t[k] = Math.max(t[k] ?? 0, m.stats[k] ?? 0);
     }
     total = t;

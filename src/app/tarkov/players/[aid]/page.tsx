@@ -166,6 +166,7 @@ function ArenaStats({ s, hide }: { s: ArenaSummary; hide: string[] }) {
               ["헤드샷", int(t.headshots)],
               ["피해량", int(t.damage)],
               ["팀킬", int(t.teamKills)],
+              ["근접무기 킬", int(t.knifeKills)],
             ],
           },
           {
@@ -222,6 +223,7 @@ function ArenaStats({ s, hide }: { s: ArenaSummary; hide: string[] }) {
                   <th>최다 킬</th>
                   <th>연속 킬</th>
                   <th className="opt">라운드 MVP</th>
+                  <th className="opt">근접무기 킬</th>
                   <th className="opt">팀킬</th>
                 </tr>
               </thead>
@@ -243,6 +245,7 @@ function ArenaStats({ s, hide }: { s: ArenaSummary; hide: string[] }) {
                     <td className="num">{int(m.stats.maxGameKills)}</td>
                     <td className="num">{int(m.stats.bestKillStreak)}</td>
                     <td className="num opt">{int(m.stats.roundMvp)}</td>
+                    <td className="num opt">{int(m.stats.knifeKills)}</td>
                     <td className="num opt">{int(m.stats.teamKills)}</td>
                   </tr>
                 ))}

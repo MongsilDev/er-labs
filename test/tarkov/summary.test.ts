@@ -74,12 +74,12 @@ describe("아레나 프로필", () => {
     expect(s.seconds).toBe(377453);
     expect(s.registered).toBe(1786871943);
     const cp = s.modes.find((m) => m.key === "UnrankedCheckPoint")!.stats;
-    expect(cp).toMatchObject({ games: 21, kills: 546, deaths: 581, headshots: 301, maxGameKills: 45, bestKillStreak: 7, bestWinStreak: 5, bestLoseStreak: 2, teamKills: 14 });
+    expect(cp).toMatchObject({ games: 21, kills: 546, deaths: 581, headshots: 301, maxGameKills: 45, bestKillStreak: 7, bestWinStreak: 5, bestLoseStreak: 2, teamKills: 14, knifeKills: 1 });
     expect(cp).not.toHaveProperty("killStreak");
     const sum = s.modes.reduce((a, m) => a + m.stats.kills, 0);
     expect(s.total!.kills).toBe(sum);
     expect(s.total!.maxGameKills).toBe(Math.max(...s.modes.map((m) => m.stats.maxGameKills)));
-    expect(s.total).toMatchObject({ bestKillStreak: 7, bestWinStreak: 5, bestLoseStreak: 27 });
+    expect(s.total).toMatchObject({ bestKillStreak: 7, bestWinStreak: 5, bestLoseStreak: 27, knifeKills: 1 });
     expect(s.overall).toEqual({ killStreak: 0, loseStreak: 20, bestArp: 1475 });
   });
   it("배틀패스 단계를 최근 시즌부터 읽음", () => {
@@ -120,6 +120,12 @@ describe("판정", () => {
     const high = v.state === "none" ? [] : v.metrics.filter((m) => m.level >= 1);
     expect(high.length).toBeGreaterThanOrEqual(2);
     expect(new Set(high.map((m) => m.family))).toEqual(new Set(["combat"]));
+    expect(v.state).toBe("clear");
+  });
+  it("상위 1%를 넘은 지표가 하나뿐이면 확인 필요", () => {
+    const v = judge("eft", { ...base, kills: 600 }, peers, 0.1);
+    expect(v.state === "none" ? [] : v.metrics.filter((m) => m.level === 2).map((m) => m.family)).toContain("combat");
+    expect(v.state === "none" ? [] : v.metrics.filter((m) => m.far)).toEqual([]);
     expect(v.state).toBe("warn");
   });
   it("아레나는 경기당 킬과 최고 연속 킬로 판정하고 모드별 판정 중 가장 높은 단계를 씀", () => {
