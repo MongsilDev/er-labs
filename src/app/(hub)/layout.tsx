@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
-import { ANALYTICS_TOKEN } from "@/site";
+import Analytics from "@/components/Analytics";
 import "../er/globals.css";
 
 export const metadata: Metadata = {
@@ -30,14 +30,7 @@ export default function HubLayout({ children }: { children: React.ReactNode }) {
           {themeScript}
         </Script>
         {children}
-        {process.env.BASE_URL?.startsWith("https://") && (
-          <Script
-            id="cf-analytics"
-            strategy="afterInteractive"
-            src="https://static.cloudflareinsights.com/beacon.min.js"
-            data-cf-beacon={JSON.stringify({ token: ANALYTICS_TOKEN })}
-          />
-        )}
+        <Analytics />
       </body>
     </html>
   );
