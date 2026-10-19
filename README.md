@@ -1,6 +1,6 @@
 # ER Labs
 
-이터널 리턴 도구를 모아 둔 비공식 사이트입니다. 지금은 커스텀 게임 결과 CSV로 커뮤니티 대회 순위를 계산하는 점수 계산기가 있습니다. [er.mongsil.dev](https://er.mongsil.dev)에서 쓸 수 있습니다.
+이터널 리턴 도구를 모아 둔 사이트입니다. 지금은 커스텀 게임 결과 CSV로 커뮤니티 대회 순위를 계산하는 점수 계산기가 있습니다. [er.mongsil.dev](https://er.mongsil.dev)에서 쓸 수 있습니다.
 
 ## 기능
 
@@ -26,6 +26,7 @@ pnpm dev
 
 ```bash
 pnpm test    # 계산 엔진과 서버 테스트
+pnpm test:ui # 빌드한 서버를 띄워 화면별 가로 넘침, 빠진 스타일, 콘솔 오류 점검
 pnpm lint
 pnpm build
 ```

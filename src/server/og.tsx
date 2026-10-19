@@ -70,7 +70,7 @@ export async function siteImage() {
           </svg>
           <span style={{ fontSize: 96, fontWeight: 800 }}>ER Labs</span>
         </div>
-        <span style={{ fontSize: 36, fontWeight: 500, color: C.text2, marginTop: 36 }}>이터널 리턴 비공식 도구 모음</span>
+        <span style={{ fontSize: 36, fontWeight: 500, color: C.text2, marginTop: 36 }}>이터널 리턴 도구 모음</span>
         <span style={{ fontSize: 28, fontWeight: 500, color: C.text3, marginTop: 14 }}>er.mongsil.dev</span>
       </div>
     ),

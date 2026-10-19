@@ -61,7 +61,7 @@ export default async function ScorePage({ searchParams }: { searchParams: Promis
               {top.map((s, i) => (
                 <div key={s.key} className="pl">
                   <span className={`rk ${i === 0 ? "first" : ""}`}>{s.rank}</span>
-                  <div className="pl-mid">
+                  <div>
                     <div className="ellipsis pl-nm">{s.name}</div>
                     <Bar s={s} max={max} rounds={res.played} height={10} labels={false} />
                   </div>

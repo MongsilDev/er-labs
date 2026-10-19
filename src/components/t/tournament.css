@@ -568,6 +568,9 @@
   .rounds {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  .slot-acts .link {
+    min-height: 32px;
+  }
   .slot.next {
     grid-column: 1 / -1;
     order: -1;

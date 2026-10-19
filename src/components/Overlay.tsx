@@ -67,7 +67,7 @@ export default function Overlay({
   const max = Math.max(1, ...result.standings.map(barTotal));
   const status = result.ended ? "최종 순위" : result.played ? `${result.played}라운드 종료` : "경기 전";
   return (
-    <div ref={box} className={`ov ${side}${rows.length > 12 ? " dense" : ""}`} style={{ zoom: scale, ["--n" as string]: rows.length, ["--zoom-fix" as string]: scale }}>
+    <div ref={box} className={`ov${side === "left" ? " left" : ""}${rows.length > 12 ? " dense" : ""}`} style={{ zoom: scale, ["--n" as string]: rows.length, ["--zoom-fix" as string]: scale }}>
       <div className="ov-hd">
         <b>
           {view.name}

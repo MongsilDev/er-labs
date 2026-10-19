@@ -14,8 +14,7 @@ export default async function Privacy() {
         <h1 className="page-h1">개인정보 처리방침</h1>
         <p className="sub">2026년 10월 19일 시행</p>
         <p>
-          er.mongsil.dev ER Labs가 처리하는 개인정보를 개인정보 보호법 제30조에 따라 공개합니다. 개인이 운영하는 무료 서비스이며, 님블뉴런과 관계없는 비공식
-          도구입니다.
+          er.mongsil.dev ER Labs가 처리하는 개인정보를 개인정보 보호법 제30조에 따라 공개합니다. 개인이 운영하는 무료 서비스입니다.
         </p>
 
         <h2>1. 처리 목적</h2>

@@ -24,7 +24,6 @@ export default function OpenCode({ mine }: { mine: MyTournament[] }) {
     <section className="panel open" aria-labelledby="open-h">
       <h2 className="h2" id="open-h">대회 열기</h2>
       <form
-        className="codein"
         onSubmit={(e) => {
           e.preventDefault();
           const c = code.trim().toUpperCase();
