@@ -22,6 +22,7 @@ import { PERK, encodeBuild, type Perk } from "@/tarkov/lib/kord";
 import { ARENA_PASSES, LEAGUE, leagueLabel } from "@/tarkov/lib/season";
 import { ARENA_NAMED, achievementInfo, type ArenaSummary, type EftSummary, type Gear as Worn, type Progress, type Summary } from "@/tarkov/lib/summary";
 import { badgeRates, verdict } from "@/tarkov/server/baseline";
+import { hasBuild } from "@/tarkov/server/builds";
 import { isHidden } from "@/tarkov/server/db";
 import { account, displayName, load, nameHistory, snapshots } from "@/tarkov/server/profiles";
 import "./profile.css";
@@ -336,6 +337,8 @@ const ARENA_ZONES: { key: string; slots: [string, string][] }[] = [
 ];
 
 
+const built = (g: Worn) => !!g.build && hasBuild(g.build);
+
 function Slot({ slot, label, g }: { slot: string; label: string; g?: Worn }) {
   const bg = g && GEAR[g.tpl]?.[2];
   return (
@@ -351,7 +354,7 @@ function Slot({ slot, label, g }: { slot: string; label: string; g?: Worn }) {
       </span>
       {g && (
         <>
-          <Image className="slot-img" src={`/api/icon/${g.tpl}?v=base`} alt="" width={256} height={128} unoptimized />
+          <Image className="slot-img" src={built(g) ? `/api/build/${g.build}` : `/api/icon/${g.tpl}?v=base`} alt="" width={256} height={128} unoptimized />
           <span className="slot-name" title={ITEMS[g.tpl]}>
             {ITEMS[g.tpl]}
           </span>
@@ -370,7 +373,8 @@ function Gear({ gear, arena }: { gear?: Worn[]; arena?: boolean }) {
   const worn = (slot: string) => gear?.find((g) => g.slot === slot && ITEMS[g.tpl]);
   const filled = zones.flatMap((z) => z.slots).filter(([slot]) => worn(slot));
   if (!filled.length) return null;
-  const guns = WEAPON_SLOTS.some((slot) => worn(slot));
+  // 부착물까지 그린 그림을 못 받은 무기가 있을 때만 안내
+  const guns = WEAPON_SLOTS.map(worn).some((g) => g && !built(g));
   // 주무기 없이 몇 칸만 찬 기록은 빈 칸이 화면을 채우므로 찬 칸만 보임
   const full = ["FirstPrimaryWeapon", "SecondPrimaryWeapon"].some((slot) => worn(slot)) || filled.length > 4;
   return (

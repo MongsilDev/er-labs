@@ -3,6 +3,7 @@ import { captureException } from "@sentry/node";
 import { date } from "@/tarkov/lib/format";
 import type { Mode, ModeKey } from "@/tarkov/lib/modes";
 import { parse, type Summary } from "@/tarkov/lib/summary";
+import { attachBuilds } from "./builds";
 import { db, isHidden } from "./db";
 import { fetchProfile, Upstream } from "./upstream";
 
@@ -52,6 +53,7 @@ export async function load(mode: Mode, aid: number, fresh = false): Promise<Load
     const summary = raw ? parse(mode.folder, raw) : null;
     if (summary) {
       summary.aid = aid;
+      attachBuilds(summary, raw);
       remember(mode, summary);
     }
     cache.set(key, { summary, at: Date.now() });
