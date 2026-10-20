@@ -100,7 +100,7 @@ export async function profileImage(name: string, mode: Mode, s: Summary | null, 
         ) : (
           <span style={{ fontSize: 30, color: C.text3, marginTop: 44 }}>tarkov.dev에서 조회된 기록이 없습니다.</span>
         )}
-        <span style={{ fontSize: 24, color: C.text3, marginTop: "auto" }}>{s ? `${dateTime(s.updated)} 기준, 통계 기준이며 증거가 아닙니다.` : ""}</span>
+        <span style={{ fontSize: 24, color: C.text3, marginTop: "auto" }}>{s ? `${dateTime(s.updated)} 기준, 통계로 낸 판정이며 증거가 아닙니다.` : ""}</span>
       </div>
     ),
     await options(),

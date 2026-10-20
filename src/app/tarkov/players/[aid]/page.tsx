@@ -449,7 +449,7 @@ function SeasonProgress({ s }: { s: EftSummary }) {
           </div>
         )}
         {pass && <ProgressCard label="배틀패스" p={pass} note="모든 모드 공통" />}
-        {seasonRewards && <ProgressCard label="시즌 퀘스트 보상" p={seasonRewards} note="시즌 퀘스트를 끝내면 받음" />}
+        {seasonRewards && <ProgressCard label="시즌 퀘스트 보상" p={seasonRewards} note="시즌 퀘스트를 완료하면 받음" />}
       </div>
     </section>
   );
@@ -520,7 +520,7 @@ function Trend({ list }: { list: Summary[] }) {
   if (list.length < 2) return null;
   return (
     <section className="block">
-      <h2 className="h2">이 사이트에서 받은 기록</h2>
+      <h2 className="h2">이 사이트에 저장된 기록</h2>
       <div className="table-scroll panel">
         <table className="grid-table">
           <thead>
@@ -671,7 +671,7 @@ export default async function Profile({ params, searchParams }: Props) {
             </div>
           </dl>
           <Actions aid={aid} mode={mode.key} tarkovDev={tarkovDevUrl(mode, aid)} />
-          {res.error && <p className="err">tarkov.dev에서 받아오지 못해 {s ? "이전에 받은 기록을 보여줍니다." : "표시할 기록이 없습니다."}</p>}
+          {res.error && <p className="err">tarkov.dev에서 받아오지 못해 {s ? "이전에 받은 기록을 표시합니다." : "표시할 기록이 없습니다."}</p>}
         </section>
 
         <nav className="tabs" aria-label="모드">
@@ -687,8 +687,8 @@ export default async function Profile({ params, searchParams }: Props) {
 
         {!s && !res.error && (
           <section className="panel empty">
-            <p>tarkov.dev에서 이 계정의 {mode.label} 기록을 아직 조회한 적이 없습니다.</p>
-            <p className="sub">tarkov.dev에서 한 번 열면 기록이 생깁니다.<br />열고 돌아오면 자동으로 다시 불러옵니다.</p>
+            <p>아직 tarkov.dev에서 이 계정의 {mode.label} 기록을 조회한 사람이 없습니다.</p>
+            <p className="sub">tarkov.dev에서 이 계정을 한 번 열면 기록이 생성됩니다.<br />tarkov.dev에서 연 뒤 이 화면으로 돌아오면 기록을 자동으로 다시 불러옵니다.</p>
           </section>
         )}
 

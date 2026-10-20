@@ -63,7 +63,7 @@ export function parseRoundCsv(text: string): ParseResult {
   }
   if (players.length === 0) return { ok: false, error: "경기 기록이 없는 파일입니다." };
   if (new Set(players.map((p) => p.team)).size > 24) {
-    return { ok: false, error: "한 경기에 24팀이 넘습니다." };
+    return { ok: false, error: "한 경기의 팀 수가 24팀을 넘습니다." };
   }
   return { ok: true, round: { gameId, players } };
 }

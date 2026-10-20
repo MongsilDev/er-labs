@@ -123,7 +123,7 @@ export default function Rounds({ group, result, mode, planned, multi, editable, 
                         type="button"
                         className={used ? "used" : undefined}
                         aria-pressed={on}
-                        title={used ? "이번 4라운드 안에 이미 나온 날씨" : undefined}
+                        title={used ? "이번 4라운드 안에 이미 사용한 날씨" : undefined}
                         onClick={() => run({ op: "set_weather", group: group.idx, round: next.roundNo, sub: on ? null : w })}
                       >
                         {w}

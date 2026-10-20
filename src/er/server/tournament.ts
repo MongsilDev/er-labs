@@ -236,7 +236,7 @@ export function applyOp(code: string, user: User, op: Op): OpResult {
             continue;
           }
           if (parsed.some((p) => p.gameId === r.round.gameId)) {
-            errors.push(`${name}: 같이 올린 파일 중 같은 경기가 있습니다.`);
+            errors.push(`${name}: 함께 올린 파일 중에 같은 경기의 CSV가 있습니다.`);
             continue;
           }
           const dup = conn
@@ -273,7 +273,7 @@ export function applyOp(code: string, user: User, op: Op): OpResult {
             }
           }
           if (slot === null) {
-            errors.push(`${p.name}: 라운드 칸이 모두 찼습니다. 라운드 수를 늘리거나 기존 라운드를 지워주세요.`);
+            errors.push(`${p.name}: 모든 라운드에 기록이 있습니다. 라운드 수를 늘리거나 기존 라운드를 지워주세요.`);
             continue;
           }
           used.add(slot);
@@ -281,7 +281,7 @@ export function applyOp(code: string, user: User, op: Op): OpResult {
             .prepare("INSERT INTO rounds(tournament_id, group_idx, round_no, source, game_id, file_name, players, created_at) VALUES (?, ?, ?, 'csv', ?, ?, ?, ?)")
             .run(t.id, g, slot, p.gameId, p.name, JSON.stringify(p.players), now());
           const teams = new Set(p.players.map((x) => normalize(x.team))).size;
-          notices.push(`${prefix(t, g)}${slot}라운드에 추가했습니다, ${teams}팀`);
+          notices.push(`${prefix(t, g)}${slot}라운드에 ${teams}팀 기록을 추가했습니다.`);
           bump(t, user, `${prefix(t, g)}${slot}라운드 CSV ${target !== null ? "교체" : "추가"}`);
         }
         break;
@@ -305,7 +305,7 @@ export function applyOp(code: string, user: User, op: Op): OpResult {
           teams.push({ team, placement, killScore });
         }
         if (teams.length === 0) throw new OpError("팀과 순위를 입력해주세요.");
-        if (new Set(teams.map((x) => x.placement)).size !== teams.length) throw new OpError("같은 순위를 두 팀에 넣었습니다. 순위를 다시 확인해주세요.");
+        if (new Set(teams.map((x) => x.placement)).size !== teams.length) throw new OpError("두 팀에 같은 순위를 입력했습니다. 순위를 다시 확인해주세요.");
         if (new Set(teams.map((x) => normalize(x.team))).size !== teams.length) throw new OpError("같은 팀 이름이 두 번 있습니다.");
         const old = conn
           .prepare("SELECT id FROM rounds WHERE tournament_id = ? AND group_idx = ? AND round_no = ? AND deleted_at IS NULL")
@@ -329,7 +329,7 @@ export function applyOp(code: string, user: User, op: Op): OpResult {
         conn
           .prepare("INSERT INTO rounds(tournament_id, group_idx, round_no, source, game_id, file_name, players, created_at) VALUES (?, ?, ?, 'manual', NULL, NULL, ?, ?)")
           .run(t.id, g, round, JSON.stringify(players), now());
-        notices.push(`${prefix(t, g)}${round}라운드를 직접 입력했습니다, ${teams.length}팀`);
+        notices.push(`${prefix(t, g)}${round}라운드에 ${teams.length}팀 기록을 직접 입력했습니다.`);
         bump(t, user, `${prefix(t, g)}${round}라운드 직접 입력`);
         break;
       }
@@ -385,7 +385,7 @@ export function applyOp(code: string, user: User, op: Op): OpResult {
         const team = cleanName(op.team, 60);
         if (!team) throw new OpError("팀을 골라주세요.");
         const count0 = (conn.prepare("SELECT COUNT(*) AS n FROM penalties WHERE tournament_id = ? AND group_idx = ? AND deleted_at IS NULL").get(t.id, g) as { n: number }).n;
-        if (count0 >= 300) throw new OpError("한 조에 감점은 300건까지 넣을 수 있습니다.");
+        if (count0 >= 300) throw new OpError("한 조에 감점은 300건까지 추가할 수 있습니다.");
         const kind = op.kind === "death" ? "death" : "rule";
         const count = kind === "death" ? int(op.count, 1, 30, 1) : 1;
         const points = kind === "death" ? count : Math.round(Math.min(100, Math.max(0.5, Number(op.points) || 0)) * 2) / 2;
@@ -648,7 +648,7 @@ export function transferOwner(code: string, user: User, target: string) {
 
 export function deleteTournament(code: string, user: User, confirmName: string) {
   const t = requireOwner(code, user);
-  if (clean(confirmName, LIMITS.nameLength) !== t.name) throw new OpError("대회 이름이 맞지 않습니다.");
+  if (clean(confirmName, LIMITS.nameLength) !== t.name) throw new OpError("대회 이름이 일치하지 않습니다.");
   db().prepare("DELETE FROM tournaments WHERE id = ?").run(t.id);
 }
 

@@ -30,8 +30,8 @@ export default function ThemeToggle() {
     <button
       type="button"
       className="icon-btn"
-      aria-label={next === "light" ? "라이트 모드로 보기" : "다크 모드로 보기"}
-      title={next === "light" ? "라이트 모드로 보기" : "다크 모드로 보기"}
+      aria-label={next === "light" ? "라이트 모드로 전환" : "다크 모드로 전환"}
+      title={next === "light" ? "라이트 모드로 전환" : "다크 모드로 전환"}
       onClick={() => {
         document.documentElement.dataset.theme = next;
         try {

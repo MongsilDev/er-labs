@@ -10,7 +10,7 @@ const REASON = {
 } as const;
 
 const ARENA_REASON = {
-  few: "30경기 이상 한 모드가 없어 판정하지 않습니다.",
+  few: "30경기 이상 플레이한 모드가 없어 판정하지 않습니다.",
   peers: "같은 모드에서 비교할 비슷한 계정이 30명보다 적어 판정하지 않습니다.",
   missing: "판정에 필요한 값이 없습니다.",
 } as const;
@@ -60,7 +60,7 @@ export default function Verdict({ v, mode, official }: { v: V; mode: string; off
       <div className="vhead">
         <span className={`badge ${v.state}`}>{VERDICT_LABEL[v.state]}</span>
         {official && <span className="chip official">공인 계정</span>}
-        <span className="small muted">통계 기준이며 증거가 아닙니다.</span>
+        <span className="small muted">통계로 낸 판정이며 증거가 아닙니다.</span>
         <Link className="link" href="/tarkov/criteria">
           판정 기준
         </Link>

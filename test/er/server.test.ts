@@ -31,7 +31,7 @@ describe("대회 서버", () => {
     const a = csv(200, teams(["가", "나"]));
     const b = csv(100, teams(["나", "가"]));
     const r = t.applyOp(code, owner, { op: "add_csv", group: 0, files: [{ name: "a.csv", text: a }, { name: "b.csv", text: b }] });
-    expect(r.notices).toEqual(["A조 1라운드에 추가했습니다, 2팀", "A조 2라운드에 추가했습니다, 2팀"]);
+    expect(r.notices).toEqual(["A조 1라운드에 2팀 기록을 추가했습니다.", "A조 2라운드에 2팀 기록을 추가했습니다."]);
     const view = t.loadView(code, null)!;
     expect(view.groups[0].rounds.map((x) => x.gameId)).toEqual([100, 200]);
     const dup = t.applyOp(code, owner, { op: "add_csv", group: 1, files: [{ name: "again.csv", text: a }] });
@@ -92,7 +92,7 @@ describe("대회 서버", () => {
     expect(bad([{ team: "A", placement: 0, killScore: 0 }])).toThrow("순위는 1부터 8까지의 정수로");
     expect(bad([{ team: "A", placement: "3", killScore: 0 }])).toThrow("순위는 1부터 8까지의 정수로");
     expect(bad([{ team: "A", placement: 9, killScore: 0 }])).toThrow("순위는 1부터 8까지의 정수로");
-    expect(bad([{ team: "A", placement: 1, killScore: 0 }, { team: "B", placement: 1, killScore: 0 }])).toThrow("같은 순위를 두 팀에");
+    expect(bad([{ team: "A", placement: 1, killScore: 0 }, { team: "B", placement: 1, killScore: 0 }])).toThrow("두 팀에 같은 순위를");
     expect(bad([{ team: "A", placement: 1, killScore: 1e9 }])).toThrow("킬 점수는 0부터 300까지");
     t.applyOp(code, owner, { op: "add_manual", group: 0, round: 1, teams: [{ team: "A", placement: 1, killScore: 2 }] });
     expect(t.loadView(code, null)!.groups[0].rounds[0].players[0]).toMatchObject({ team: "A", placement: 1, killScore: 2 });

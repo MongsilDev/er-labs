@@ -32,7 +32,7 @@ export default function Standings({ result, rules, mode, label }: { result: Grou
   if (standings.length === 0) {
     return (
       <section className="panel overflow-x-auto p-7 text-center" aria-label={`${label} 순위표`}>
-        <p className="text-fg-3">아직 올라온 경기 결과가 없습니다.</p>
+        <p className="text-fg-3">아직 등록된 경기 결과가 없습니다.</p>
       </section>
     );
   }

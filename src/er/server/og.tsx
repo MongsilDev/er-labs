@@ -97,7 +97,7 @@ export async function boardImage(view: TournamentView | null, idx: number) {
           <span style={{ fontSize: 26, fontWeight: 500, color: C.text3, whiteSpace: "nowrap" }}>{meta}</span>
         </div>
         <div style={{ display: "flex", flexDirection: "column", marginTop: 24, borderTop: `1px solid ${C.line}` }}>
-          {rows.length === 0 && view && <span style={{ fontSize: 28, color: C.text3, marginTop: 40 }}>아직 올라온 경기 결과가 없습니다.</span>}
+          {rows.length === 0 && view && <span style={{ fontSize: 28, color: C.text3, marginTop: 40 }}>아직 등록된 경기 결과가 없습니다.</span>}
           {rows.map((s) => (
             <div key={s.key} style={{ display: "flex", alignItems: "center", height: rows.length > 6 ? 42 : 52, borderBottom: `1px solid ${C.line}`, gap: 20 }}>
               <span

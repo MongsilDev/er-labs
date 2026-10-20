@@ -27,9 +27,9 @@ export default function Criteria() {
       <main id="main" className="wrap slim doc">
         <h1 className="page-h1">판정 기준</h1>
         <p>
-          판정 배지는 공개 전적이 비슷한 계정들 사이에서 어디쯤인지 보여 줍니다.
+          판정 배지는 공개 전적이 비슷한 계정 사이에서 이 계정의 기록이 어느 위치인지 표시합니다.
           <br />
-          통계 기준이라 실력이 좋거나 친구와 함께 다니는 계정도 높게 나올 수 있고, 부정행위의 증거가 아닙니다.
+          통계로만 판정하므로 실력이 좋거나 친구와 함께 플레이하는 계정도 높게 판정될 수 있으며, 판정 결과는 부정행위의 증거가 아닙니다.
         </p>
 
         <h2>배지</h2>
@@ -90,11 +90,11 @@ export default function Criteria() {
         <p className="doc-note">
           &quot;크게 넘음&quot;은 상위 {pct(ALERT)} 값에 상위 {pct(WARN)}와 {pct(ALERT)} 값의 차이를 더한 값보다 높다는 뜻입니다.
           <br />
-          2026년 10월 19일 비교군 전체에 적용하면 {VERDICT_LABEL.warn}는 {RATES.warn}, {VERDICT_LABEL.alert}는 {RATES.alert}입니다.
+          2026년 10월 19일 비교군 전체에 이 기준을 적용하면 {VERDICT_LABEL.warn}를 받는 계정은 {RATES.warn}, {VERDICT_LABEL.alert}를 받는 계정은 {RATES.alert}입니다.
         </p>
 
         <h2>아레나 계정 배지</h2>
-        <p>아레나는 {MIN_N}경기 이상 한 모드마다 따로 판정한 뒤 합칩니다.</p>
+        <p>아레나는 {MIN_N}경기 이상 플레이한 모드마다 따로 판정한 뒤 결과를 합칩니다.</p>
         <div className="doc-table">
           <table>
             <tbody>
@@ -153,24 +153,24 @@ export default function Criteria() {
           </table>
         </div>
         <p className="doc-note">
-          같은 묶음의 지표는 같은 기록에서 나와 함께 움직이므로 하나로 셉니다.
-          <br />* 표시 지표는 비교군 평균 기록 {PRIOR}판을 더한 보정값으로 비교해, 판수가 적은 계정이 몇 판의 운으로 높게 나오지 않게 합니다.
+          같은 묶음의 지표는 같은 기록으로 계산해 함께 오르내리므로 하나로 셉니다.
+          <br />* 표시 지표는 비교군 평균 기록 {PRIOR}판을 더한 보정값으로 비교해, 판수가 적은 계정이 몇 판의 운으로 높게 판정되지 않게 합니다.
         </p>
 
         <h2>비교군과 데이터</h2>
         <p>
-          레이드 수와 플레이 시간이, 아레나는 같은 모드의 경기 수가 ±{Math.round(WIDTHS[0] * 100)}% 안인 계정과 비교합니다.
+          시즌, PvP, PvE는 레이드 수와 플레이 시간이, 아레나는 같은 모드의 경기 수가 ±{Math.round(WIDTHS[0] * 100)}% 안인 계정과 비교합니다.
           <br />
           비슷한 계정이 {TARGET_PEERS}명보다 적으면 ±{Math.round(WIDTHS[WIDTHS.length - 1] * 100)}%까지 범위를 넓힙니다.
           <br />
           전적과 비교군은 모두 tarkov.dev가 공개하는 기록이며, 누군가 tarkov.dev에서 그 계정을 열 때만 갱신됩니다.
           <br />
-          tarkov.dev에서 조회된 적 있는 계정만 들어가므로 전체 이용자를 대표하지는 않습니다.
+          비교군에는 tarkov.dev에서 조회된 적 있는 계정만 포함되므로 전체 이용자를 대표하지는 않습니다.
           <br />
           계산 방식은 tarkovstats.online이 공개한 방식을 참고했습니다.
         </p>
         <p className="doc-note">
-          지금 비교군은 시즌 {int(counts.season ?? 0)}, PvP {int(counts.pvp ?? 0)}, PvE {int(counts.pve ?? 0)}, 아레나 {int(counts.arena ?? 0)}계정입니다.
+          지금 비교군 계정 수는 시즌 {int(counts.season ?? 0)}, PvP {int(counts.pvp ?? 0)}, PvE {int(counts.pve ?? 0)}, 아레나 {int(counts.arena ?? 0)}입니다.
         </p>
       </main>
       <Footer />

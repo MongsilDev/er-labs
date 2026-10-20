@@ -54,7 +54,7 @@ export default function RpCheck({ data }: { data: CutData }) {
                   <Row
                     label="지금 컷"
                     value={gap > 0 ? `${int(gap)} RP 부족` : `${int(-gap)} RP 여유`}
-                    note={near != null ? `순위표 기준 사이 ${int(near)}명` : "순위표 밖이라 사이 인원 모름"}
+                    note={near != null ? `순위표 기준 내 RP와 컷 사이 ${int(near)}명` : "순위표 밖이라 사이 인원을 알 수 없음"}
                   />
                   {end && (
                     <Row
@@ -83,7 +83,7 @@ export default function RpCheck({ data }: { data: CutData }) {
           })}
         </div>
       ) : (
-        <p className="mt-3 text-[13px] text-fg-3">RP를 넣으면 두 컷까지 거리와 종료 때 가능성을 계산합니다.</p>
+        <p className="mt-3 text-[13px] text-fg-3">RP를 입력하면 두 컷과의 RP 차이와 시즌 종료 때 컷을 넘을 가능성을 계산합니다.</p>
       )}
     </div>
   );

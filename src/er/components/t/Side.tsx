@@ -52,7 +52,7 @@ export function Penalties({ group, result, rules, run }: { group: GroupView; res
     <section className="panel min-w-0 p-4" aria-labelledby={`pen-${group.idx}`}>
       <h2 className="text-[15px] font-bold" id={`pen-${group.idx}`}>감점</h2>
       {teams.length === 0 ? (
-        <p className="text-[13px] text-fg-3">경기 결과가 올라오면 감점을 넣을 수 있습니다.</p>
+        <p className="text-[13px] text-fg-3">경기 결과를 등록하면 감점을 추가할 수 있습니다.</p>
       ) : (
         <form className="mt-3 grid grid-cols-2 gap-2.5 *:min-w-0" onSubmit={submit}>
           <div className="col-span-full">
@@ -130,7 +130,7 @@ export function Penalties({ group, result, rules, run }: { group: GroupView; res
                 {result.displayOf[normalize(p.team)] ?? p.team} {p.kind === "death" ? `처치자 불명 사망 ${p.count}회` : p.reason}
               </span>
               {result.orphanPenalties.includes(p.id) && (
-                <span className="chip dashed" title="이 감점이 걸린 기록이 지워졌습니다">팀 없음</span>
+                <span className="chip dashed" title="이 감점을 받은 팀이 경기 기록에 없습니다">팀 없음</span>
               )}
               <b>-{fmt(p.points)}</b>
               <button type="button" className="link" aria-label={`${result.displayOf[normalize(p.team)] ?? p.team} 감점 삭제`} onClick={() => run({ op: "delete_penalty", id: p.id })}>
@@ -156,7 +156,7 @@ export function Teams({ group, result, mode, rules, run }: { group: GroupView; r
     <section className="panel min-w-0 p-4" aria-labelledby={`teams-${group.idx}`}>
       <h2 className="text-[15px] font-bold" id={`teams-${group.idx}`}>팀 정리</h2>
       {raw.length === 0 ? (
-        <p className="text-[13px] text-fg-3">경기 결과가 올라오면 팀 이름을 정리할 수 있습니다.</p>
+        <p className="text-[13px] text-fg-3">경기 결과를 등록하면 팀 이름을 정리할 수 있습니다.</p>
       ) : (
         <form
           className="mt-3 grid grid-cols-2 gap-2.5 *:min-w-0"

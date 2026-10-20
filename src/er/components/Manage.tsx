@@ -312,7 +312,7 @@ function Confirm({
     confirm.kind === "delete"
       ? "확인을 위해 대회 이름을 입력해주세요."
       : confirm.kind === "transfer"
-        ? "넘긴 뒤에는 운영자가 되고, 설정과 운영자 관리는 새 개최자만 할 수 있습니다."
+        ? "넘기면 본인은 운영자가 되고, 설정과 운영자 관리는 새 개최자만 할 수 있습니다."
         : "다시 운영을 맡기려면 새 초대 링크를 보내야 합니다.";
   return (
     <div className="dim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>

@@ -18,7 +18,7 @@ export default function Privacy() {
         <p className="text-[14px] text-fg-3">2026년 10월 20일 시행</p>
         <p>
           labs.mongsil.dev가 처리하는 개인정보를 개인정보 보호법 제30조에 따라 공개합니다.<br />개인이 운영하는 무료 서비스이며, 이터널 리턴 도구와 Escape from Tarkov 도구가
-          있습니다.<br />로그인은 이터널 리턴 대회 운영자만 씁니다.
+          있습니다.<br />로그인 기능은 이터널 리턴 대회 운영자만 사용합니다.
         </p>
 
         <h2>1. 처리 목적</h2>
@@ -50,18 +50,18 @@ export default function Privacy() {
               </tr>
               <tr>
                 <td data-label="항목">대회 이름, 감점, 날씨, 변경 기록과 변경한 운영자 이름</td>
-                <td data-label="수집 시점">운영자가 대회를 만들거나 바꿀 때</td>
+                <td data-label="수집 시점">운영자가 대회를 만들거나 수정할 때</td>
                 <td data-label="보유 기간">대회 마지막 수정 24시간 뒤까지</td>
               </tr>
               <tr>
                 <td data-label="항목">디스코드 ID, 사용자 이름, 프로필 사진 주소</td>
                 <td data-label="수집 시점">디스코드로 로그인할 때</td>
-                <td data-label="보유 기간">로그인 7일 뒤 또는 로그아웃, 운영하던 대회가 모두 지워질 때까지</td>
+                <td data-label="보유 기간">로그인 후 7일이 지나거나 로그아웃하고, 운영하던 대회가 모두 삭제될 때까지</td>
               </tr>
             </tbody>
           </table>
         </div>
-        <p>디스코드 로그인은 사용자 식별 권한만 요청합니다.<br />디스코드 서버 목록, 메시지, 이메일은 받지 않고, 디스코드 접속 토큰은 저장하지 않습니다.</p>
+        <p>디스코드 로그인은 사용자 식별 권한만 요청합니다.<br />디스코드 서버 목록, 메시지, 이메일은 수집하지 않고, 디스코드 접속 토큰은 저장하지 않습니다.</p>
 
         <h3 className={H3}>Escape from Tarkov</h3>
         <div className="doc-table cards">
@@ -81,7 +81,7 @@ export default function Privacy() {
               </tr>
               <tr>
                 <td data-label="항목">닉네임 변경 이력</td>
-                <td data-label="수집 경로">위 이름 목록을 전날 것과 비교</td>
+                <td data-label="수집 경로">위 이름 목록을 전날 목록과 비교</td>
                 <td data-label="보유 기간">삭제 요청이 있을 때까지</td>
               </tr>
               <tr>
@@ -94,7 +94,7 @@ export default function Privacy() {
         </div>
         <p>
           게임 기록은 tarkov.dev가 이미 공개한 정보입니다.<br />이 사이트는 Battlestate Games 서버에 직접 접속하지 않고, tarkov.dev에서 누군가 조회한 적 있는 계정의 공개
-          기록만 받습니다.
+          기록만 수집합니다.
         </p>
 
         <h3 className={H3}>공통</h3>
@@ -111,11 +111,11 @@ export default function Privacy() {
               <tr>
                 <td data-label="항목">접속 IP 주소</td>
                 <td data-label="수집 시점">사이트에 접속할 때</td>
-                <td data-label="보유 기간">요청 횟수 제한에만 쓰고 저장하지 않음.<br />서버 메모리에서 1시간 안에 지워짐</td>
+                <td data-label="보유 기간">요청 횟수 제한에만 사용하고 저장하지 않음.<br />서버 메모리에서 1시간 안에 삭제됨</td>
               </tr>
               <tr>
                 <td data-label="항목">방문한 페이지 주소, 브라우저와 기기 정보, 방문 통계 쿠키 식별자</td>
-                <td data-label="수집 시점">페이지를 조작하거나 10초 넘게 볼 때</td>
+                <td data-label="수집 시점">페이지를 조작하거나 10초 넘게 머물 때</td>
                 <td data-label="보유 기간">수집일로부터 14개월</td>
               </tr>
             </tbody>
@@ -124,14 +124,14 @@ export default function Privacy() {
 
         <h2>3. 파기</h2>
         <p>
-          보유 기간이 지난 이터널 리턴 대회와 로그인 정보는 10분마다 자동으로 지우며, 백업하지 않습니다.<br />Escape from Tarkov 기록은 삭제 요청을 받으면 해당 계정의
-          닉네임 변경 이력과 저장된 전적을 지우고, 이후 화면에 표시하지 않습니다.<br />암호화한 백업본은 최대 5주 뒤 지워집니다.<br />지운 정보는 되살릴 수 없습니다.
+          보유 기간이 지난 이터널 리턴 대회와 로그인 정보는 10분마다 자동으로 파기하며, 백업하지 않습니다.<br />Escape from Tarkov 기록은 삭제 요청을 받으면 해당 계정의
+          닉네임 변경 이력과 저장된 전적을 삭제하고, 이후 화면에 표시하지 않습니다.<br />암호화한 백업본은 최대 5주 뒤 삭제됩니다.<br />파기한 정보는 복구할 수 없습니다.
         </p>
 
         <h2>4. 제3자 제공</h2>
         <p>
-          수집한 개인정보는 제3자에게 제공하거나 판매하지 않습니다.<br />대회 순위와 선수 기록은 대회 코드를 아는 사람이라면 누구나 볼 수 있습니다.<br />사이트에 표시되는 Escape from
-          Tarkov 전적도 누구나 볼 수 있습니다.
+          수집한 개인정보는 제3자에게 제공하거나 판매하지 않습니다.<br />대회 순위와 선수 기록은 대회 코드를 아는 사람이라면 누구나 열람할 수 있습니다.<br />사이트에 표시되는 Escape from
+          Tarkov 전적도 누구나 열람할 수 있습니다.
         </p>
 
         <h2>5. 처리 위탁과 국외 이전</h2>
@@ -152,7 +152,7 @@ export default function Privacy() {
                   <span className="whitespace-nowrap">compliance@sentry.io</span>
                 </td>
                 <td data-label="국가" className="whitespace-nowrap">미국</td>
-                <td data-label="업무와 항목">서버 오류 기록.<br />오류가 난 페이지 주소와 오류 내용이 서버 오류가 날 때 전송됨.<br />접속 IP 주소, 쿠키, 요청 내용은 보내지 않음.<br />보유 기간은 Sentry 보관 정책을 따름</td>
+                <td data-label="업무와 항목">서버 오류 기록.<br />서버 오류가 날 때 오류가 난 페이지 주소와 오류 내용이 전송됨.<br />접속 IP 주소, 쿠키, 요청 내용은 전송하지 않음.<br />보유 기간은 Sentry 보관 정책을 따름</td>
               </tr>
               <tr>
                 <td data-label="받는 곳">
@@ -161,7 +161,7 @@ export default function Privacy() {
                   <span className="whitespace-nowrap">dpo@cloudflare.com</span>
                 </td>
                 <td data-label="국가" className="whitespace-nowrap">미국</td>
-                <td data-label="업무와 항목">사이트 접속 중계, 방문 통계, 백업 보관.<br />접속 IP 주소, 요청 정보, 방문한 페이지 주소, 브라우저 종류가 접속할 때마다, Escape from Tarkov 기록의 암호화한 백업본이 매일 전송됨.<br />방문 통계는 쿠키를 쓰지 않음.<br />보유 기간은 Cloudflare 정책을 따르고, 백업본은 최대 5주</td>
+                <td data-label="업무와 항목">사이트 접속 중계, 방문 통계, 백업 보관.<br />접속할 때마다 접속 IP 주소, 요청 정보, 방문한 페이지 주소, 브라우저 종류가 전송됨.<br />Escape from Tarkov 기록의 암호화한 백업본이 매일 전송됨.<br />방문 통계는 쿠키를 사용하지 않음.<br />보유 기간은 Cloudflare 정책을 따르고, 백업본은 최대 5주 보관</td>
               </tr>
               <tr>
                 <td data-label="받는 곳">
@@ -170,7 +170,7 @@ export default function Privacy() {
                   <span className="whitespace-nowrap">googlekrsupport@google.com</span>
                 </td>
                 <td data-label="국가" className="whitespace-nowrap">미국</td>
-                <td data-label="업무와 항목">Google 애널리틱스 방문 통계 분석.<br />쿠키 식별자, 방문한 페이지 주소, 브라우저와 기기 정보, 접속 IP 주소가 페이지를 조작하거나 10초 넘게 볼 때 전송됨.<br />보유 기간은 수집일로부터 14개월</td>
+                <td data-label="업무와 항목">Google 애널리틱스 방문 통계 분석.<br />페이지를 조작하거나 10초 넘게 머물 때 쿠키 식별자, 방문한 페이지 주소, 브라우저와 기기 정보, 접속 IP 주소가 전송됨.<br />보유 기간은 수집일로부터 14개월</td>
               </tr>
             </tbody>
           </table>
@@ -188,9 +188,9 @@ export default function Privacy() {
           <li>브라우저 저장소: 화면 테마, 이 브라우저에서 연 대회 목록, 로그인 전에 입력한 새 대회 설정, 최근 본 Escape from Tarkov 계정 8개</li>
         </ul>
         <p>
-          광고 쿠키는 쓰지 않고, 브라우저 저장소의 내용은 서버로 보내지 않습니다.<br />쿠키를 막으면 운영자로 로그인할 수 없지만 대회 보기와 계정 조회는 그대로 쓸 수
+          광고 쿠키는 사용하지 않고, 브라우저 저장소의 내용은 서버로 보내지 않습니다.<br />쿠키를 차단하면 운영자로 로그인할 수 없지만 대회 순위 확인과 계정 조회는 그대로 이용할 수
           있습니다.<br />Google 애널리틱스의 수집만 거부하려면{" "}
-          <a href="https://tools.google.com/dlpage/gaoptout">Google 애널리틱스 차단 브라우저 부가기능</a>을 설치하면 됩니다.<br />최근 본 계정은 계정 조회 화면의 기록 지우기로 바로 지울 수 있습니다.
+          <a href="https://tools.google.com/dlpage/gaoptout">Google 애널리틱스 차단 브라우저 부가기능</a>을 설치해주세요.<br />최근 본 계정은 계정 조회 화면의 기록 지우기 버튼으로 바로 삭제할 수 있습니다.
         </p>
 
         <h2>7. 안전 조치</h2>
@@ -202,7 +202,7 @@ export default function Privacy() {
 
         <h2>8. 정보주체의 권리</h2>
         <p>
-          언제든지 자신의 개인정보 열람, 정정, 삭제, 처리 정지를 요구할 수 있습니다.<br />로그인 정보는 로그아웃하면 바로 지워지고, 대회는 개최자가 대회 삭제로 바로 지울 수
+          언제든지 자신의 개인정보 열람, 정정, 삭제, 처리 정지를 요구할 수 있습니다.<br />로그인 정보는 로그아웃하면 바로 삭제되고, 대회는 개최자가 대회 삭제 버튼으로 바로 삭제할 수
           있습니다.<br />Escape from Tarkov 기록은 아래 이메일로 계정 번호나 닉네임을 보내 주시면 게임 안에서 본인 계정임을 확인한 뒤 처리합니다.<br />그 밖의 요구도 아래 이메일로
           보내 주시면 본인 확인 뒤 바로 처리합니다.<br />만 14세 미만 아동의 권리는 법정대리인이 행사할 수 있습니다.
         </p>
@@ -223,7 +223,7 @@ export default function Privacy() {
         </ul>
 
         <h2>11. 변경</h2>
-        <p>처리방침이 바뀌면 이 페이지에 시행일과 함께 올립니다.</p>
+        <p>처리방침을 변경하면 이 페이지에 시행일과 함께 공지합니다.</p>
       </main>
       <SiteFooter />
     </>

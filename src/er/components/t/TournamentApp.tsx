@@ -71,7 +71,7 @@ export default function TournamentApp({ initial, groupIdx, basePath, created = f
       try {
         const next = await api.view(view.code, force ? undefined : versionRef.current);
         if (!next || next.version < versionRef.current) return;
-        if (roleRef.current && !next.role) toast({ text: "운영자 권한이 없어져 보기 화면으로 바뀌었습니다.", bad: true }, 8000);
+        if (roleRef.current && !next.role) toast({ text: "운영자 권한이 해제되어 참가자 화면으로 전환했습니다.", bad: true }, 8000);
         roleRef.current = next.role;
         versionRef.current = next.version;
         setView(next);
@@ -199,7 +199,7 @@ export default function TournamentApp({ initial, groupIdx, basePath, created = f
       <main id="main" className="wrap slim">
         <section className="panel mt-6 grid justify-items-start gap-2.5 p-7">
           <h1 className="text-[22px]">없거나 지워진 대회입니다</h1>
-          <p className="text-fg-3">마지막 수정 24시간 뒤 대회는 자동으로 지워집니다.</p>
+          <p className="text-fg-3">대회는 마지막으로 수정하고 24시간이 지나면 자동으로 삭제됩니다.</p>
           <Link className="btn primary" href="/er/score">
             새 대회 만들기
           </Link>
