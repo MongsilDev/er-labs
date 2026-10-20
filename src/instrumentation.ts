@@ -43,7 +43,7 @@ export async function register() {
   };
   setTimeout(tick, 5_000).unref();
   setInterval(tick, 30 * 60 * 1000).unref();
-  // 비교군 수집이 몇 시간씩 이어질 수 있어 따로 돌림. 마지막 계산이 하루 지났을 때만 계산
+  // 비교군 수집이 몇 시간씩 이어질 수 있어 따로 돌림. 계산할 때인지는 refreshRates가 판단
   setTimeout(refreshRates, 60_000).unref();
   setInterval(refreshRates, 60 * 60 * 1000).unref();
 }

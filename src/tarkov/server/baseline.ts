@@ -137,14 +137,17 @@ export function badgeRates(): BadgeRates {
   return g.__tlRatesCache.v;
 }
 
-// 계정마다 비교군 조회와 판정에 몇 ms씩 걸려 25개마다 이벤트 루프에 양보
+// 계정 하나에 비교군 조회와 판정이 최대 20ms쯤 걸려 5개마다 이벤트 루프에 양보
 const pause = () => new Promise((r) => setImmediate(r));
 
-// 비교군 계정 전체에 판정을 돌려 배지별 비율을 저장. 1분 남짓 걸리고 하루 한 번
+const kst = (ms: number) => new Date(ms + 9 * 60 * 60 * 1000);
+
+// 비교군 계정 전체에 판정을 돌려 배지별 비율을 저장. 1분 남짓 걸려 이용자가 적은 오전 5시(KST) 뒤 하루 한 번
 export async function refreshRates(): Promise<void> {
   if (g.__tlRates) return;
   const last = getMeta(RATES_KEY);
-  if (last && Date.now() - (JSON.parse(last) as BadgeRates).at < 24 * 60 * 60 * 1000) return;
+  const now = kst(Date.now());
+  if (last && (now.getUTCHours() < 5 || kst((JSON.parse(last) as BadgeRates).at).toISOString().slice(0, 10) === now.toISOString().slice(0, 10))) return;
   g.__tlRates = true;
   try {
     const modes = {} as Record<RateMode, BadgeRates["modes"][RateMode]>;
@@ -152,7 +155,7 @@ export async function refreshRates(): Promise<void> {
       const rows = db().prepare(`SELECT ${COLS} FROM baseline WHERE mode = ? AND n > 0`).all(key) as Row[];
       const states: Verdict["state"][] = [];
       for (let i = 0; i < rows.length; i++) {
-        if (i % 25 === 0) await pause();
+        if (i % 5 === 0) await pause();
         const { rows: p, width } = peers(key, rows[i].aid, rows[i]);
         states.push(judge("eft", rows[i], p, width).state);
       }
@@ -164,7 +167,7 @@ export async function refreshRates(): Promise<void> {
     for (const key of keys) {
       const rows = db().prepare(`SELECT ${COLS} FROM baseline WHERE mode = ? AND n >= ?`).all(key, MIN_N) as Row[];
       for (let i = 0; i < rows.length; i++) {
-        if (i % 25 === 0) await pause();
+        if (i % 5 === 0) await pause();
         const { rows: p, width } = peers(key, rows[i].aid, rows[i]);
         parts.set(rows[i].aid, [...(parts.get(rows[i].aid) ?? []), { key, games: rows[i].n, v: judge("arena", rows[i], p, width) }]);
       }
