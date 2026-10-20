@@ -46,7 +46,7 @@ export default function Standings({ result, rules, mode, label }: { result: Grou
             <th scope="col" className="c-bar">
               <Legend rounds={played} advance={advance} />
             </th>
-            <th scope="col" className="r c-extra" title="1위 횟수">1위</th>
+            <th scope="col" className="r c-extra">1위 횟수</th>
             <th scope="col" className="r c-extra">순위 점수</th>
             <th scope="col" className="r c-ks">{killLabel}</th>
             {anyPenalty && <th scope="col" className="r c-pen">감점</th>}

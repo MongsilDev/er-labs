@@ -344,10 +344,16 @@ export default function TournamentApp({ initial, groupIdx, basePath, created = f
           <Details result={result} rules={view.rules} />
         </div>
         {operator && (
-          <div className="grid min-w-0 gap-3 max-[1100px]:order-1 max-[1100px]:grid-cols-[minmax(0,1fr)]">
-            <Penalties group={group} result={result} rules={view.rules} run={run} />
-            <Teams group={group} result={result} mode={view.mode} rules={view.rules} run={run} />
-            {view.logs && <Logs logs={view.logs} now={now} />}
+          <div className="grid min-w-0 gap-3 max-[1100px]:contents">
+            <div className="grid min-w-0 gap-3 max-[1100px]:order-1">
+              <Penalties group={group} result={result} rules={view.rules} run={run} />
+              <Teams group={group} result={result} mode={view.mode} rules={view.rules} run={run} />
+            </div>
+            {view.logs && (
+              <div className="min-w-0 max-[1100px]:order-3">
+                <Logs logs={view.logs} now={now} />
+              </div>
+            )}
           </div>
         )}
       </div>

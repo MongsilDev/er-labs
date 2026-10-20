@@ -144,7 +144,7 @@ export default function Rounds({ group, result, mode, planned, multi, editable, 
               </>
             )}
           </dl>
-          {editable && (
+          {editable && !drop && (
             <div className="mt-auto flex flex-wrap gap-x-3 gap-y-1 max-[760px]:*:min-h-8">
               <button type="button" className="link" onClick={() => pickFiles(next.roundNo)}>CSV 올리기</button>
               <button type="button" className="link" onClick={() => openManual(next.roundNo)}>직접 입력</button>

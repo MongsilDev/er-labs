@@ -105,27 +105,30 @@ export default function RulesFields({ rules, mode, rounds, onChange }: { rules: 
             )}
           </div>
           {cp.type === "sequential" && (
-            <div className="mt-2.5 grid grid-cols-4 gap-2 [&>label]:grid [&>label]:gap-1 [&>label]:text-[12px] [&>label]:text-fg-3">
-              {Array.from({ length: rounds }, (_, i) => (
-                <label key={i}>
-                  <span>{i + 1}R 시작</span>
-                  <input
-                    className="field sm"
-                    type="number"
-                    inputMode="numeric"
-                    min={0}
-                    max={LIMITS.teamsPerGroup}
-                    aria-label={`${i + 1}라운드 시작 때 체크포인트 팀 수`}
-                    value={cp.sequence[i] ?? cp.sequence[cp.sequence.length - 1] ?? 0}
-                    onChange={(e) => {
-                      const seq = Array.from({ length: rounds }, (_, k) => cp.sequence[k] ?? cp.sequence[cp.sequence.length - 1] ?? 0);
-                      seq[i] = Math.max(0, Math.min(LIMITS.teamsPerGroup, Number(e.target.value) || 0));
-                      set("checkpoint", { ...cp, sequence: seq });
-                    }}
-                  />
-                </label>
-              ))}
-            </div>
+            <>
+              <p className="mt-2.5 text-[12px] text-fg-3">라운드를 시작할 때 체크포인트를 받는 팀 수</p>
+              <div className="mt-1.5 grid grid-cols-4 gap-2 [&>label]:grid [&>label]:gap-1 [&>label]:text-[12px] [&>label]:text-fg-3">
+                {Array.from({ length: rounds }, (_, i) => (
+                  <label key={i}>
+                    <span>{i + 1}R 시작</span>
+                    <input
+                      className="field sm"
+                      type="number"
+                      inputMode="numeric"
+                      min={0}
+                      max={LIMITS.teamsPerGroup}
+                      aria-label={`${i + 1}라운드 시작 때 체크포인트 팀 수`}
+                      value={cp.sequence[i] ?? cp.sequence[cp.sequence.length - 1] ?? 0}
+                      onChange={(e) => {
+                        const seq = Array.from({ length: rounds }, (_, k) => cp.sequence[k] ?? cp.sequence[cp.sequence.length - 1] ?? 0);
+                        seq[i] = Math.max(0, Math.min(LIMITS.teamsPerGroup, Number(e.target.value) || 0));
+                        set("checkpoint", { ...cp, sequence: seq });
+                      }}
+                    />
+                  </label>
+                ))}
+              </div>
+            </>
           )}
           <label className="mt-2.5 flex cursor-pointer items-center gap-2 text-[14px] [&>input]:size-4 [&>input]:accent-accent">
             <input type="checkbox" checked={cp.penaltyKeeps} onChange={(e) => set("checkpoint", { ...cp, penaltyKeeps: e.target.checked })} />
