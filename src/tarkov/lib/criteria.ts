@@ -67,6 +67,16 @@ export function quantile(sorted: number[], q: number): number {
   return sorted[lo] + (sorted[hi] - sorted[lo]) * (pos - lo);
 }
 
+// quantile의 역함수. 같은 값이 여럿이면 가장 낮은 위치로 봐서 경계값과 같으면 그 기준을 넘지 않은 것으로 셈
+export function rank(sorted: number[], v: number): number {
+  const n = sorted.length;
+  if (n < 2 || v <= sorted[0]) return 0;
+  if (v >= sorted[n - 1] && v > sorted[n - 2]) return 1;
+  const i = sorted.findIndex((x) => x >= v);
+  if (sorted[i] === v) return i / (n - 1);
+  return (i - 1 + (v - sorted[i - 1]) / (sorted[i] - sorted[i - 1])) / (n - 1);
+}
+
 export function typical(peers: Sample[]): Typical {
   return {
     kpn: trimmedMean(peers.map((p) => div(p.kills, p.n))),
@@ -77,7 +87,8 @@ export function typical(peers: Sample[]): Typical {
   };
 }
 
-export type MetricResult = { key: string; label: string; family: string; digits: number; value: number; p90: number; p99: number; mean: number; level: 0 | 1 | 2; pair: boolean; far: boolean };
+// top은 비교군 분포에서 이 값보다 위쪽의 비율. p90, p99와 같은 보간이라 상위 10% 값을 넘으면 0.1보다 작음
+export type MetricResult = { key: string; label: string; family: string; digits: number; value: number; p90: number; p99: number; mean: number; top: number; level: 0 | 1 | 2; pair: boolean; far: boolean };
 
 export type Judged = { state: "clear" | "warn" | "alert"; peers: number; width: number; metrics: MetricResult[] };
 export type Unjudged = { state: "none"; reason: "few" | "peers" | "missing" };
@@ -110,7 +121,8 @@ export function judge(kind: Kind, player: Sample, peers: Sample[], width: number
     const p95 = quantile(vals, PAIR);
     const level = v > p99 && p99 > 0 ? 2 : v > p90 && p90 > 0 ? 1 : 0;
     const far = p99 > 0 && v > p99 + (p99 - p90);
-    metrics.push({ key: m.key, label: m.label, family: m.family, digits: m.digits, value: v, p90, p99, mean: trimmedMean(vals), level, pair: p95 > 0 && v > p95, far });
+    const top = 1 - rank(vals, v);
+    metrics.push({ key: m.key, label: m.label, family: m.family, digits: m.digits, value: v, p90, p99, mean: trimmedMean(vals), top, level, pair: p95 > 0 && v > p95, far });
   }
   if (!metrics.length) return { state: "none", reason: "missing" };
   // 운영 비교군 전체에 적용해 이상 수치가 3% 안팎, 높은 수치가 6% 안팎이 되도록 정한 규칙
@@ -122,3 +134,22 @@ export function judge(kind: Kind, player: Sample, peers: Sample[], width: number
 }
 
 export const VERDICT_LABEL = { clear: "특이점 없음", warn: "높은 수치", alert: "이상 수치", none: "판정 불가" } as const;
+
+// 2026-10-20 비교군 계정 전체에 judge를 돌린 결과(%). 아레나는 combine으로 합친 계정 배지
+export const BADGE_RATES = {
+  date: "2026년 10월 20일",
+  modes: {
+    pvp: { label: "PvP", accounts: 16166, clear: 92.1, warn: 5.4, alert: 2.4 },
+    season: { label: "시즌", accounts: 13430, clear: 91.4, warn: 6.0, alert: 2.6 },
+    pve: { label: "PvE", accounts: 11104, clear: 90.7, warn: 6.4, alert: 2.9 },
+    arena: { label: "아레나", accounts: 12478, clear: 90.1, warn: 7.2, alert: 2.7 },
+  },
+} as const;
+
+export type RateMode = keyof typeof BADGE_RATES.modes;
+
+// 상위 1% 안이면 1, 소수점 없이 올림
+export const topPct = (top: number) => Math.max(1, Math.ceil(top * 100 - 1e-9));
+
+// 중앙값 아래는 상위 99%처럼 읽기 어려워 하위로 표시
+export const rankLabel = (top: number) => (top <= 0.5 ? `상위 ${topPct(top)}%` : `하위 ${topPct(1 - top)}%`);

@@ -73,6 +73,20 @@
   flex-wrap: wrap;
   gap: 10px;
 }
+.vrate {
+  font-size: 14px;
+  color: var(--text-2);
+}
+.vrate b {
+  color: var(--text);
+  font-weight: 800;
+}
+.verdict.warn .vrate b {
+  color: var(--warn);
+}
+.verdict.alert .vrate b {
+  color: var(--minus);
+}
 .vpart {
   display: grid;
   gap: 8px;
@@ -98,6 +112,28 @@
   justify-content: space-between;
   gap: 12px;
   font-size: 14px;
+}
+.vbar-name {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+.vtop {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.vtop.low {
+  font-weight: 600;
+  color: var(--text-3);
+}
+.vbars .lv1 .vtop {
+  color: var(--warn);
+}
+.vbars .lv2 .vtop {
+  color: var(--minus);
 }
 .vbar-val {
   display: flex;
@@ -142,7 +178,19 @@
   background: var(--text);
 }
 .vbar .mark.mean {
+  top: -2px;
+  height: 10px;
+  background: var(--text-3);
+}
+.vbar .knob {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border-radius: 50%;
   background: var(--text);
+  box-shadow: 0 0 0 3px var(--surface);
 }
 .vbar .mark.p90,
 .vbar .mark.p99 {

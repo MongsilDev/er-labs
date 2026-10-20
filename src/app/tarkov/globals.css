@@ -652,3 +652,67 @@ table {
   border-color: var(--line-strong);
   color: var(--text);
 }
+
+/* 판정 기준의 배지별 계정 비율 */
+.rates {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 4px 0 10px;
+}
+.rate-row {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.rate-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.rate-cells {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 3px;
+}
+.rate-cells i {
+  aspect-ratio: 1;
+  border-radius: 2px;
+  background: var(--line);
+}
+.rate-cells i.warn {
+  background: var(--warn);
+}
+.rate-cells i.alert {
+  background: var(--minus);
+}
+.rate-nums {
+  display: grid;
+  gap: 2px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.rate-nums span {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.rate-nums b {
+  color: var(--text);
+}
+.rate-nums .warn b {
+  color: var(--warn);
+}
+.rate-nums .alert b {
+  color: var(--minus);
+}
+@media (max-width: 560px) {
+  .rates {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Footer from "@/components/SiteFooter";
 import Header from "@/tarkov/components/Header";
-import { ALERT, METRICS, MIN_N, MIN_PEERS, PAIR, PRIOR, SMOOTHED, TARGET_PEERS, VERDICT_LABEL, WARN, WIDTHS, type Kind } from "@/tarkov/lib/criteria";
+import { ALERT, BADGE_RATES, METRICS, MIN_N, MIN_PEERS, PAIR, PRIOR, SMOOTHED, TARGET_PEERS, VERDICT_LABEL, WARN, WIDTHS, type Kind } from "@/tarkov/lib/criteria";
 import { int } from "@/tarkov/lib/format";
 import { baselineCounts } from "@/tarkov/server/baseline";
 
@@ -16,8 +16,42 @@ const MODES: { kind: Kind; label: string; families: Record<string, string> }[] =
   { kind: "arena", label: "아레나 모드별", families: { kill: "킬", hs: "헤드샷", maxkills: "최다 킬", streak: "연속 킬" } },
 ];
 
-// 2026-10-19 운영 비교군 전체에 판정을 돌린 결과
-const RATES = { warn: "6~8%", alert: "2~4%" } as const;
+const STATES = ["clear", "warn", "alert"] as const;
+
+// 100칸에 나눠 그릴 칸 수. 남는 칸은 소수점이 큰 쪽부터
+function cells(r: Record<(typeof STATES)[number], number>) {
+  const n = STATES.map((k) => Math.floor(r[k]));
+  const left = 100 - n.reduce((a, b) => a + b, 0);
+  [...STATES.keys()].sort((a, b) => (r[STATES[b]] % 1) - (r[STATES[a]] % 1)).slice(0, left).forEach((i) => n[i]++);
+  return STATES.flatMap((k, i) => Array<string>(n[i]).fill(k));
+}
+
+function Rates() {
+  return (
+    <div className="rates">
+      {Object.entries(BADGE_RATES.modes).map(([key, r]) => (
+        <div key={key} className="rate-row">
+          <div className="rate-head">
+            <b>{r.label}</b>
+            <span className="small muted num">{int(r.accounts)}명</span>
+          </div>
+          <div className="rate-cells" role="img" aria-label={`${r.label} ${STATES.map((k) => `${VERDICT_LABEL[k]} ${r[k]}%`).join(", ")}`}>
+            {cells(r).map((k, i) => (
+              <i key={i} className={k} />
+            ))}
+          </div>
+          <div className="rate-nums num">
+            {STATES.map((k) => (
+              <span key={k} className={k}>
+                {VERDICT_LABEL[k]} <b>{r[k].toFixed(1)}%</b>
+              </span>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function Criteria() {
   const counts = baselineCounts();
@@ -89,8 +123,6 @@ export default function Criteria() {
         </div>
         <p className="doc-note">
           &quot;크게 넘음&quot;은 상위 {pct(ALERT)} 값에 상위 {pct(WARN)}와 {pct(ALERT)} 값의 차이를 더한 값보다 높다는 뜻입니다.
-          <br />
-          2026년 10월 19일 비교군 전체에 이 기준을 적용하면 {VERDICT_LABEL.warn}를 받는 계정은 {RATES.warn}, {VERDICT_LABEL.alert}를 받는 계정은 {RATES.alert}입니다.
         </p>
 
         <h2>아레나 계정 배지</h2>
@@ -119,6 +151,11 @@ export default function Criteria() {
             </tbody>
           </table>
         </div>
+
+        <h2>배지별 계정 비율</h2>
+        <p>비교군 계정 100명 가운데 배지마다 몇 명인지 한 칸에 한 명씩 표시합니다.</p>
+        <Rates />
+        <p className="doc-note">{BADGE_RATES.date} 비교군 계정 전체에 이 기준을 적용한 결과이며, {VERDICT_LABEL.none}인 계정은 빼고 셌습니다.</p>
 
         <h2>지표</h2>
         <div className="doc-table">
@@ -154,6 +191,8 @@ export default function Criteria() {
         </div>
         <p className="doc-note">
           같은 묶음의 지표는 같은 기록으로 계산해 함께 오르내리므로 하나로 셉니다.
+          <br />
+          계정 화면의 상위 N%는 비교군에서 그 계정보다 값이 높은 계정의 비율이고, 중앙값보다 낮으면 하위 N%로 표시합니다.
           <br />* 표시 지표는 비교군 평균 기록 {PRIOR}판을 더한 보정값으로 비교해, 판수가 적은 계정이 몇 판의 운으로 높게 판정되지 않게 합니다.
         </p>
 

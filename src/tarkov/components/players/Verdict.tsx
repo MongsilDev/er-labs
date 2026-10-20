@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SMOOTHED, VERDICT_LABEL, WIDTHS, type Judged, type MetricResult, type Verdict as V } from "@/tarkov/lib/criteria";
+import { BADGE_RATES, rankLabel, SMOOTHED, VERDICT_LABEL, WIDTHS, type Judged, type MetricResult, type RateMode, type Verdict as V } from "@/tarkov/lib/criteria";
 import { dec, pct } from "@/tarkov/lib/format";
 import { arenaModeLabel } from "@/tarkov/lib/labels";
 
@@ -27,7 +27,10 @@ function Bars({ metrics }: { metrics: MetricResult[] }) {
         return (
           <li key={m.key} className={m.level === 2 ? "lv2" : m.level === 1 ? "lv1" : undefined}>
             <div className="vbar-head">
-              <b>{m.label}</b>
+              <span className="vbar-name">
+                <b>{m.label}</b>
+                <span className={m.top > 0.5 ? "vtop num low" : "vtop num"}>{rankLabel(m.top)}</span>
+              </span>
               <span className="vbar-val">
                 {SMOOTHED.has(m.key) && <span className="small muted">보정값</span>}
                 <span className="num strong">{show(m.key, m.value, m.digits)}</span>
@@ -38,6 +41,7 @@ function Bars({ metrics }: { metrics: MetricResult[] }) {
               <i className="mark mean" style={{ left: at(m.mean) }} />
               <i className="mark p90" style={{ left: at(m.p90) }} />
               <i className="mark p99" style={{ left: at(m.p99) }} />
+              <i className="knob" style={{ left: at(m.value) }} />
             </div>
             <div className="vbar-foot small muted num">
               <span>평균 {show(m.key, m.mean, m.digits)}</span>
@@ -51,20 +55,53 @@ function Bars({ metrics }: { metrics: MetricResult[] }) {
   );
 }
 
-const range = (v: Judged, unit: string) => `${unit}가 ±${Math.round(v.width * 100)}% 안인 계정 ${v.peers.toLocaleString("en-US")}명과 비교했습니다.`;
+const range = (v: Judged, unit: string) => `${unit}가 ±${Math.round(v.width * 100)}% 안인 계정 ${v.peers.toLocaleString("en-US")}명과 비교한 순위입니다.`;
+
+// 배지와 지표 색이 달라 보이는 경우의 이유
+const oneFamily = (v: Judged) => v.state === "clear" && v.metrics.some((m) => m.level > 0);
+
+function Sub({ v, unit }: { v: Judged; unit: string }) {
+  return (
+    <p className="sub">
+      {range(v, unit)}
+      {v.width > WIDTHS[0] && (
+        <>
+          <br />
+          비슷한 계정이 적어 범위를 넓혔습니다.
+        </>
+      )}
+      {oneFamily(v) && (
+        <>
+          <br />
+          상위 10%를 넘은 지표가 한 묶음뿐이라 {VERDICT_LABEL.clear}으로 판정했습니다.
+        </>
+      )}
+    </p>
+  );
+}
 
 export default function Verdict({ v, mode, official }: { v: V; mode: string; official: boolean }) {
   const arena = mode === "arena";
+  const rate = v.state !== "none" ? BADGE_RATES.modes[mode as RateMode] : undefined;
+  const mixed = v.state === "warn" && v.parts?.some((p) => p.v.state === "alert");
   return (
     <section className={`panel verdict ${v.state}`}>
       <div className="vhead">
         <span className={`badge ${v.state}`}>{VERDICT_LABEL[v.state]}</span>
         {official && <span className="chip official">공인 계정</span>}
-        <span className="small muted">통계로 낸 판정이며 증거가 아닙니다.</span>
+        {rate && v.state !== "none" && (
+          <span className="vrate">
+            {rate.label} 비교군 계정의 <b className="num">{Math.round(rate[v.state])}%</b>가 받는 배지
+          </span>
+        )}
+      </div>
+      <p className="small muted">
+        통계로 낸 판정이며 증거가 아닙니다.{" "}
         <Link className="link" href="/tarkov/criteria">
           판정 기준
         </Link>
-      </div>
+      </p>
+      {mixed && <p className="sub">{VERDICT_LABEL.alert}인 모드가 있지만 모든 모드가 {VERDICT_LABEL.warn} 이상은 아니라 {VERDICT_LABEL.warn}로 판정했습니다.</p>}
       {v.state === "none" ? (
         <p className="sub">{(arena ? ARENA_REASON : REASON)[v.reason]}</p>
       ) : v.parts ? (
@@ -79,15 +116,7 @@ export default function Verdict({ v, mode, official }: { v: V; mode: string; off
               <p className="sub">{ARENA_REASON[p.v.reason]}</p>
             ) : (
               <>
-                <p className="sub">
-                  {range(p.v, "이 모드의 경기 수")}
-                  {p.v.width > WIDTHS[0] && (
-                    <>
-                      <br />
-                      비슷한 계정이 적어 범위를 넓혔습니다.
-                    </>
-                  )}
-                </p>
+                <Sub v={p.v} unit="이 모드의 경기 수" />
                 <Bars metrics={p.v.metrics} />
               </>
             )}
@@ -95,15 +124,7 @@ export default function Verdict({ v, mode, official }: { v: V; mode: string; off
         ))
       ) : (
         <>
-          <p className="sub">
-            {range(v, "플레이 시간과 레이드 수")}
-            {v.width > WIDTHS[0] && (
-              <>
-                <br />
-                비슷한 계정이 적어 범위를 넓혔습니다.
-              </>
-            )}
-          </p>
+          <Sub v={v} unit="플레이 시간과 레이드 수" />
           <Bars metrics={v.metrics} />
         </>
       )}
