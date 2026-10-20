@@ -712,11 +712,6 @@ export default async function Profile({ params, searchParams }: Props) {
                 </span>
               ))}
               <span className="pid muted num">#{aid}</span>
-              {history.length > 0 && (
-                <a className="chip hop" href="#names">
-                  닉네임 변경 {history.length}회
-                </a>
-              )}
             </div>
             <dl className="pmeta">
               {eft && (
@@ -809,8 +804,8 @@ export default async function Profile({ params, searchParams }: Props) {
         )}
 
         {history.length > 0 && (
-          <section className="block" id="names">
-            <h2 className="h2">닉네임 변경</h2>
+          <section className="block">
+            <h2 className="h2">닉네임 변경 내역</h2>
             <div className="table-scroll panel">
               <table className="grid-table">
                 <thead>

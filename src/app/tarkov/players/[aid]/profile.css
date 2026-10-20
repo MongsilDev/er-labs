@@ -797,13 +797,6 @@
   font-size: 14px;
   font-weight: 600;
 }
-.chip.hop {
-  text-decoration: none;
-}
-.chip.hop:hover {
-  border-color: var(--line-strong);
-  color: var(--text);
-}
 .pfresh {
   display: flex;
   flex-wrap: wrap;
