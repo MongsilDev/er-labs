@@ -1,4 +1,4 @@
-// json.tarkov.dev에서 레벨 표, 업적, 시즌 특성을 받아 src/tarkov/data에, 아이콘은 public/kord/perks와 public/img에 저장
+// json.tarkov.dev에서 레벨 표, 아이템 이름, 스킬, 숙련, 레벨 배지, 업적, 시즌 특성을 받아 src/tarkov/data에, 아이콘은 public/kord/perks와 public/img에 저장
 // 아이콘 축소에 macOS sips를 씀
 import { execFileSync } from "node:child_process";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
