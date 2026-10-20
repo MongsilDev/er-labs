@@ -135,18 +135,30 @@ export function judge(kind: Kind, player: Sample, peers: Sample[], width: number
 
 export const VERDICT_LABEL = { clear: "특이점 없음", warn: "높은 수치", alert: "이상 수치", none: "판정 불가" } as const;
 
-// 2026-10-20 비교군 계정 전체에 judge를 돌린 결과(%). 아레나는 combine으로 합친 계정 배지. 갱신은 scripts/tarkov/rates.mts
-export const BADGE_RATES = {
-  date: "2026년 10월 20일",
-  modes: {
-    pvp: { label: "PvP", accounts: 16166, clear: 92.1, warn: 5.4, alert: 2.4 },
-    season: { label: "시즌", accounts: 13430, clear: 91.4, warn: 6.0, alert: 2.6 },
-    pve: { label: "PvE", accounts: 11104, clear: 90.7, warn: 6.4, alert: 2.9 },
-    arena: { label: "아레나", accounts: 12478, clear: 90.1, warn: 7.2, alert: 2.7 },
-  },
-} as const;
+export type RateMode = "pvp" | "season" | "pve" | "arena";
+export type ModeRate = { accounts: number; clear: number; warn: number; alert: number };
+export type BadgeRates = { at: number; modes: Record<RateMode, ModeRate> };
+export const RATE_LABEL: Record<RateMode, string> = { pvp: "PvP", season: "시즌", pve: "PvE", arena: "아레나" };
 
-export type RateMode = keyof typeof BADGE_RATES.modes;
+// 서버가 처음 계산하기 전에 쓰는 2026-10-20 비교군 전체 결과
+export const BADGE_RATES_SEED: BadgeRates = {
+  at: Date.UTC(2026, 9, 20, 5),
+  modes: {
+    pvp: { accounts: 16166, clear: 92.1, warn: 5.4, alert: 2.4 },
+    season: { accounts: 13430, clear: 91.4, warn: 6.0, alert: 2.6 },
+    pve: { accounts: 11104, clear: 90.7, warn: 6.4, alert: 2.9 },
+    arena: { accounts: 12478, clear: 90.1, warn: 7.2, alert: 2.7 },
+  },
+};
+
+// 판정 불가는 빼고 소수 첫째 자리 비율(%)
+export function shareOf(states: Verdict["state"][]): ModeRate {
+  const n = { clear: 0, warn: 0, alert: 0 };
+  for (const s of states) if (s !== "none") n[s]++;
+  const accounts = n.clear + n.warn + n.alert;
+  const r = (k: keyof typeof n) => (accounts ? Math.round((n[k] / accounts) * 1000) / 10 : 0);
+  return { accounts, clear: r("clear"), warn: r("warn"), alert: r("alert") };
+}
 
 // 상위 1% 안이면 1, 소수점 없이 올림
 export const topPct = (top: number) => Math.max(1, Math.ceil(top * 100 - 1e-9));

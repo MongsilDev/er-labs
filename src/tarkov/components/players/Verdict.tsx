@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BADGE_RATES, rankLabel, SMOOTHED, VERDICT_LABEL, WIDTHS, type Judged, type MetricResult, type RateMode, type Verdict as V } from "@/tarkov/lib/criteria";
+import { RATE_LABEL, rankLabel, SMOOTHED, VERDICT_LABEL, WIDTHS, type Judged, type MetricResult, type ModeRate, type RateMode, type Verdict as V } from "@/tarkov/lib/criteria";
 import { dec, pct } from "@/tarkov/lib/format";
 import { arenaModeLabel } from "@/tarkov/lib/labels";
 
@@ -80,9 +80,8 @@ function Sub({ v, unit }: { v: Judged; unit: string }) {
   );
 }
 
-export default function Verdict({ v, mode, official }: { v: V; mode: string; official: boolean }) {
+export default function Verdict({ v, mode, official, rate }: { v: V; mode: string; official: boolean; rate?: ModeRate }) {
   const arena = mode === "arena";
-  const rate = v.state !== "none" ? BADGE_RATES.modes[mode as RateMode] : undefined;
   const mixed = v.state === "warn" && v.parts?.some((p) => p.v.state === "alert");
   return (
     <section className={`panel verdict ${v.state}`}>
@@ -91,7 +90,7 @@ export default function Verdict({ v, mode, official }: { v: V; mode: string; off
         {official && <span className="chip official">공인 계정</span>}
         {rate && v.state !== "none" && (
           <span className="vrate">
-            {rate.label} 비교군 계정의 <b className="num">{Math.round(rate[v.state])}%</b>가 받는 배지
+            {RATE_LABEL[mode as RateMode]} 비교군 계정의 <b className="num">{Math.round(rate[v.state])}%</b>가 받는 배지
           </span>
         )}
       </div>

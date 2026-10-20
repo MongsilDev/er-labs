@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { quantile, rank, rankLabel, topPct } from "@/tarkov/lib/criteria";
+import { quantile, rank, rankLabel, shareOf, topPct } from "@/tarkov/lib/criteria";
 
 describe("상위 N%", () => {
   it("상위 10%, 1% 값과 같은 기준", () => {
@@ -25,5 +25,14 @@ describe("순위 문구", () => {
     expect(rankLabel(0.5)).toBe("상위 50%");
     expect(rankLabel(0.97)).toBe("하위 3%");
     expect(rankLabel(1)).toBe("하위 1%");
+  });
+});
+
+describe("배지별 비율", () => {
+  it("판정 불가는 빼고 소수 첫째 자리", () => {
+    const states = [...Array(90).fill("clear"), ...Array(7).fill("warn"), ...Array(3).fill("alert"), ...Array(40).fill("none")];
+    expect(shareOf(states)).toEqual({ accounts: 100, clear: 90, warn: 7, alert: 3 });
+    expect(shareOf(["clear", "clear", "warn"]).warn).toBe(33.3);
+    expect(shareOf([]).accounts).toBe(0);
   });
 });

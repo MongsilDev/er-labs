@@ -1,10 +1,10 @@
 import "server-only";
 import { captureException } from "@sentry/node";
-import { combine, judge, MIN_N, TARGET_PEERS, WIDTHS, type Sample, type Verdict } from "@/tarkov/lib/criteria";
+import { BADGE_RATES_SEED, combine, judge, MIN_N, shareOf, TARGET_PEERS, WIDTHS, type BadgeRates, type RateMode, type Sample, type Verdict, type VerdictPart } from "@/tarkov/lib/criteria";
 import { MODES, type Mode } from "@/tarkov/lib/modes";
 import { modeSample, toSample } from "@/tarkov/lib/sample";
 import { parse, type Summary } from "@/tarkov/lib/summary";
-import { db } from "./db";
+import { db, getMeta, setMeta } from "./db";
 import { fetchProfile, Upstream } from "./upstream";
 
 // 최근 30일 안에 갱신된 계정을 천천히 받아 비교군을 만듦. 숫자만 저장
@@ -39,7 +39,7 @@ function candidates(mode: Mode, limit: number): { aid: number; u: number }[] {
     .all(mode.key, Date.now() - WINDOW, limit) as { aid: number; u: number }[];
 }
 
-const g = globalThis as unknown as { __tlCrawling?: boolean };
+const g = globalThis as unknown as { __tlCrawling?: boolean; __tlRates?: boolean; __tlRatesCache?: { raw: string; v: BadgeRates } };
 
 export async function crawl(): Promise<number> {
   if (g.__tlCrawling) return 0;
@@ -124,4 +124,58 @@ export function baselineAccounts(): number {
 export function baselineCounts(): Record<string, number> {
   const rows = db().prepare(`SELECT mode, COUNT(*) AS c FROM baseline WHERE n > 0 AND mode NOT LIKE '${ARENA_PREFIX}%' GROUP BY mode`).all() as { mode: string; c: number }[];
   return Object.fromEntries(rows.map((r) => [r.mode, r.c]));
+}
+
+const RATES_KEY = "badge_rates";
+const COLS = "aid, hours, n, kills, deaths, survived, streak, headshots, max_game_kills AS maxGameKills";
+type Row = Sample & { aid: number };
+
+export function badgeRates(): BadgeRates {
+  const raw = getMeta(RATES_KEY);
+  if (!raw) return BADGE_RATES_SEED;
+  if (g.__tlRatesCache?.raw !== raw) g.__tlRatesCache = { raw, v: JSON.parse(raw) as BadgeRates };
+  return g.__tlRatesCache.v;
+}
+
+// 계정마다 비교군 조회와 판정에 몇 ms씩 걸려 25개마다 이벤트 루프에 양보
+const pause = () => new Promise((r) => setImmediate(r));
+
+// 비교군 계정 전체에 판정을 돌려 배지별 비율을 저장. 1분 남짓 걸리고 하루 한 번
+export async function refreshRates(): Promise<void> {
+  if (g.__tlRates) return;
+  const last = getMeta(RATES_KEY);
+  if (last && Date.now() - (JSON.parse(last) as BadgeRates).at < 24 * 60 * 60 * 1000) return;
+  g.__tlRates = true;
+  try {
+    const modes = {} as Record<RateMode, BadgeRates["modes"][RateMode]>;
+    for (const key of ["pvp", "season", "pve"] as const) {
+      const rows = db().prepare(`SELECT ${COLS} FROM baseline WHERE mode = ? AND n > 0`).all(key) as Row[];
+      const states: Verdict["state"][] = [];
+      for (let i = 0; i < rows.length; i++) {
+        if (i % 25 === 0) await pause();
+        const { rows: p, width } = peers(key, rows[i].aid, rows[i]);
+        states.push(judge("eft", rows[i], p, width).state);
+      }
+      modes[key] = shareOf(states);
+    }
+    // 아레나는 계정마다 모드별 판정을 합친 배지
+    const keys = (db().prepare(`SELECT DISTINCT mode FROM baseline WHERE mode LIKE '${ARENA_PREFIX}%' AND mode != '${ARENA_PREFIX}-'`).all() as { mode: string }[]).map((r) => r.mode);
+    const parts = new Map<number, VerdictPart[]>();
+    for (const key of keys) {
+      const rows = db().prepare(`SELECT ${COLS} FROM baseline WHERE mode = ? AND n >= ?`).all(key, MIN_N) as Row[];
+      for (let i = 0; i < rows.length; i++) {
+        if (i % 25 === 0) await pause();
+        const { rows: p, width } = peers(key, rows[i].aid, rows[i]);
+        parts.set(rows[i].aid, [...(parts.get(rows[i].aid) ?? []), { key, games: rows[i].n, v: judge("arena", rows[i], p, width) }]);
+      }
+    }
+    modes.arena = shareOf([...parts.values()].map((ps) => combine(ps).state));
+    setMeta(RATES_KEY, JSON.stringify({ at: Date.now(), modes }));
+    console.log(`[배지 비율] 갱신 PvP 높은 수치 ${modes.pvp.warn}%, 이상 수치 ${modes.pvp.alert}%`);
+  } catch (e) {
+    console.error("[배지 비율] 실패", e);
+    captureException(e);
+  } finally {
+    g.__tlRates = false;
+  }
 }

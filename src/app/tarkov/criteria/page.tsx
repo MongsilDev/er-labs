@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Footer from "@/components/SiteFooter";
 import Header from "@/tarkov/components/Header";
-import { ALERT, BADGE_RATES, METRICS, MIN_N, MIN_PEERS, PAIR, PRIOR, SMOOTHED, TARGET_PEERS, VERDICT_LABEL, WARN, WIDTHS, type Kind } from "@/tarkov/lib/criteria";
+import { ALERT, METRICS, MIN_N, MIN_PEERS, PAIR, PRIOR, RATE_LABEL, SMOOTHED, TARGET_PEERS, VERDICT_LABEL, WARN, WIDTHS, type BadgeRates, type Kind, type RateMode } from "@/tarkov/lib/criteria";
 import { int } from "@/tarkov/lib/format";
-import { baselineCounts } from "@/tarkov/server/baseline";
+import { badgeRates, baselineCounts } from "@/tarkov/server/baseline";
 
 export const dynamic = "force-dynamic";
 
@@ -26,16 +26,18 @@ function cells(r: Record<(typeof STATES)[number], number>) {
   return STATES.flatMap((k, i) => Array<string>(n[i]).fill(k));
 }
 
-function Rates() {
+const day = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "long", day: "numeric" });
+
+function Rates({ rates }: { rates: BadgeRates }) {
   return (
     <div className="rates">
-      {Object.entries(BADGE_RATES.modes).map(([key, r]) => (
+      {(Object.keys(RATE_LABEL) as RateMode[]).map((key) => [key, rates.modes[key]] as const).map(([key, r]) => (
         <div key={key} className="rate-row">
           <div className="rate-head">
-            <b>{r.label}</b>
+            <b>{RATE_LABEL[key]}</b>
             <span className="small muted num">{int(r.accounts)}명 판정</span>
           </div>
-          <div className="rate-cells" role="img" aria-label={`${r.label} ${STATES.map((k) => `${VERDICT_LABEL[k]} ${r[k]}%`).join(", ")}`}>
+          <div className="rate-cells" role="img" aria-label={`${RATE_LABEL[key]} ${STATES.map((k) => `${VERDICT_LABEL[k]} ${r[k]}%`).join(", ")}`}>
             {cells(r).map((k, i) => (
               <i key={i} className={k === "clear" ? undefined : k} />
             ))}
@@ -55,6 +57,7 @@ function Rates() {
 
 export default function Criteria() {
   const counts = baselineCounts();
+  const rates = badgeRates();
   return (
     <>
       <Header crumb={{ href: "/tarkov/players", label: "계정 조회" }} />
@@ -154,8 +157,12 @@ export default function Criteria() {
 
         <h2>배지별 계정 비율</h2>
         <p>비교군 계정 100명 가운데 배지마다 몇 명인지 한 칸에 한 명씩 표시합니다.</p>
-        <Rates />
-        <p className="doc-note">{BADGE_RATES.date} 비교군 계정 전체에 이 기준을 적용한 결과이며, {VERDICT_LABEL.none}인 계정은 빼고 셌습니다.</p>
+        <Rates rates={rates} />
+        <p className="doc-note">
+          {day.format(rates.at)} 비교군 계정 전체에 이 기준을 적용한 결과이며, 하루 한 번 다시 계산합니다.
+          <br />
+          {VERDICT_LABEL.none}인 계정은 빼고 셌습니다.
+        </p>
 
         <h2>지표</h2>
         <div className="doc-table">

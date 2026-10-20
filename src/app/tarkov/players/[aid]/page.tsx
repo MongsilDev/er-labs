@@ -19,7 +19,7 @@ import { MODES, pickMode, tarkovDevUrl } from "@/tarkov/lib/modes";
 import { PERK, encodeBuild, type Perk } from "@/tarkov/lib/kord";
 import { ARENA_PASSES, LEAGUE, leagueLabel } from "@/tarkov/lib/season";
 import { achievementInfo, type ArenaSummary, type EftSummary, type Progress, type Summary } from "@/tarkov/lib/summary";
-import { verdict } from "@/tarkov/server/baseline";
+import { badgeRates, verdict } from "@/tarkov/server/baseline";
 import { isHidden } from "@/tarkov/server/db";
 import { account, displayName, load, nameHistory, snapshots } from "@/tarkov/server/profiles";
 import "./profile.css";
@@ -694,7 +694,7 @@ export default async function Profile({ params, searchParams }: Props) {
 
         {s && (
           <>
-            {v && <Verdict v={v} mode={mode.key} official={chips.some((c) => c.official)} />}
+            {v && <Verdict v={v} mode={mode.key} official={chips.some((c) => c.official)} rate={badgeRates().modes[mode.key]} />}
             {s.kind === "eft" ? <EftStats s={s} hide={barred} /> : <ArenaStats s={s} hide={barred} />}
             {eft && <SeasonProgress s={eft} />}
             {s.kind === "arena" && <ArenaPasses s={s} />}
