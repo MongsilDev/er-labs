@@ -70,7 +70,7 @@ export async function exchange(code: string): Promise<User | null> {
     signal: AbortSignal.timeout(10_000),
   });
   if (!me.ok) {
-    console.warn(`[로그인] 사용자 정보 실패 ${me.status}`);
+    console.warn(`[로그인] 사용자 정보 조회 실패 ${me.status}`);
     return null;
   }
   const u = (await me.json()) as { id: string; username: string; global_name?: string | null; avatar?: string | null };

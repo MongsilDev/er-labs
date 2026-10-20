@@ -35,7 +35,7 @@ for (const [i, id] of FINALS.entries()) {
     .map((p) => {
       const tag = p.nickname.split("_")[0];
       const team = TEAMS[tag];
-      if (!team) throw new Error(`모르는 팀 ${p.nickname}`);
+      if (!team) throw new Error(`TEAMS에 없는 팀 ${p.nickname}`);
       const s = score.get(p.teamNumber);
       return {
         nickname: p.nickname,
