@@ -59,8 +59,8 @@ function stats(s: Summary): [string, string, string?][] {
     return [
       ["K/D", dec(div(t?.kills, t?.deaths))],
       ["헤드샷 비율", pct(div(t?.headshots, t?.kills))],
-      ["한 경기 최다 킬", int(t?.maxGameKills)],
-      ["경기", int(t?.games)],
+      ["한 매치 최다 킬", int(t?.maxGameKills)],
+      ["매치", int(t?.games)],
     ];
   }
   return [

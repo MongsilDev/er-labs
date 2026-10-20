@@ -110,7 +110,7 @@ export default function Criteria() {
                   <span className="badge sm none">{VERDICT_LABEL.none}</span>
                 </td>
                 <td>
-                  레이드나 경기가 {MIN_N}회 미만
+                  레이드나 매치가 {MIN_N}회 미만
                   <br />
                   또는 비슷한 계정이 {MIN_PEERS}명 미만
                 </td>
@@ -129,7 +129,7 @@ export default function Criteria() {
         </p>
 
         <h2>아레나 계정 배지</h2>
-        <p>아레나는 {MIN_N}경기 이상 플레이한 모드마다 따로 판정한 뒤 결과를 합칩니다.</p>
+        <p>아레나는 {MIN_N}매치 이상 플레이한 모드마다 따로 판정한 뒤 결과를 합칩니다.</p>
         <div className="doc-table">
           <table>
             <tbody>
@@ -205,7 +205,7 @@ export default function Criteria() {
 
         <h2>비교군과 데이터</h2>
         <p>
-          시즌, PvP, PvE는 레이드 수와 플레이 시간이, 아레나는 같은 모드의 경기 수가 ±{Math.round(WIDTHS[0] * 100)}% 안인 계정과 비교합니다.
+          시즌, PvP, PvE는 레이드 수와 플레이 시간이, 아레나는 같은 모드의 매치 수가 ±{Math.round(WIDTHS[0] * 100)}% 안인 계정과 비교합니다.
           <br />
           비슷한 계정이 {TARGET_PEERS}명보다 적으면 ±{Math.round(WIDTHS[WIDTHS.length - 1] * 100)}%까지 범위를 넓힙니다.
           <br />

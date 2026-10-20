@@ -43,9 +43,9 @@ export const METRICS: Record<Kind, Metric[]> = {
   // 아레나는 모드마다 따로 비교. 모드별 플레이 시간이 없어 시간당 킬 대신 경기당 킬
   arena: [
     { key: "kd", label: "K/D", family: "kill", digits: 2, value: (s, t) => div(s.kills + PRIOR * t.kpn, Math.max(1, s.deaths + PRIOR * t.dpn)) },
-    { key: "kpm", family: "kill", label: "경기당 킬", digits: 1, value: (s, t) => div(s.kills + PRIOR * t.kpn, s.n + PRIOR) },
+    { key: "kpm", family: "kill", label: "매치당 킬", digits: 1, value: (s, t) => div(s.kills + PRIOR * t.kpn, s.n + PRIOR) },
     { key: "hs", family: "hs", label: "헤드샷 비율", digits: 3, value: (s, t) => div(s.headshots + 100 * t.hsr, s.kills + 100) },
-    { key: "maxkills", family: "maxkills", label: "한 경기 최다 킬", digits: 0, value: (s) => s.maxGameKills },
+    { key: "maxkills", family: "maxkills", label: "한 매치 최다 킬", digits: 0, value: (s) => s.maxGameKills },
     { key: "streak", family: "streak", label: "최고 연속 킬", digits: 0, value: (s) => s.streak },
   ],
 };

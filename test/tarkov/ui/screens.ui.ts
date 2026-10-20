@@ -247,7 +247,7 @@ describe("화면 점검", () => {
     await page.context().close();
   });
 
-  it("아레나 판정은 30경기 이상 한 모드마다 따로 나온다", async () => {
+  it("아레나 판정은 30매치 이상 한 모드마다 따로 나온다", async () => {
     const { page } = await open(SCREENS.find((s) => s.name === "프로필 아레나")!, 1440, "dark");
     try {
       await expect(page.locator(".vpart-head b").allTextContents()).resolves.toEqual(["LastHero", "CheckPoint"]);

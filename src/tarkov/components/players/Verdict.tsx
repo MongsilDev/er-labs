@@ -10,7 +10,7 @@ const REASON = {
 } as const;
 
 const ARENA_REASON = {
-  few: "30경기 이상 플레이한 모드가 없어 판정하지 않습니다.",
+  few: "30매치 이상 플레이한 모드가 없어 판정하지 않습니다.",
   peers: "같은 모드에서 비교할 비슷한 계정이 30명보다 적어 판정하지 않습니다.",
   missing: "판정에 필요한 값이 없습니다.",
 } as const;
@@ -80,6 +80,9 @@ function Sub({ v, unit }: { v: Judged; unit: string }) {
   );
 }
 
+const RANK = { alert: 3, warn: 2, clear: 1, none: 0 } as const;
+const openPart = (parts: { key: string; v: { state: keyof typeof RANK } }[]) => parts.reduce((a, p) => (RANK[p.v.state] > RANK[a.v.state] ? p : a)).key;
+
 export default function Verdict({ v, mode, official, rate }: { v: V; mode: string; official: boolean; rate?: ModeRate }) {
   const arena = mode === "arena";
   const mixed = v.state === "warn" && v.parts?.some((p) => p.v.state === "alert");
@@ -107,21 +110,22 @@ export default function Verdict({ v, mode, official, rate }: { v: V; mode: strin
         <p className="sub">{(arena ? ARENA_REASON : REASON)[v.reason]}</p>
       ) : v.parts ? (
         v.parts.map((p) => (
-          <div key={p.key} className="vpart">
-            <div className="vpart-head">
+          // 모드가 여럿이면 막대가 화면을 다 차지해 가장 높은 판정의 모드만 펼침
+          <details key={p.key} className="vpart" open={p.key === openPart(v.parts!)}>
+            <summary className="vpart-head">
               <b>{arenaModeLabel(p.key)}</b>
-              <span className="muted num">{p.games.toLocaleString("en-US")}경기</span>
+              <span className="muted num">{p.games.toLocaleString("en-US")}매치</span>
               <span className={`badge sm ${p.v.state}`}>{VERDICT_LABEL[p.v.state]}</span>
-            </div>
+            </summary>
             {p.v.state === "none" ? (
               <p className="sub">{ARENA_REASON[p.v.reason]}</p>
             ) : (
               <>
-                <Sub v={p.v} unit="이 모드의 경기 수" />
+                <Sub v={p.v} unit="이 모드의 매치 수" />
                 <Bars metrics={p.v.metrics} />
               </>
             )}
-          </div>
+          </details>
         ))
       ) : (
         <>

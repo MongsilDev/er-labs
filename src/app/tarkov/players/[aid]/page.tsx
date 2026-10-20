@@ -147,7 +147,7 @@ function EftStats({ s }: { s: EftSummary }) {
 
 function ArenaStats({ s, hide }: { s: ArenaSummary; hide: string[] }) {
   const t = s.total;
-  if (!t) return <p className="sub">아레나 경기 기록이 없습니다.</p>;
+  if (!t) return <p className="sub">아레나 매치 기록이 없습니다.</p>;
   const per = (v: number) => dec(t.games ? v / t.games : null, 1);
   return (
     <>
@@ -157,8 +157,8 @@ function ArenaStats({ s, hide }: { s: ArenaSummary; hide: string[] }) {
           ["K/D", dec(div(t.kills, t.deaths))],
           ["승률", pct(div(t.wins, t.games))],
           ["헤드샷 비율", pct(div(t.headshots, t.kills))],
-          ["경기당 피해량", int(t.games ? t.damage / t.games : null)],
-          ["경기당 킬", per(t.kills)],
+          ["매치당 피해량", int(t.games ? t.damage / t.games : null)],
+          ["매치당 킬", per(t.kills)],
         ]}
       />
       {s.modes.length > 1 && (
@@ -170,12 +170,12 @@ function ArenaStats({ s, hide }: { s: ArenaSummary; hide: string[] }) {
                 <tr>
                   <th>모드</th>
                   <th className="opt">승패</th>
-                  <th>경기</th>
+                  <th>매치</th>
                   <th>승률</th>
                   <th>K/D</th>
-                  <th>경기당 킬</th>
+                  <th>매치당 킬</th>
                   <th>헤드샷</th>
-                  <th>경기당 피해량</th>
+                  <th>매치당 피해량</th>
                   <th>최다 킬</th>
                   <th>연속 킬</th>
                   <th className="opt">라운드 MVP</th>
@@ -227,12 +227,14 @@ function ArenaStats({ s, hide }: { s: ArenaSummary; hide: string[] }) {
           {
             title: "결과",
             rows: [
-              ["경기", int(t.games)],
+              ["매치", int(t.games)],
               ["승리", int(t.wins)],
               ["패배", int(t.losses)],
               ["라운드 MVP", int(t.roundMvp)],
               ["매치 MVP", int(t.matchMvp)],
               ["에이스", int(t.aces)],
+              // 1500은 시작값. 10-20 표본 79계정 중 66계정이 1500이라 다른 값일 때만 보임
+              ...(s.overall?.bestArp && s.overall.bestArp !== 1500 ? [["최고 ARP", int(s.overall.bestArp)] as Fact] : []),
             ],
           },
           {
@@ -240,7 +242,7 @@ function ArenaStats({ s, hide }: { s: ArenaSummary; hide: string[] }) {
             rows: [
               ["현재 연속 킬", int(s.overall?.killStreak)],
               ["최고 연속 킬", int(t.bestKillStreak)],
-              ["한 경기 최다 킬", int(t.maxGameKills)],
+              ["한 매치 최다 킬", int(t.maxGameKills)],
               ["최고 연승", int(t.bestWinStreak)],
               ["현재 연패", int(s.overall?.loseStreak)],
               ["최장 연패", int(t.bestLoseStreak)],
@@ -249,8 +251,8 @@ function ArenaStats({ s, hide }: { s: ArenaSummary; hide: string[] }) {
           {
             title: "평균",
             rows: [
-              ["경기당 킬", per(t.kills)],
-              ["경기당 어시스트", per(t.assists)],
+              ["매치당 킬", per(t.kills)],
+              ["매치당 어시스트", per(t.assists)],
               ["시간당 킬", dec(s.seconds ? t.kills / (s.seconds / 3600) : null, 1)],
             ],
           },
@@ -618,7 +620,7 @@ function Trend({ list }: { list: Summary[] }) {
                 </>
               ) : (
                 <>
-                  <th>경기</th>
+                  <th>매치</th>
                   <th>K/D</th>
                   <th>헤드샷</th>
                   <th>킬</th>
@@ -678,6 +680,7 @@ export default async function Profile({ params, searchParams }: Props) {
   const arenaMode = MODES.find((m) => m.key === "arena")!;
   // 아레나 JSON의 등급 값에는 Unheard가 없어 EFT 기록의 등급을 함께 씀
   const eftMode = mode.key === "arena" && acc ? MODES.filter((m) => m.key !== "arena" && acc.modes[m.key]).sort((a, b) => acc.modes[b.key]! - acc.modes[a.key]!)[0] : undefined;
+  const season = mode.key === "season";
   const [res, other] = await Promise.all([
     load(mode, aid),
     mode.key !== "arena" && acc?.modes.arena ? load(arenaMode, aid) : eftMode ? load(eftMode, aid) : Promise.resolve(null),
@@ -749,16 +752,10 @@ export default async function Profile({ params, searchParams }: Props) {
               )}
               {s?.kind === "arena" && (
                 <div>
-                  <dt>경기</dt>
+                  <dt>매치</dt>
                   <dd className="num">{int(s.total?.games)}</dd>
                 </div>
               )}
-              {s?.kind === "arena" && s.overall?.bestArp ? (
-                <div>
-                  <dt>최고 ARP</dt>
-                  <dd className="num">{int(s.overall.bestArp)}</dd>
-                </div>
-              ) : null}
               <div>
                 <dt>{s?.kind === "arena" ? "아레나 플레이 시간" : "플레이 시간"}</dt>
                 <dd className="num">{hours(s?.seconds)}</dd>
@@ -800,14 +797,17 @@ export default async function Profile({ params, searchParams }: Props) {
 
         {eft && (
           <>
+            {/* 시즌 계정은 시즌 진행과 특성이 먼저, 다른 모드에서는 배틀패스만 겹쳐 뒤로 */}
+            {season && <SeasonProgress s={eft} />}
+            {season && eft.perks?.length ? <SeasonPerks ids={eft.perks} /> : null}
             <EftStats s={eft} />
+            <Scav s={eft} />
             <Gear gear={eft.gear} />
             <Mastery s={eft} />
             <Skills s={eft} />
             <Achievements s={eft} />
-            <SeasonProgress s={eft} />
-            {eft.perks?.length ? <SeasonPerks ids={eft.perks} /> : null}
-            <Scav s={eft} />
+            {!season && <SeasonProgress s={eft} />}
+            {!season && eft.perks?.length ? <SeasonPerks ids={eft.perks} /> : null}
           </>
         )}
         {s?.kind === "arena" && (
