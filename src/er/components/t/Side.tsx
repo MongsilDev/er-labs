@@ -22,7 +22,7 @@ export function Penalties({ group, result, rules, run }: { group: GroupView; res
   const death = reason === "처치자 불명 사망";
   const preset = RULE_PENALTIES.find((p) => p.reason === reason);
   const selectedTeam = teams.some((t) => t.key === team) ? team : (teams[0]?.key ?? "");
-  // 감점은 그 라운드 기록의 기준 이름으로 저장해 다른 라운드 기록이 지워져도 떨어지지 않게 함
+  // 감점은 그 라운드 기록의 기준 이름으로 저장해 다른 라운드 기록이 지워져도 감점이 그 팀에 남게 함
   const baseFor = (key: string, roundNo: number) => {
     const bases = teams.find((t) => t.key === key)?.bases ?? [];
     return (bases.find((b) => b.round === roundNo) ?? bases[bases.length - 1])?.base ?? "";

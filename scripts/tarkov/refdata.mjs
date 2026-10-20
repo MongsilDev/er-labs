@@ -35,7 +35,7 @@ const pool = async (jobs, n = 8) => {
     while (q.length) await q.shift()();
   }));
 };
-// 장비 칸에 들어가는 아이템과 보안 컨테이너만 이름을 남김. 아이콘은 화면에서 쓸 때 서버가 받아 둠
+// 장비 칸에 장착하는 아이템과 보안 컨테이너만 이름을 남김. 아이콘은 화면에서 쓸 때 서버가 받아 둠
 const KEEP = new Set(["gun", "wearable", "armor", "rig", "backpack", "headphones", "helmet", "glasses", "mask"]);
 const itemNames = {};
 for (const it of Object.values(items.items)) {

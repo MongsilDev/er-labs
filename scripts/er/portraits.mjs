@@ -1,4 +1,4 @@
-// 실험체 얼굴 이미지를 dak.gg에서 받아 cdn.mongsil.dev 폴더에 저장. 새 실험체가 나오면 다시 실행
+// 실험체 얼굴 이미지를 dak.gg에서 받아 cdn.mongsil.dev 폴더에 저장. 새 실험체가 추가되면 다시 실행
 // 사용: node scripts/er/portraits.mjs ~/docker/cdn/public/er-labs/characters
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";

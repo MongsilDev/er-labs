@@ -1,5 +1,5 @@
 // 실제 프로필 샘플에서 장비와 아이템을 빼고 닉네임과 aid를 바꿔 테스트 픽스처로 저장
-// 사용: node scripts/fixtures.mjs <샘플 폴더>
+// 사용: node scripts/tarkov/fixtures.mjs <샘플 폴더>
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 

@@ -47,7 +47,7 @@ export async function crawl(): Promise<number> {
   let done = 0;
   let fails = 0;
   try {
-    // 모드마다 조금씩 돌아가며 받아 한 모드가 오래 밀리지 않게 함
+    // 모드를 번갈아 조금씩 받아 한 모드의 수집이 오래 지연되지 않게 함
     for (;;) {
       let any = false;
       for (const mode of MODES) {
@@ -101,7 +101,7 @@ export function peers(key: string, aid: number, s: Sample): { rows: Sample[]; wi
 
 export function verdict(mode: Mode, aid: number, sum: Summary | null): Verdict {
   if (sum?.kind === "arena") {
-    // 모드마다 킬이 나오는 정도가 달라 같은 모드를 비슷한 경기 수만큼 한 계정끼리 비교
+    // 모드마다 킬 빈도가 달라 같은 모드를 비슷한 경기 수만큼 한 계정끼리 비교
     const parts = sum.modes
       .filter((m) => m.stats.games >= MIN_N)
       .map((m) => {

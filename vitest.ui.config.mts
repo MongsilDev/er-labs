@@ -1,7 +1,7 @@
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
-// 빌드한 서버를 띄워 브라우저로 화면을 점검. pnpm test와 분리
+// 빌드한 서버를 실행해 브라우저로 화면을 점검. pnpm test와 분리
 export default defineConfig({
   resolve: {
     alias: {

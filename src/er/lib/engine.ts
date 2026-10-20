@@ -306,7 +306,7 @@ export function computeGroup(input: GroupInput): GroupResult {
     basesOf.set(key, list.sort((x, y) => x.round - y.round));
   }
   const refKey = (team: string) => memberKey.get(normalize(team)) ?? normalize(rename(team));
-  // 이어 붙일 팀이 없는 감점은 순위표에 빈 팀 행을 만들지 않고 따로 돌려줌
+  // 연결할 팀이 없는 감점은 순위표에 빈 팀 행을 만들지 않고 따로 돌려줌
   const allPenalties = input.penalties.map((p) => ({ ...p, key: refKey(p.team) }));
   const penalties = allPenalties.filter((p) => names.has(p.key));
   const orphanPenalties = allPenalties.filter((p) => !names.has(p.key)).map((p) => p.id);

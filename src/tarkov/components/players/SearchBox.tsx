@@ -11,7 +11,7 @@ type Hit = { aid: number; name: string; last: number | null };
 export default function SearchBox({ autoFocus, compact, initial }: { autoFocus?: boolean; compact?: boolean; initial?: string }) {
   const router = useRouter();
   const [q, setQ] = useState(initial ?? "");
-  // 첫 화면 검색창에서 넘어온 검색어는 결과가 오면 한 번 제출
+  // 첫 화면 검색창에서 전달된 검색어는 결과가 오면 한 번 제출
   const pending = useRef(Boolean(initial?.trim()));
   const [hits, setHits] = useState<Hit[]>([]);
   const [open, setOpen] = useState(false);

@@ -65,7 +65,7 @@ function phi(z: number): number {
   return z >= 0 ? (1 + y) / 2 : (1 - y) / 2;
 }
 
-/** 종료 때 컷이 rp 이하일 확률. 낮은 값과 높은 값을 10%, 90% 지점으로 보는 양쪽 정규 근사 */
+/** 종료 때 컷이 rp 이하일 확률. 낮은 값과 높은 값을 10%, 90% 지점으로 간주하는 양쪽 정규 근사 */
 export function chance(rp: number, mid: number, low: number, high: number): number {
   const z = 1.2816;
   const sd = rp < mid ? Math.max(mid - low, 1) / z : Math.max(high - mid, 1) / z;

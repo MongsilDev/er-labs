@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# labs.mongsil.dev 배포: 이미지를 빌드하고 compose의 labs 서비스를 새 이미지로 다시 띄운다
+# labs.mongsil.dev 배포: 이미지를 빌드하고 compose의 labs 서비스 컨테이너를 새 이미지로 다시 만든다
 set -euo pipefail
 
 cd "$(dirname "$0")/.."

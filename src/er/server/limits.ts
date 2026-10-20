@@ -19,7 +19,7 @@ export function allow(key: string, max: number, windowMs: number): boolean {
   return true;
 }
 
-// 없는 대회 코드를 반복해 여는 IP는 있는 코드도 잠시 막음
+// 없는 대회 코드를 반복해 여는 IP는 있는 코드 요청도 잠시 429로 거부
 export function miss(ip: string) {
   allow(`miss:${ip}`, 1_000_000, 10 * 60_000);
 }

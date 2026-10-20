@@ -132,7 +132,7 @@ export function parseEft(raw: unknown): EftSummary {
     return m;
   };
   const pmc = counters("pmcStats");
-  // 카운터가 있는 프로필에서 빠진 항목은 한 번도 일어나지 않은 것
+  // 카운터가 있는 프로필에 없는 항목은 한 번도 일어나지 않은 것
   const c = (k: string) => pmc.get(k) ?? (pmc.size ? 0 : null);
   const scav = counters("scavStats");
   const sc = (k: string) => scav.get(k) ?? 0;

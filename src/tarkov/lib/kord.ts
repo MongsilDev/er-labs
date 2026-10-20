@@ -6,7 +6,7 @@ export const COMMON = season.common as Perk[];
 export const PERSONAL = season.personal as Perk[];
 export const PERK = new Map(PERSONAL.map((p) => [p.id, p]));
 
-// 주소에는 선택 여부를 비트로 묶어 36진수로 넣음. id 앞부분이 생성 시각이라 새 특성은 뒤 비트에 붙음, 53개까지
+// 주소에는 선택 여부를 비트로 묶어 36진수로 넣음. id 앞부분이 생성 시각이라 새 특성은 뒤 비트에 배정됨, 53개까지
 const ORDER = PERSONAL.map((p) => p.id).sort();
 
 export const encodeBuild = (sel: Iterable<string>) => {

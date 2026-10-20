@@ -25,7 +25,7 @@ export const PAIR = 0.95;
 
 type Typical = { kpn: number; dpn: number; spn: number; hpn: number; hsr: number };
 
-// 같은 family 지표는 같은 사망 수에서 나와 함께 움직이므로 판정에서 하나로 셈
+// 같은 family 지표는 같은 사망 수로 계산해 함께 변하므로 판정에서 하나로 셈
 type Metric = { key: string; label: string; family: string; value: (s: Sample, t: Typical) => number | null; digits: number };
 
 // 기록 수로 보정하는 지표, 최다 킬과 연속 기록은 보정하지 않음
@@ -81,11 +81,11 @@ export type MetricResult = { key: string; label: string; family: string; digits:
 
 export type Judged = { state: "clear" | "warn" | "alert"; peers: number; width: number; metrics: MetricResult[] };
 export type Unjudged = { state: "none"; reason: "few" | "peers" | "missing" };
-// 아레나는 parts에 모드별 판정이 들어감
+// 아레나는 parts에 모드별 판정을 담음
 export type VerdictPart = { key: string; games: number; v: Judged | Unjudged };
 export type Verdict = Unjudged | (Judged & { parts?: VerdictPart[] });
 
-// 가장 높은 단계를 쓰면 모드가 많을수록 우연히 걸려 이상 수치가 6.6%였음. 부정행위는 모든 모드에 같이 나타나므로 일관성을 요구
+// 가장 높은 단계를 쓰면 모드가 많을수록 우연히 기준을 넘는 모드가 생겨 이상 수치가 6.6%였음. 부정행위는 모든 모드에 같이 나타나므로 일관성을 요구
 export function combine(parts: VerdictPart[]): Verdict {
   const judged = parts.filter((p): p is VerdictPart & { v: Judged } => p.v.state !== "none");
   if (!judged.length) return { state: "none", reason: parts.length ? "peers" : "few" };

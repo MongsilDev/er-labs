@@ -82,7 +82,7 @@ function Facts({ groups }: { groups: { title: string; rows: Fact[] }[] }) {
   );
 }
 
-// 판정 막대에 이미 나온 지표는 빼고 4개까지
+// 판정 막대에 이미 표시한 지표는 빼고 4개까지
 function KeyTiles({ list, hide }: { list: Fact[]; hide: string[] }) {
   const shown = list.filter(([label]) => !hide.includes(label)).slice(0, 4);
   if (!shown.length) return null;
@@ -593,7 +593,7 @@ export default async function Profile({ params, searchParams }: Props) {
   const acc = account(aid);
   const mode = pickMode(acc?.modes ?? null, (await searchParams).mode);
   const arenaMode = MODES.find((m) => m.key === "arena")!;
-  // 아레나 JSON의 등급 값에는 Unheard가 빠져 있어 EFT 기록의 등급을 함께 씀
+  // 아레나 JSON의 등급 값에는 Unheard가 없어 EFT 기록의 등급을 함께 씀
   const eftMode = mode.key === "arena" && acc ? MODES.filter((m) => m.key !== "arena" && acc.modes[m.key]).sort((a, b) => acc.modes[b.key]! - acc.modes[a.key]!)[0] : undefined;
   const [res, other] = await Promise.all([
     load(mode, aid),

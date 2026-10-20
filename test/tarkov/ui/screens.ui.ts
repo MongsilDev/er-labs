@@ -30,7 +30,7 @@ function freePort(): Promise<number> {
   });
 }
 
-// players.tarkov.dev 대신 픽스처 폴더를 그대로 내려줌
+// players.tarkov.dev 대신 픽스처 폴더 파일로 응답
 async function fixtureServer(): Promise<string> {
   const port = await freePort();
   upstream = httpServer((req, res) => {
@@ -57,7 +57,7 @@ async function seed() {
   acc.run(1004, "Fixture-Hidden", "fixture-hidden", t, null, null, null);
   conn.prepare("INSERT INTO hidden (aid, at) VALUES (1004, ?)").run(t);
   conn.prepare("INSERT INTO names (aid, old_name, new_name, seen_at) VALUES (1001, ?, ?, ?)").run("아주아주긴옛날닉네임_Long_Old_Name", "Fixture-Alpha", t);
-  // 1001과 비슷한 계정 200개로 판정이 나오게 함
+  // 1001과 비슷한 계정 200개로 판정이 계산되게 함
   const b = conn.prepare("INSERT INTO baseline (mode, aid, updated, hours, n, kills, deaths, survived, streak, headshots, max_game_kills) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
   for (let i = 0; i < 200; i++) {
     b.run("pvp", 50_000 + i, t, 2456 * (0.95 + (i % 10) / 100), 1055 + (i % 40) - 20, 150 + i, 560 + (i % 30), 400 + (i % 80), 4 + (i % 9), 0, 0);
