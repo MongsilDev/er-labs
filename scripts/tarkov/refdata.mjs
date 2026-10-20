@@ -57,7 +57,13 @@ const skills = {};
 for (const sk of items.skills) skills[sk.id] = itemsKo[sk.name] ?? sk.name;
 writeFileSync("src/tarkov/data/skills.json", JSON.stringify(skills, null, 1) + "\n");
 const mastering = {};
-for (const m of items.mastering) mastering[m.id] = { weapon: m.weapons.find((w) => itemNames[w]) ?? null, level2: m.level2, level3: m.level3 };
+// 그림은 숙련 이름이 이름에 든 총을 우선함. 목록 첫 총은 M4 숙련에 ADAR가 나오는 식으로 엇갈림
+const bare = (t) => t.toLowerCase().replace(/[^a-z0-9]/g, "");
+for (const m of items.mastering) {
+  const own = m.weapons.filter((w) => itemNames[w]);
+  const weapon = own.find((w) => bare(itemNames[w]).includes(bare(m.id))) ?? own[0] ?? null;
+  mastering[m.id] = { weapon, level2: m.level2, level3: m.level3 };
+}
 writeFileSync("src/tarkov/data/mastering.json", JSON.stringify(mastering) + "\n");
 
 for (const d of ["public/img/ach", "public/img/level", "public/img/prestige", "public/img/skill"]) {

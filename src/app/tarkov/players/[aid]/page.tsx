@@ -158,7 +158,6 @@ function ArenaStats({ s, hide }: { s: ArenaSummary; hide: string[] }) {
           ["헤드샷 비율", pct(div(t.headshots, t.kills))],
           ["경기당 피해량", int(t.games ? t.damage / t.games : null)],
           ["경기당 킬", per(t.kills)],
-          ["최고 ARP", int(s.overall?.bestArp || null)],
         ]}
       />
       {s.modes.length > 1 && (
@@ -252,7 +251,6 @@ function ArenaStats({ s, hide }: { s: ArenaSummary; hide: string[] }) {
               ["경기당 킬", per(t.kills)],
               ["경기당 어시스트", per(t.assists)],
               ["시간당 킬", dec(s.seconds ? t.kills / (s.seconds / 3600) : null, 1)],
-              ["최고 ARP", int(s.overall?.bestArp || null)],
             ],
           },
         ]}
@@ -432,10 +430,10 @@ function Mastery({ s }: { s: EftSummary }) {
     const goal = level === 3 ? null : level === 2 ? def.level3 : def.level2;
     return (
       <li key={m.id}>
-        {def.weapon ? <Image src={`/api/icon/${def.weapon}`} alt="" width={40} height={40} unoptimized /> : <span className="gear-blank" />}
+        {def.weapon ? <Image src={`/api/icon/${def.weapon}?v=base`} alt="" width={72} height={40} unoptimized /> : <span className="gear-blank" />}
         <div className="m-body">
           <div className="m-top">
-            <b className="ellipsis">{m.id}</b>
+            <b className="ellipsis">{m.id.toUpperCase()}</b>
             <span className="pips" aria-label={`${level}단계`}>
               {[1, 2, 3].map((n) => (
                 <i key={n} className={n <= level ? "on" : undefined} />
@@ -445,7 +443,7 @@ function Mastery({ s }: { s: EftSummary }) {
           <div className="m-bar" aria-hidden="true">
             <i style={{ width: `${goal ? Math.min(100, (m.progress / goal) * 100) : 100}%` }} />
           </div>
-          <span className="small muted num">{goal ? `${int(m.progress)} / ${int(goal)}` : `${int(m.progress)}, 최고 단계`}</span>
+          <span className="small muted num">{goal ? `${int(m.progress)} / ${int(goal)}` : `최고 단계, ${int(m.progress)}`}</span>
         </div>
       </li>
     );
@@ -472,7 +470,7 @@ function Scav({ s }: { s: EftSummary }) {
   return (
     <section className="block">
       <h2 className="h2">스캐브 레이드</h2>
-      <div className="tiles">
+      <div className="tiles four">
         <Tile label="레이드" value={int(v.raids)} />
         <Tile label="생존율" value={pct(div(v.survived, v.raids))} />
         <Tile label="사살" value={int(v.kills)} />
@@ -694,7 +692,7 @@ export default async function Profile({ params, searchParams }: Props) {
           {MODES.map((m) => {
             const known = !acc || acc.modes[m.key] != null;
             return (
-              <Link key={m.key} href={`/tarkov/players/${aid}?mode=${m.key}`} aria-current={m.key === mode.key ? "page" : undefined} className={known ? undefined : "faint"} replace>
+              <Link key={m.key} href={`/tarkov/players/${aid}?mode=${m.key}`} aria-current={m.key === mode.key ? "page" : undefined} className={known ? undefined : "faint"} title={known ? undefined : "아직 불러오지 않은 모드"} replace>
                 {m.label}
               </Link>
             );
@@ -744,6 +742,12 @@ export default async function Profile({ params, searchParams }: Props) {
                   <dd className="num">{int(s.total?.games)}</dd>
                 </div>
               )}
+              {s?.kind === "arena" && s.overall?.bestArp ? (
+                <div>
+                  <dt>최고 ARP</dt>
+                  <dd className="num">{int(s.overall.bestArp)}</dd>
+                </div>
+              ) : null}
               <div>
                 <dt>{s?.kind === "arena" ? "아레나 플레이 시간" : "플레이 시간"}</dt>
                 <dd className="num">{hours(s?.seconds)}</dd>
