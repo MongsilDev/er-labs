@@ -83,6 +83,7 @@ function Sub({ v, unit }: { v: Judged; unit: string }) {
 export default function Verdict({ v, mode, official, rate }: { v: V; mode: string; official: boolean; rate?: ModeRate }) {
   const arena = mode === "arena";
   const mixed = v.state === "warn" && v.parts?.some((p) => p.v.state === "alert");
+  const outvoted = v.state === "clear" && v.parts?.some((p) => p.v.state !== "clear" && p.v.state !== "none");
   return (
     <section className={`panel verdict ${v.state}`}>
       <div className="vhead">
@@ -101,6 +102,7 @@ export default function Verdict({ v, mode, official, rate }: { v: V; mode: strin
         </Link>
       </p>
       {mixed && <p className="sub">{VERDICT_LABEL.alert}인 모드가 있지만 모든 모드가 {VERDICT_LABEL.warn} 이상은 아니라 {VERDICT_LABEL.warn}로 판정했습니다.</p>}
+      {outvoted && <p className="sub">{VERDICT_LABEL.warn} 이상인 모드가 판정한 모드의 절반을 넘지 않아 {VERDICT_LABEL.clear}으로 판정했습니다.</p>}
       {v.state === "none" ? (
         <p className="sub">{(arena ? ARENA_REASON : REASON)[v.reason]}</p>
       ) : v.parts ? (
