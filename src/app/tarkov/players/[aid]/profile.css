@@ -929,7 +929,14 @@
 .kit-zone.arms {
   grid-area: arms;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-template-rows: 160px 160px 92px;
+  grid-template-rows: var(--rows, 1fr 1fr 104px);
+  height: 424px;
+}
+.kit.arena {
+  grid-template-areas: "body arms";
+}
+.kit.arena .kit-zone.arms {
+  height: 278px;
 }
 .kit-zone.pack {
   grid-area: pack;
@@ -985,8 +992,17 @@
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
 }
 .slot-name {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   font-size: 12px;
   font-weight: 600;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.slot.wide .slot-name {
+  -webkit-line-clamp: 1;
 }
 .bg-default {
   --slot-bg: #1a1c1e;
@@ -1030,14 +1046,19 @@
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas: "body" "arms" "pack";
   }
+  .kit.arena {
+    grid-template-areas: "body" "arms";
+  }
   .kit-zone.body,
   .kit-zone.pack {
     grid-template-rows: none;
     grid-auto-rows: 120px;
   }
-  .kit-zone.arms {
+  .kit-zone.arms,
+  .kit.arena .kit-zone.arms {
     grid-template-rows: none;
     grid-auto-rows: auto;
+    height: auto;
   }
   .kit-zone.arms .slot {
     height: 130px;

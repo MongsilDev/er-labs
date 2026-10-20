@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -19,7 +20,7 @@ import { arenaModeLabel, memberChips, sideLabel } from "@/tarkov/lib/labels";
 import { MODES, pickMode, tarkovDevUrl } from "@/tarkov/lib/modes";
 import { PERK, encodeBuild, type Perk } from "@/tarkov/lib/kord";
 import { ARENA_PASSES, LEAGUE, leagueLabel } from "@/tarkov/lib/season";
-import { ARENA_NAMED, achievementInfo, type ArenaSummary, type EftSummary, type Progress, type Summary } from "@/tarkov/lib/summary";
+import { ARENA_NAMED, achievementInfo, type ArenaSummary, type EftSummary, type Gear as Worn, type Progress, type Summary } from "@/tarkov/lib/summary";
 import { badgeRates, verdict } from "@/tarkov/server/baseline";
 import { isHidden } from "@/tarkov/server/db";
 import { account, displayName, load, nameHistory, snapshots } from "@/tarkov/server/profiles";
@@ -326,7 +327,12 @@ const ZONES: { key: string; slots: [string, string][] }[] = [
 ];
 const WEAPON_SLOTS = ["FirstPrimaryWeapon", "SecondPrimaryWeapon", "Holster"];
 
-type Worn = NonNullable<EftSummary["gear"]>[number];
+// 아레나 장비에는 주무기 2, 완장, 배낭, 파우치 칸이 없음
+const ARENA_ZONES: { key: string; slots: [string, string][] }[] = [
+  { key: "body", slots: [...ZONES[0].slots.filter(([slot]) => slot !== "ArmBand"), ["TacticalVest", "전술 조끼"]] },
+  { key: "arms", slots: ZONES[1].slots.filter(([slot]) => slot !== "SecondPrimaryWeapon") },
+];
+
 
 function Slot({ slot, label, g }: { slot: string; label: string; g?: Worn }) {
   const bg = g && GEAR[g.tpl]?.[2];
@@ -344,7 +350,7 @@ function Slot({ slot, label, g }: { slot: string; label: string; g?: Worn }) {
       {g && (
         <>
           <Image className="slot-img" src={`/api/icon/${g.tpl}?v=base`} alt="" width={256} height={128} unoptimized />
-          <span className="slot-name ellipsis" title={ITEMS[g.tpl]}>
+          <span className="slot-name" title={ITEMS[g.tpl]}>
             {ITEMS[g.tpl]}
           </span>
         </>
@@ -353,9 +359,14 @@ function Slot({ slot, label, g }: { slot: string; label: string; g?: Worn }) {
   );
 }
 
-function Gear({ s }: { s: EftSummary }) {
-  const worn = (slot: string) => s.gear?.find((g) => g.slot === slot && ITEMS[g.tpl]);
-  const filled = ZONES.flatMap((z) => z.slots).filter(([slot]) => worn(slot));
+// 빈 주무기 칸은 낮게 줄이고 남는 높이를 찬 무기 칸에 줌
+const armRows = (slots: [string, string][], worn: (slot: string) => Worn | undefined) =>
+  [...slots.filter(([slot]) => slot.endsWith("PrimaryWeapon")).map(([slot]) => (worn(slot) ? "minmax(0, 1fr)" : "44px")), "104px"].join(" ");
+
+function Gear({ gear, arena }: { gear?: Worn[]; arena?: boolean }) {
+  const zones = arena ? ARENA_ZONES : ZONES;
+  const worn = (slot: string) => gear?.find((g) => g.slot === slot && ITEMS[g.tpl]);
+  const filled = zones.flatMap((z) => z.slots).filter(([slot]) => worn(slot));
   if (!filled.length) return null;
   const guns = WEAPON_SLOTS.some((slot) => worn(slot));
   // 주무기 없이 몇 칸만 찬 기록은 빈 칸이 화면을 채우므로 찬 칸만 보임
@@ -364,7 +375,7 @@ function Gear({ s }: { s: EftSummary }) {
     <section className="block">
       <h2 className="h2">마지막 장비</h2>
       <p className="sub">
-        tarkov.dev 기록이 갱신된 시점에 캐릭터가 입고 있던 장비입니다.
+        {arena ? "tarkov.dev 기록이 갱신된 시점에 아레나에서 쓰던 장비입니다." : "tarkov.dev 기록이 갱신된 시점에 캐릭터가 입고 있던 장비입니다."}
         {guns && (
           <>
             <br />
@@ -373,9 +384,9 @@ function Gear({ s }: { s: EftSummary }) {
         )}
       </p>
       {full ? (
-        <div className="kit">
-          {ZONES.map((z) => (
-            <div key={z.key} className={`kit-zone ${z.key}`}>
+        <div className={arena ? "kit arena" : "kit"}>
+          {zones.map((z) => (
+            <div key={z.key} className={`kit-zone ${z.key}`} style={z.key === "arms" ? ({ "--rows": armRows(z.slots, worn) } as CSSProperties) : undefined}>
               {z.slots.map(([slot, label]) => (
                 <Slot key={slot} slot={slot} label={label} g={worn(slot)} />
               ))}
@@ -790,7 +801,7 @@ export default async function Profile({ params, searchParams }: Props) {
         {eft && (
           <>
             <EftStats s={eft} />
-            <Gear s={eft} />
+            <Gear gear={eft.gear} />
             <Mastery s={eft} />
             <Skills s={eft} />
             <Achievements s={eft} />
@@ -802,6 +813,7 @@ export default async function Profile({ params, searchParams }: Props) {
         {s?.kind === "arena" && (
           <>
             <ArenaStats s={s} hide={barred} />
+            <Gear gear={s.gear} arena />
             <ArenaPasses s={s} />
             <Achievements s={s} />
           </>

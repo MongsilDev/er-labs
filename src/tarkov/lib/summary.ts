@@ -42,7 +42,7 @@ export type EftSummary = Base & {
   perks?: string[];
   skills?: { id: string; level: number }[];
   mastery?: { id: string; progress: number }[];
-  gear?: { slot: string; tpl: string; dur?: [number, number]; mods?: number }[];
+  gear?: Gear[];
   league?: { rank: number; max: number } | null;
   pass?: Progress | null;
   seasonRewards?: Progress | null;
@@ -75,6 +75,8 @@ export type ArenaModeStats = {
 // Overall 카운터에서 읽는 현재 연속 기록과 최고 ARP
 export type ArenaOverall = { killStreak: number; loseStreak: number; bestArp: number };
 
+export type Gear = { slot: string; tpl: string; dur?: [number, number]; mods?: number };
+
 export type ArenaSummary = Base & {
   kind: "arena";
   seconds: number | null;
@@ -83,6 +85,7 @@ export type ArenaSummary = Base & {
   modes: { key: string; stats: ArenaModeStats }[];
   overall?: ArenaOverall | null;
   passes?: { id: string; level: number }[];
+  gear?: Gear[];
 };
 
 export type Summary = EftSummary | ArenaSummary;
@@ -190,11 +193,15 @@ function gearAndSkills(p: Record<string, unknown>) {
     .filter((x) => (num(x.Progress) ?? 0) > 0)
     .map((x) => ({ id: String(x.Id), progress: num(x.Progress)! }))
     .sort((a, b) => b.progress - a.progress);
+  return { skills, mastery, gear: gearOf(p) };
+}
+
+function gearOf(p: Record<string, unknown>): Gear[] {
   const eq = obj(p.equipment);
   const root = str(eq.Id) || str(eq.id);
   const all = arr(eq.Items ?? eq.items).map(obj);
   const under = (id: string): number => all.filter((x) => str(x.parentId) === id).reduce((n, x) => n + 1 + under(str(x._id)), 0);
-  const gear = all
+  return all
     .filter((x) => root && str(x.parentId) === root && str(x.slotId) && str(x._tpl))
     .map((x) => {
       const rep = obj(obj(x.upd).Repairable);
@@ -202,7 +209,6 @@ function gearAndSkills(p: Record<string, unknown>) {
       const gun = /PrimaryWeapon|Holster/.test(str(x.slotId));
       return { slot: str(x.slotId), tpl: str(x._tpl), ...(cur != null && max ? { dur: [cur, max] as [number, number] } : {}), ...(gun ? { mods: under(str(x._id)) } : {}) };
     });
-  return { skills, mastery, gear };
 }
 
 function arenaStats(raw: unknown): ArenaModeStats {
@@ -270,6 +276,7 @@ export function parseArena(raw: unknown): ArenaSummary {
       .map(([id, v]) => ({ id, level: num(v) ?? 0 }))
       .filter((x) => x.level > 0)
       .sort((a, b) => (a.id < b.id ? 1 : -1)),
+    gear: gearOf(p),
   };
 }
 
