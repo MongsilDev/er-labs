@@ -5,7 +5,7 @@ import { join } from "node:path";
 
 const src = process.argv[2];
 if (!src) throw new Error("샘플 폴더를 지정해주세요");
-const out = "test/fixtures";
+const out = "test/tarkov/fixtures";
 const accounts = [
   { from: "3556253", to: 1001, name: "Fixture-Alpha" },
   { from: "3662", to: 1002, name: "Fixture-Bravo" },
