@@ -135,7 +135,7 @@ export function judge(kind: Kind, player: Sample, peers: Sample[], width: number
 
 export const VERDICT_LABEL = { clear: "특이점 없음", warn: "높은 수치", alert: "이상 수치", none: "판정 불가" } as const;
 
-// 2026-10-20 비교군 계정 전체에 judge를 돌린 결과(%). 아레나는 combine으로 합친 계정 배지
+// 2026-10-20 비교군 계정 전체에 judge를 돌린 결과(%). 아레나는 combine으로 합친 계정 배지. 갱신은 scripts/tarkov/rates.mts
 export const BADGE_RATES = {
   date: "2026년 10월 20일",
   modes: {

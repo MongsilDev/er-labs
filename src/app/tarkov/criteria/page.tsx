@@ -33,7 +33,7 @@ function Rates() {
         <div key={key} className="rate-row">
           <div className="rate-head">
             <b>{r.label}</b>
-            <span className="small muted num">{int(r.accounts)}명</span>
+            <span className="small muted num">{int(r.accounts)}명 판정</span>
           </div>
           <div className="rate-cells" role="img" aria-label={`${r.label} ${STATES.map((k) => `${VERDICT_LABEL[k]} ${r[k]}%`).join(", ")}`}>
             {cells(r).map((k, i) => (
