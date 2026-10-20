@@ -206,6 +206,8 @@ export default function Criteria() {
           <br />
           비교군에는 tarkov.dev에서 조회된 적 있는 계정만 포함되므로 전체 이용자를 대표하지는 않습니다.
           <br />
+          계정 정지 여부는 공개 기록에 없어서, 정지된 계정도 비교군에 포함될 수 있습니다.
+          <br />
           계산 방식은 tarkovstats.online이 공개한 방식을 참고했습니다.
         </p>
         <p className="doc-note">

@@ -48,10 +48,11 @@ export default function SearchBox({ autoFocus, compact, initial }: { autoFocus?:
           const low = t.toLowerCase();
           const list = data.results ?? [];
           const pick = list.find((h) => h.name.toLowerCase() === low || String(h.aid) === low) ?? (list.length === 1 ? list[0] : null);
-          if (pick) {
+          const aid = pick?.aid ?? (!list.length && /^\d{1,10}$/.test(low) ? Number(low) : 0);
+          if (aid) {
             setOpen(false);
             setBusy(true);
-            router.push(`/tarkov/players/${pick.aid}`);
+            router.push(`/tarkov/players/${aid}`);
           }
         }
       } catch {
@@ -73,7 +74,14 @@ export default function SearchBox({ autoFocus, compact, initial }: { autoFocus?:
     const pick = active >= 0 ? hits[active] : hits.find((h) => h.name.toLowerCase() === t || String(h.aid) === t) ?? (hits.length === 1 ? hits[0] : null);
     if (pick) go(pick);
     else if (hits.length) setOpen(true);
-    else setMsg(t.length < 2 ? "두 글자 이상 입력해주세요." : "찾는 닉네임이 없습니다. tarkov.dev에서 한 번 이상 조회된 계정만 찾을 수 있습니다.");
+    // 닉네임 목록에 아직 없는 새 계정도 계정 번호로는 바로 열림
+    else if (/^\d{1,10}$/.test(t)) go({ aid: Number(t), name: t, last: null });
+    else
+      setMsg(
+        t.length < 2
+          ? "두 글자 이상 입력해주세요."
+          : "찾는 닉네임이 없습니다. 닉네임 목록은 하루 한 번 갱신되므로, 오늘 처음 조회된 계정은 tarkov.dev 주소 끝의 계정 번호로 찾아주세요.",
+      );
   };
 
   const shown = open && q.trim().length > 0;

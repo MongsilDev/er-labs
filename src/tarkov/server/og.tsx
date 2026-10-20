@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { ACCENT } from "@/tarkov/components/Mark";
-import { VERDICT_LABEL, type Verdict } from "@/tarkov/lib/criteria";
+import { rankLabel, VERDICT_LABEL, type Verdict } from "@/tarkov/lib/criteria";
 import { dateTime, dec, div, hours, int, pct } from "@/tarkov/lib/format";
 import type { Mode } from "@/tarkov/lib/modes";
 import type { Summary } from "@/tarkov/lib/summary";
@@ -52,7 +52,8 @@ export async function siteImage(title = "Labs", sub = "Escape from Tarkov 도구
   );
 }
 
-function stats(s: Summary): [string, string][] {
+// 세 번째 값은 비슷한 계정 중 순위를 붙일 판정 지표. 아레나는 모드마다 따로 판정해 계정 전체 순위가 없음
+function stats(s: Summary): [string, string, string?][] {
   if (s.kind === "arena") {
     const t = s.total;
     return [
@@ -63,8 +64,8 @@ function stats(s: Summary): [string, string][] {
     ];
   }
   return [
-    ["PMC K/D", dec(div(s.pmcKills, s.kia))],
-    ["생존율", pct(div(s.survived, s.raids))],
+    ["PMC K/D", dec(div(s.pmcKills, s.kia)), "kd"],
+    ["생존율", pct(div(s.survived, s.raids)), "surv"],
     ["레이드", int(s.raids)],
     ["플레이 시간", hours(s.seconds)],
   ];
@@ -74,6 +75,8 @@ export async function profileImage(name: string, mode: Mode, s: Summary | null, 
   const badge = v ? VERDICT_LABEL[v.state] : null;
   const badgeBg = v?.state === "alert" ? C.alert : v?.state === "warn" ? C.warn : C.panel;
   const badgeFg = v?.state === "alert" ? "#fff" : v?.state === "warn" ? "#111" : C.text2;
+  // 공유 이미지에는 상위 절반일 때만 순위를 붙임
+  const metric = (key?: string) => (key && v && v.state !== "none" ? v.metrics.find((m) => m.key === key && m.top <= 0.5) : undefined);
   return new ImageResponse(
     (
       <div style={{ display: "flex", flexDirection: "column", width: "100%", height: "100%", background: C.bg, color: C.text, fontFamily: "Pretendard", padding: "52px 64px" }}>
@@ -90,12 +93,17 @@ export async function profileImage(name: string, mode: Mode, s: Summary | null, 
         </div>
         {s ? (
           <div style={{ display: "flex", gap: 16, marginTop: 44 }}>
-            {stats(s).map(([label, value]) => (
-              <div key={label} style={{ display: "flex", flexDirection: "column", alignItems: "center", flex: 1, background: C.panel, border: `1px solid ${C.line}`, borderRadius: 12, padding: "26px 0" }}>
-                <span style={{ fontSize: 50, fontWeight: 800 }}>{value}</span>
-                <span style={{ fontSize: 24, fontWeight: 500, color: C.text3, marginTop: 6 }}>{label}</span>
-              </div>
-            ))}
+            {stats(s).map(([label, value, key]) => {
+              const m = metric(key);
+              const color = m?.level === 2 ? C.alert : m?.level === 1 ? C.warn : C.text2;
+              return (
+                <div key={label} style={{ display: "flex", flexDirection: "column", alignItems: "center", flex: 1, background: C.panel, border: `1px solid ${C.line}`, borderRadius: 12, padding: "26px 0" }}>
+                  <span style={{ fontSize: 50, fontWeight: 800 }}>{value}</span>
+                  <span style={{ fontSize: 24, fontWeight: 500, color: C.text3, marginTop: 6 }}>{label}</span>
+                  {m && <span style={{ fontSize: 24, fontWeight: 700, color, marginTop: 8 }}>{rankLabel(m.top)}</span>}
+                </div>
+              );
+            })}
           </div>
         ) : (
           <span style={{ fontSize: 30, color: C.text3, marginTop: 44 }}>tarkov.dev에서 조회된 기록이 없습니다.</span>
