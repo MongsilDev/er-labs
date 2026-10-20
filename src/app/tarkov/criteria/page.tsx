@@ -37,12 +37,12 @@ function Rates() {
           </div>
           <div className="rate-cells" role="img" aria-label={`${r.label} ${STATES.map((k) => `${VERDICT_LABEL[k]} ${r[k]}%`).join(", ")}`}>
             {cells(r).map((k, i) => (
-              <i key={i} className={k} />
+              <i key={i} className={k === "clear" ? undefined : k} />
             ))}
           </div>
           <div className="rate-nums num">
             {STATES.map((k) => (
-              <span key={k} className={k}>
+              <span key={k} className={k === "clear" ? undefined : k}>
                 {VERDICT_LABEL[k]} <b>{r[k].toFixed(1)}%</b>
               </span>
             ))}
