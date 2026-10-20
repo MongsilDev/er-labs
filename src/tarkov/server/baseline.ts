@@ -26,14 +26,11 @@ function save(key: string, aid: number, updated: number, s: Sample) {
 
 function candidates(mode: Mode, limit: number): { aid: number; u: number }[] {
   const col = `u_${mode.key}`;
-  // 모드별 행이 없던 때 받은 아레나 계정도 다시 받음
-  const backfill =
-    mode.key === "arena" ? ` OR (b.n > 0 AND NOT EXISTS (SELECT 1 FROM baseline m WHERE m.aid = a.aid AND m.mode LIKE '${ARENA_PREFIX}%'))` : "";
   return db()
     .prepare(
       `SELECT a.aid AS aid, a.${col} AS u FROM accounts a
        LEFT JOIN baseline b ON b.mode = ? AND b.aid = a.aid
-       WHERE a.${col} >= ? AND (b.updated IS NULL OR b.updated < a.${col}${backfill}) AND a.aid NOT IN (SELECT aid FROM hidden)
+       WHERE a.${col} >= ? AND (b.updated IS NULL OR b.updated < a.${col}) AND a.aid NOT IN (SELECT aid FROM hidden)
        ORDER BY a.${col} DESC LIMIT ?`,
     )
     .all(mode.key, Date.now() - WINDOW, limit) as { aid: number; u: number }[];
