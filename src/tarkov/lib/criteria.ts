@@ -138,7 +138,7 @@ export const VERDICT_LABEL = { clear: "특이점 없음", warn: "높은 수치",
 export type RateMode = "pvp" | "season" | "pve" | "arena";
 export type ModeRate = { accounts: number; clear: number; warn: number; alert: number };
 export type BadgeRates = { at: number; modes: Record<RateMode, ModeRate> };
-export const RATE_LABEL: Record<RateMode, string> = { pvp: "PvP", season: "시즌", pve: "PvE", arena: "아레나" };
+export const RATE_LABEL: Record<RateMode, string> = { season: "시즌", pvp: "PvP", pve: "PvE", arena: "아레나" };
 
 // 서버가 처음 계산하기 전에 쓰는 2026-10-20 비교군 전체 결과
 export const BADGE_RATES_SEED: BadgeRates = {

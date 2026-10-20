@@ -723,8 +723,9 @@ export default async function Profile({ params, searchParams }: Props) {
                   {c.label}
                 </span>
               ))}
-              <span className="pid muted num">#{aid}</span>
+              {name !== `#${aid}` && <span className="pid muted num">#{aid}</span>}
             </div>
+            {(s || registered) && (
             <dl className="pmeta">
               {eft && (
                 <div>
@@ -756,10 +757,12 @@ export default async function Profile({ params, searchParams }: Props) {
                   <dd className="num">{int(s.total?.games)}</dd>
                 </div>
               )}
-              <div>
-                <dt>{s?.kind === "arena" ? "아레나 플레이 시간" : "플레이 시간"}</dt>
-                <dd className="num">{hours(s?.seconds)}</dd>
-              </div>
+              {s && (
+                <div>
+                  <dt>{s.kind === "arena" ? "아레나 플레이 시간" : "플레이 시간"}</dt>
+                  <dd className="num">{hours(s.seconds)}</dd>
+                </div>
+              )}
               {registered && (
                 <div>
                   <dt>가입일</dt>
@@ -773,6 +776,7 @@ export default async function Profile({ params, searchParams }: Props) {
                 </div>
               )}
             </dl>
+            )}
             <div className="pfresh">
               <Actions aid={aid} mode={mode.key} tarkovDev={tarkovDevUrl(mode, aid)} />
               {s && (

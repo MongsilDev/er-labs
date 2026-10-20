@@ -479,6 +479,9 @@ table {
 .doc-table tr:last-child td {
   border-bottom: 0;
 }
+.doc-table .badge-col {
+  width: 120px;
+}
 
 .doc h3 {
   font-size: 14px;

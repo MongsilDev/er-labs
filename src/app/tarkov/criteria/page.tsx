@@ -74,7 +74,9 @@ export default function Criteria() {
           <table>
             <thead>
               <tr>
-                <th scope="col">배지</th>
+                <th scope="col" className="badge-col">
+                  배지
+                </th>
                 <th scope="col">조건</th>
               </tr>
             </thead>
@@ -132,15 +134,15 @@ export default function Criteria() {
         <p>아레나는 {MIN_N}매치 이상 플레이한 모드마다 따로 판정한 뒤 결과를 합칩니다.</p>
         <div className="doc-table">
           <table>
-            <tbody>
+            <thead>
               <tr>
-                <td className="nowrap">
-                  <span className="badge sm alert">{VERDICT_LABEL.alert}</span>
-                </td>
-                <td>
-                  {VERDICT_LABEL.alert}인 모드가 있고, 나머지 모드도 모두 {VERDICT_LABEL.warn} 이상
-                </td>
+                <th scope="col" className="badge-col">
+                  배지
+                </th>
+                <th scope="col">조건</th>
               </tr>
+            </thead>
+            <tbody>
               <tr>
                 <td className="nowrap">
                   <span className="badge sm warn">{VERDICT_LABEL.warn}</span>
@@ -149,6 +151,14 @@ export default function Criteria() {
                   {VERDICT_LABEL.alert}인 모드가 있음
                   <br />
                   또는 판정한 모드의 절반 넘게 {VERDICT_LABEL.warn} 이상
+                </td>
+              </tr>
+              <tr>
+                <td className="nowrap">
+                  <span className="badge sm alert">{VERDICT_LABEL.alert}</span>
+                </td>
+                <td>
+                  {VERDICT_LABEL.alert}인 모드가 있고, 나머지 모드도 모두 {VERDICT_LABEL.warn} 이상
                 </td>
               </tr>
             </tbody>
