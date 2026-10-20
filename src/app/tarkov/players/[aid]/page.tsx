@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import gearData from "@/tarkov/data/gear.json";
 import badges from "@/tarkov/data/level-badges.json";
 import itemsData from "@/tarkov/data/items.json";
 import masteringData from "@/tarkov/data/mastering.json";
@@ -13,7 +14,7 @@ import Actions from "@/tarkov/components/players/Actions";
 import { Remember } from "@/tarkov/components/players/Recent";
 import SearchBox from "@/tarkov/components/players/SearchBox";
 import Verdict from "@/tarkov/components/players/Verdict";
-import { date, dateTime, dec, div, hours, int, pct } from "@/tarkov/lib/format";
+import { ago, date, dateTime, dec, div, hours, int, pct } from "@/tarkov/lib/format";
 import { arenaModeLabel, memberChips, sideLabel } from "@/tarkov/lib/labels";
 import { MODES, pickMode, tarkovDevUrl } from "@/tarkov/lib/modes";
 import { PERK, encodeBuild, type Perk } from "@/tarkov/lib/kord";
@@ -95,46 +96,51 @@ function KeyTiles({ list, hide }: { list: Fact[]; hide: string[] }) {
   );
 }
 
-function EftStats({ s, hide }: { s: EftSummary; hide: string[] }) {
+function EftStats({ s }: { s: EftSummary }) {
+  const ends = [
+    ["survived", "생존", s.survived],
+    ["kia", "사망", s.kia],
+    ["mia", "실종", s.mia],
+    ["left", "이탈", s.left],
+    ["runner", "도주", s.runner],
+    ["transit", "지역 이동", s.transit],
+  ] as const;
+  const total = ends.reduce((a, [, , n]) => a + (n ?? 0), 0);
   return (
-    <>
-      <KeyTiles
-        hide={hide}
-        list={[
-          ["PMC K/D", dec(div(s.pmcKills, s.kia))],
-          ["생존율", pct(div(s.survived, s.raids))],
-          ["레이드당 PMC 사살", dec(div(s.pmcKills, s.raids))],
-          ["연속 생존 횟수", int(s.streak)],
-        ]}
-      />
-      <Facts
-        groups={[
-          {
-            title: "레이드 결과",
-            rows: [
-              ["레이드", int(s.raids)],
-              ["생존", int(s.survived)],
-              ["사망", int(s.kia)],
-              ["실종", int(s.mia)],
-              ["이탈", int(s.left)],
-              ["도주", int(s.runner)],
-              ["지역 이동", int(s.transit)],
-            ],
-          },
-          {
-            title: "전투와 계정",
-            rows: [
-              ["PMC K/D", dec(div(s.pmcKills, s.kia))],
-              ["생존율", pct(div(s.survived, s.raids))],
-              ["PMC 사살", int(s.pmcKills)],
-              ["사살", int(s.kills)],
-              ["레이드당 사살", dec(div(s.kills, s.raids))],
-              ["경험치", int(s.experience)],
-            ],
-          },
-        ]}
-      />
-    </>
+    <section className="block">
+      <h2 className="h2">
+        레이드 결과 <span className="muted num">{int(s.raids)}</span>
+      </h2>
+      {total > 0 && (
+        <div className="panel outcome">
+          <div className="obar" aria-hidden="true">
+            {ends.map(([k, , n]) => (n ? <i key={k} className={k} style={{ width: `${(n / total) * 100}%` }} /> : null))}
+          </div>
+          <ul className="olegend">
+            {ends.map(([k, label, n]) => (
+              <li key={k}>
+                <span className="ol-top">
+                  <i className={k} aria-hidden="true" />
+                  {label}
+                </span>
+                <span className="ol-val">
+                  <b className="num">{int(n)}</b>
+                  <span className="muted num">{pct(div(n, total), 0)}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <div className="tiles combat">
+        <Tile strong label="PMC K/D" value={dec(div(s.pmcKills, s.kia))} />
+        <Tile strong label="생존율" value={pct(div(s.survived, s.raids))} />
+        <Tile label="PMC 사살" value={int(s.pmcKills)} />
+        <Tile label="사살" value={int(s.kills)} />
+        <Tile label="레이드당 사살" value={dec(div(s.kills, s.raids))} />
+        <Tile label="경험치" value={int(s.experience)} />
+      </div>
+    </section>
   );
 }
 
@@ -153,56 +159,6 @@ function ArenaStats({ s, hide }: { s: ArenaSummary; hide: string[] }) {
           ["경기당 피해량", int(t.games ? t.damage / t.games : null)],
           ["경기당 킬", per(t.kills)],
           ["최고 ARP", int(s.overall?.bestArp || null)],
-        ]}
-      />
-      <Facts
-        groups={[
-          {
-            title: "전투",
-            rows: [
-              ["킬", int(t.kills)],
-              ["사망", int(t.deaths)],
-              ["어시스트", int(t.assists)],
-              ["헤드샷", int(t.headshots)],
-              ["피해량", int(t.damage)],
-              ["팀킬", int(t.teamKills)],
-              ["근접무기 킬", int(t.knifeKills)],
-            ],
-          },
-          {
-            title: "결과",
-            rows: [
-              ["경기", int(t.games)],
-              ["승리", int(t.wins)],
-              ["패배", int(t.losses)],
-              ["라운드 MVP", int(t.roundMvp)],
-              ["매치 MVP", int(t.matchMvp)],
-              ["에이스", int(t.aces)],
-            ],
-          },
-          {
-            title: "연속 기록",
-            rows: [
-              ["현재 연속 킬", int(s.overall?.killStreak)],
-              ["최고 연속 킬", int(t.bestKillStreak)],
-              ["한 경기 최다 킬", int(t.maxGameKills)],
-              ["최고 연승", int(t.bestWinStreak)],
-              ["현재 연패", int(s.overall?.loseStreak)],
-              ["최장 연패", int(t.bestLoseStreak)],
-            ],
-          },
-          {
-            title: "평균과 등급",
-            rows: [
-              ["K/D", dec(div(t.kills, t.deaths))],
-              ["헤드샷 비율", pct(div(t.headshots, t.kills))],
-              ["경기당 킬", per(t.kills)],
-              ["경기당 어시스트", per(t.assists)],
-              ["시간당 킬", dec(s.seconds ? t.kills / (s.seconds / 3600) : null, 1)],
-              ["플레이 시간", hours(s.seconds)],
-              ["최고 ARP", int(s.overall?.bestArp || null)],
-            ],
-          },
         ]}
       />
       {s.modes.length > 1 && (
@@ -254,6 +210,53 @@ function ArenaStats({ s, hide }: { s: ArenaSummary; hide: string[] }) {
           </div>
         </section>
       )}
+      <Facts
+        groups={[
+          {
+            title: "전투",
+            rows: [
+              ["킬", int(t.kills)],
+              ["사망", int(t.deaths)],
+              ["어시스트", int(t.assists)],
+              ["헤드샷", int(t.headshots)],
+              ["피해량", int(t.damage)],
+              ["팀킬", int(t.teamKills)],
+              ["근접무기 킬", int(t.knifeKills)],
+            ],
+          },
+          {
+            title: "결과",
+            rows: [
+              ["경기", int(t.games)],
+              ["승리", int(t.wins)],
+              ["패배", int(t.losses)],
+              ["라운드 MVP", int(t.roundMvp)],
+              ["매치 MVP", int(t.matchMvp)],
+              ["에이스", int(t.aces)],
+            ],
+          },
+          {
+            title: "연속 기록",
+            rows: [
+              ["현재 연속 킬", int(s.overall?.killStreak)],
+              ["최고 연속 킬", int(t.bestKillStreak)],
+              ["한 경기 최다 킬", int(t.maxGameKills)],
+              ["최고 연승", int(t.bestWinStreak)],
+              ["현재 연패", int(s.overall?.loseStreak)],
+              ["최장 연패", int(t.bestLoseStreak)],
+            ],
+          },
+          {
+            title: "평균",
+            rows: [
+              ["경기당 킬", per(t.kills)],
+              ["경기당 어시스트", per(t.assists)],
+              ["시간당 킬", dec(s.seconds ? t.kills / (s.seconds / 3600) : null, 1)],
+              ["최고 ARP", int(s.overall?.bestArp || null)],
+            ],
+          },
+        ]}
+      />
     </>
   );
 }
@@ -290,44 +293,104 @@ const ITEMS = itemsData as Record<string, string>;
 const SKILL_NAME = skillsData as Record<string, string>;
 const MASTERING = masteringData as Record<string, { weapon: string | null; level2: number; level3: number }>;
 
-const SLOTS: [string, string][] = [
-  ["FirstPrimaryWeapon", "주무기 1"],
-  ["SecondPrimaryWeapon", "주무기 2"],
-  ["Holster", "권총집"],
-  ["Scabbard", "칼집"],
-  ["Headwear", "모자"],
-  ["Earpiece", "헤드셋"],
-  ["FaceCover", "얼굴"],
-  ["Eyewear", "안경"],
-  ["ArmorVest", "방탄복"],
-  ["TacticalVest", "전술 조끼"],
-  ["Backpack", "배낭"],
-  ["SecuredContainer", "파우치"],
-  ["ArmBand", "완장"],
+const GEAR = gearData as unknown as Record<string, [number, number, string, string?]>;
+
+// 인게임 장비 화면처럼 머리와 몸, 무기, 수납 세 묶음으로 배치
+const ZONES: { key: string; slots: [string, string][] }[] = [
+  {
+    key: "body",
+    slots: [
+      ["Earpiece", "헤드셋"],
+      ["Headwear", "모자"],
+      ["FaceCover", "얼굴"],
+      ["Eyewear", "안경"],
+      ["ArmorVest", "방탄복"],
+      ["ArmBand", "완장"],
+    ],
+  },
+  {
+    key: "arms",
+    slots: [
+      ["FirstPrimaryWeapon", "주무기 1"],
+      ["SecondPrimaryWeapon", "주무기 2"],
+      ["Holster", "권총집"],
+      ["Scabbard", "칼집"],
+    ],
+  },
+  {
+    key: "pack",
+    slots: [
+      ["TacticalVest", "전술 조끼"],
+      ["Backpack", "배낭"],
+      ["SecuredContainer", "파우치"],
+    ],
+  },
 ];
+const WEAPON_SLOTS = ["FirstPrimaryWeapon", "SecondPrimaryWeapon", "Holster"];
+
+type Worn = NonNullable<EftSummary["gear"]>[number];
+
+function Slot({ slot, label, g }: { slot: string; label: string; g?: Worn }) {
+  const bg = g && GEAR[g.tpl]?.[2];
+  return (
+    <div className={`slot${slot.endsWith("PrimaryWeapon") ? " wide" : ""}${g ? ` bg-${bg ?? "default"}` : " vacant"}`}>
+      <span className="slot-top">
+        <span className="slot-label">{label}</span>
+        {g && (
+          <span className="slot-meta num">
+            {WEAPON_SLOTS.includes(slot) && g.mods ? <span>부착물 {g.mods}개</span> : null}
+            {g.dur ? <span>{`${Math.round(g.dur[0])}/${Math.round(g.dur[1])}`}</span> : null}
+          </span>
+        )}
+      </span>
+      {g && (
+        <>
+          <Image className="slot-img" src={`/api/icon/${g.tpl}?v=base`} alt="" width={256} height={128} unoptimized />
+          <span className="slot-name ellipsis" title={ITEMS[g.tpl]}>
+            {ITEMS[g.tpl]}
+          </span>
+        </>
+      )}
+    </div>
+  );
+}
 
 function Gear({ s }: { s: EftSummary }) {
-  const rows = SLOTS.map(([slot, label]) => ({ label, tpl: s.gear?.find((g) => g.slot === slot)?.tpl })).filter(
-    (r): r is { label: string; tpl: string } => !!r.tpl && !!ITEMS[r.tpl],
-  );
-  if (!rows.length) return null;
+  const worn = (slot: string) => s.gear?.find((g) => g.slot === slot && ITEMS[g.tpl]);
+  const filled = ZONES.flatMap((z) => z.slots).filter(([slot]) => worn(slot));
+  if (!filled.length) return null;
+  const guns = WEAPON_SLOTS.some((slot) => worn(slot));
+  // 주무기 없이 몇 칸만 찬 기록은 빈 칸이 화면을 채우므로 찬 칸만 보임
+  const full = ["FirstPrimaryWeapon", "SecondPrimaryWeapon"].some((slot) => worn(slot)) || filled.length > 4;
   return (
     <section className="block">
       <h2 className="h2">마지막 장비</h2>
-      <p className="sub">tarkov.dev 기록이 갱신된 시점에 캐릭터가 입고 있던 장비입니다.</p>
-      <ul className="gear">
-        {rows.map((r) => (
-          <li key={r.label}>
-            <Image src={`/api/icon/${r.tpl}`} alt="" width={44} height={44} unoptimized />
-            <span className="gear-text">
-              <span className="small muted">{r.label}</span>
-              <b className="ellipsis" title={ITEMS[r.tpl]}>
-                {ITEMS[r.tpl]}
-              </b>
-            </span>
-          </li>
-        ))}
-      </ul>
+      <p className="sub">
+        tarkov.dev 기록이 갱신된 시점에 캐릭터가 입고 있던 장비입니다.
+        {guns && (
+          <>
+            <br />
+            무기 그림은 기본 구성 모양이며, 실제로 단 부착물은 그림에 반영되지 않습니다.
+          </>
+        )}
+      </p>
+      {full ? (
+        <div className="kit">
+          {ZONES.map((z) => (
+            <div key={z.key} className={`kit-zone ${z.key}`}>
+              {z.slots.map(([slot, label]) => (
+                <Slot key={slot} slot={slot} label={label} g={worn(slot)} />
+              ))}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="kit compact">
+          {filled.map(([slot, label]) => (
+            <Slot key={slot} slot={slot} label={label} g={worn(slot)} />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
@@ -627,64 +690,6 @@ export default async function Profile({ params, searchParams }: Props) {
         <SearchBox compact />
         {name !== `#${aid}` && <Remember aid={aid} name={name} />}
 
-        <section className="panel phead">
-          <div className="pname">
-            <h1 className="ellipsis" translate="no">{name}</h1>
-            {s?.side && <span className="chip">{sideLabel(s.side)}</span>}
-            {chips.map((c) => (
-              <span key={c.label} className={c.official ? "chip official" : "chip"}>
-                {c.label}
-              </span>
-            ))}
-          </div>
-          <dl className="pmeta">
-            <div>
-              <dt>계정 번호</dt>
-              <dd className="num">{aid}</dd>
-            </div>
-            {eft && (
-              <div>
-                <dt>레벨</dt>
-                <dd className="num with-icon">
-                  {eft.level && badges[eft.level - 1] ? <Image className="lvl-badge" src={`/img/level/${badges[eft.level - 1]}.png`} alt="" width={22} height={22} unoptimized /> : null}
-                  {eft.level ?? "-"}
-                </dd>
-              </div>
-            )}
-            {eft?.prestige ? (
-              <div>
-                <dt>프레스티지</dt>
-                <dd className="num with-icon">
-                  {eft.prestige <= 6 && <Image src={`/img/prestige/${eft.prestige}.webp`} alt="" width={22} height={22} unoptimized />}
-                  {eft.prestige}
-                </dd>
-              </div>
-            ) : null}
-            <div>
-              <dt>{s?.kind === "arena" ? "아레나 플레이 시간" : "플레이 시간"}</dt>
-              <dd className="num">{hours(s?.seconds)}</dd>
-            </div>
-            {registered && (
-              <div>
-                <dt>가입일</dt>
-                <dd className="num">{date(registered * 1000)}</dd>
-              </div>
-            )}
-            {eft?.lastActive && (
-              <div>
-                <dt>마지막 활동</dt>
-                <dd className="num">{date(eft.lastActive * 1000)}</dd>
-              </div>
-            )}
-            <div>
-              <dt>기준 시각</dt>
-              <dd className="num">{s ? dateTime(s.updated) : "-"}</dd>
-            </div>
-          </dl>
-          <Actions aid={aid} mode={mode.key} tarkovDev={tarkovDevUrl(mode, aid)} />
-          {res.error && <p className="err">tarkov.dev에서 받아오지 못해 {s ? "이전에 받은 기록을 표시합니다." : "표시할 기록이 없습니다."}</p>}
-        </section>
-
         <nav className="tabs" aria-label="모드">
           {MODES.map((m) => {
             const known = !acc || acc.modes[m.key] != null;
@@ -696,6 +701,86 @@ export default async function Profile({ params, searchParams }: Props) {
           })}
         </nav>
 
+        <div className={v && v.state !== "none" ? `hero ${v.state}` : "hero"}>
+          <section className="panel phead">
+            <div className="pname">
+              <h1 className="ellipsis" translate="no">{name}</h1>
+              {s?.side && <span className="chip">{sideLabel(s.side)}</span>}
+              {chips.map((c) => (
+                <span key={c.label} className={c.official ? "chip official" : "chip"}>
+                  {c.label}
+                </span>
+              ))}
+              <span className="pid muted num">#{aid}</span>
+              {history.length > 0 && (
+                <a className="chip hop" href="#names">
+                  닉네임 변경 {history.length}회
+                </a>
+              )}
+            </div>
+            <dl className="pmeta">
+              {eft && (
+                <div>
+                  <dt>레벨</dt>
+                  <dd className="num with-icon">
+                    {eft.level && badges[eft.level - 1] ? <Image className="lvl-badge" src={`/img/level/${badges[eft.level - 1]}.png`} alt="" width={22} height={22} unoptimized /> : null}
+                    {eft.level ?? "-"}
+                  </dd>
+                </div>
+              )}
+              {eft?.prestige ? (
+                <div>
+                  <dt>프레스티지</dt>
+                  <dd className="num with-icon">
+                    {eft.prestige <= 6 && <Image src={`/img/prestige/${eft.prestige}.webp`} alt="" width={22} height={22} unoptimized />}
+                    {eft.prestige}
+                  </dd>
+                </div>
+              ) : null}
+              {eft && (
+                <div>
+                  <dt>레이드</dt>
+                  <dd className="num">{int(eft.raids)}</dd>
+                </div>
+              )}
+              {s?.kind === "arena" && (
+                <div>
+                  <dt>경기</dt>
+                  <dd className="num">{int(s.total?.games)}</dd>
+                </div>
+              )}
+              <div>
+                <dt>{s?.kind === "arena" ? "아레나 플레이 시간" : "플레이 시간"}</dt>
+                <dd className="num">{hours(s?.seconds)}</dd>
+              </div>
+              {registered && (
+                <div>
+                  <dt>가입일</dt>
+                  <dd className="num">{date(registered * 1000)}</dd>
+                </div>
+              )}
+              {eft?.lastActive && (
+                <div>
+                  <dt>마지막 활동</dt>
+                  <dd className="num">{date(eft.lastActive * 1000)}</dd>
+                </div>
+              )}
+            </dl>
+            <div className="pfresh">
+              <Actions aid={aid} mode={mode.key} tarkovDev={tarkovDevUrl(mode, aid)} />
+              {s && (
+                <p className="small muted">
+                  <span className="num">{dateTime(s.updated)}</span> 기준, {ago(s.updated)}
+                  <br />
+                  tarkov.dev에서 갱신을 누르고 이 화면으로 돌아오면 최신 기록을 자동으로 받아옵니다.
+                </p>
+              )}
+            </div>
+            {res.error && <p className="err">tarkov.dev에서 받아오지 못해 {s ? "이전에 받은 기록을 표시합니다." : "표시할 기록이 없습니다."}</p>}
+          </section>
+          {s && v && <Verdict v={v} mode={mode.key} official={chips.some((c) => c.official)} rate={badgeRates().modes[mode.key]} />}
+        </div>
+
         {!s && !res.error && (
           <section className="panel empty">
             <p>아직 tarkov.dev에서 이 계정의 {mode.label} 기록을 조회한 사람이 없습니다.</p>
@@ -703,23 +788,28 @@ export default async function Profile({ params, searchParams }: Props) {
           </section>
         )}
 
-        {s && (
+        {eft && (
           <>
-            {v && <Verdict v={v} mode={mode.key} official={chips.some((c) => c.official)} rate={badgeRates().modes[mode.key]} />}
-            {s.kind === "eft" ? <EftStats s={s} hide={barred} /> : <ArenaStats s={s} hide={barred} />}
-            {eft && <SeasonProgress s={eft} />}
-            {s.kind === "arena" && <ArenaPasses s={s} />}
-            {eft?.perks?.length ? <SeasonPerks ids={eft.perks} /> : null}
-            {eft && <Scav s={eft} />}
-            {eft && <Gear s={eft} />}
-            {eft && <Skills s={eft} />}
-            {eft && <Mastery s={eft} />}
+            <EftStats s={eft} />
+            <Gear s={eft} />
+            <Mastery s={eft} />
+            <Skills s={eft} />
+            <Achievements s={eft} />
+            <SeasonProgress s={eft} />
+            {eft.perks?.length ? <SeasonPerks ids={eft.perks} /> : null}
+            <Scav s={eft} />
+          </>
+        )}
+        {s?.kind === "arena" && (
+          <>
+            <ArenaStats s={s} hide={barred} />
+            <ArenaPasses s={s} />
             <Achievements s={s} />
           </>
         )}
 
         {history.length > 0 && (
-          <section className="block">
+          <section className="block" id="names">
             <h2 className="h2">닉네임 변경</h2>
             <div className="table-scroll panel">
               <table className="grid-table">

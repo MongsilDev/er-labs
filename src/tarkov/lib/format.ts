@@ -29,5 +29,10 @@ export const date = (ms: number | null | undefined) => {
   return `${o.year}.${o.month}.${o.day}`;
 };
 
+export const ago = (ms: number, now = Date.now()) => {
+  const m = Math.max(0, Math.round((now - ms) / 60_000));
+  return m < 60 ? `${m}분 전` : m < 48 * 60 ? `${Math.round(m / 60)}시간 전` : `${Math.round(m / 1440)}일 전`;
+};
+
 export const div = (a: number | null | undefined, b: number | null | undefined): number | null =>
   a == null || b == null ? null : b > 0 ? a / b : null;

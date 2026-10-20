@@ -30,6 +30,15 @@ describe("EFT 프로필", () => {
     // 픽스처는 장비를 지운 상태라 장비는 따로 만든 입력으로 확인
     const equipment = { Id: "root", Items: [{ _id: "root", _tpl: "x" }, { _id: "a", _tpl: "b", parentId: "root", slotId: "SecuredContainer" }, { _id: "c", _tpl: "d", parentId: "a", slotId: "main" }] };
     expect(parseEft({ equipment }).gear).toEqual([{ slot: "SecuredContainer", tpl: "b" }]);
+    const gun = {
+      Id: "root",
+      Items: [
+        { _id: "w", _tpl: "g", parentId: "root", slotId: "FirstPrimaryWeapon", upd: { Repairable: { Durability: 96.4, MaxDurability: 99 } } },
+        { _id: "m1", _tpl: "m", parentId: "w", slotId: "mod_stock" },
+        { _id: "m2", _tpl: "m", parentId: "m1", slotId: "mod_pad" },
+      ],
+    };
+    expect(parseEft({ equipment: gun }).gear).toEqual([{ slot: "FirstPrimaryWeapon", tpl: "g", dur: [96.4, 99], mods: 2 }]);
     expect(parseEft({ pmcStats: { eft: { overAllCounters: { Items: [{ Key: ["Sessions", "Pmc"], Value: 3 }] } } } }).mia).toBe(0);
   });
 

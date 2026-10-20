@@ -1,5 +1,6 @@
 import "server-only";
 import { captureException } from "@sentry/node";
+import { date } from "@/tarkov/lib/format";
 import type { Mode, ModeKey } from "@/tarkov/lib/modes";
 import { parse, type Summary } from "@/tarkov/lib/summary";
 import { db, isHidden } from "./db";
@@ -79,12 +80,18 @@ export function displayName(aid: number, acc: Account | null, s: Summary | null)
   return (s && s.updated >= latest ? s.name : acc?.name) || s?.name || `#${aid}`;
 }
 
+// 같은 날 같은 변경이 여러 번 기록된 행은 하나로 셈
 export function nameHistory(aid: number): { old: string; next: string; at: number }[] {
-  return db().prepare("SELECT old_name AS old, new_name AS next, seen_at AS at FROM names WHERE aid = ? ORDER BY seen_at DESC LIMIT 50").all(aid) as {
+  const rows = db().prepare("SELECT old_name AS old, new_name AS next, seen_at AS at FROM names WHERE aid = ? ORDER BY seen_at DESC LIMIT 50").all(aid) as {
     old: string;
     next: string;
     at: number;
   }[];
+  const seen = new Set<string>();
+  return rows.filter((r) => {
+    const k = `${r.old}\n${r.next}\n${date(r.at)}`;
+    return !seen.has(k) && !!seen.add(k);
+  });
 }
 
 export function snapshots(aid: number, mode: ModeKey): Summary[] {

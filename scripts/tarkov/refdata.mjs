@@ -37,11 +37,21 @@ const pool = async (jobs, n = 8) => {
 };
 // 장비 칸에 장착하는 아이템과 보안 컨테이너만 이름을 남김. 아이콘은 화면에서 쓸 때 서버가 받아 둠
 const KEEP = new Set(["gun", "wearable", "armor", "rig", "backpack", "headphones", "helmet", "glasses", "mask"]);
+// 보안 컨테이너 분류. it.name이 로케일 키라 이름으로는 못 거름
+const SECURE = "5448bf274bdc2dfc2f8b456a";
 const itemNames = {};
 for (const it of Object.values(items.items)) {
-  if (it.types.some((t) => KEEP.has(t)) || /secure container/i.test(it.name)) itemNames[it.id] = itemsKo[it.name] ?? it.name;
+  if (it.types.some((t) => KEEP.has(t)) || it.categories?.includes(SECURE)) itemNames[it.id] = itemsKo[it.name] ?? it.name;
 }
 writeFileSync("src/tarkov/data/items.json", JSON.stringify(itemNames) + "\n");
+// 장비 칸 그림용 칸 크기와 배경색. 무기는 기본 프리셋 모양으로 그림
+const gear = {};
+for (const id of Object.keys(itemNames)) {
+  const it = items.items[id];
+  const preset = items.items[it.properties?.defaultPreset];
+  gear[id] = preset ? [preset.width, preset.height, it.backgroundColor, preset.id] : [it.width, it.height, it.backgroundColor];
+}
+writeFileSync("src/tarkov/data/gear.json", JSON.stringify(gear) + "\n");
 
 const skills = {};
 for (const sk of items.skills) skills[sk.id] = itemsKo[sk.name] ?? sk.name;

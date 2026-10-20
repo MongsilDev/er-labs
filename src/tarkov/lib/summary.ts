@@ -42,7 +42,7 @@ export type EftSummary = Base & {
   perks?: string[];
   skills?: { id: string; level: number }[];
   mastery?: { id: string; progress: number }[];
-  gear?: { slot: string; tpl: string }[];
+  gear?: { slot: string; tpl: string; dur?: [number, number]; mods?: number }[];
   league?: { rank: number; max: number } | null;
   pass?: Progress | null;
   seasonRewards?: Progress | null;
@@ -192,10 +192,16 @@ function gearAndSkills(p: Record<string, unknown>) {
     .sort((a, b) => b.progress - a.progress);
   const eq = obj(p.equipment);
   const root = str(eq.Id) || str(eq.id);
-  const gear = arr(eq.Items ?? eq.items)
-    .map(obj)
+  const all = arr(eq.Items ?? eq.items).map(obj);
+  const under = (id: string): number => all.filter((x) => str(x.parentId) === id).reduce((n, x) => n + 1 + under(str(x._id)), 0);
+  const gear = all
     .filter((x) => root && str(x.parentId) === root && str(x.slotId) && str(x._tpl))
-    .map((x) => ({ slot: str(x.slotId), tpl: str(x._tpl) }));
+    .map((x) => {
+      const rep = obj(obj(x.upd).Repairable);
+      const cur = num(rep.Durability), max = num(rep.MaxDurability);
+      const gun = /PrimaryWeapon|Holster/.test(str(x.slotId));
+      return { slot: str(x.slotId), tpl: str(x._tpl), ...(cur != null && max ? { dur: [cur, max] as [number, number] } : {}), ...(gun ? { mods: under(str(x._id)) } : {}) };
+    });
   return { skills, mastery, gear };
 }
 
