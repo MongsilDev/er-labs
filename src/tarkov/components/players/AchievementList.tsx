@@ -22,7 +22,7 @@ const ORDER: Record<Sort, (a: AchievementRow, b: AchievementRow) => number> = {
   rare: (a, b) => (a.percent || 101) - (b.percent || 101) || b.at - a.at,
 };
 
-function Row({ a }: { a: AchievementRow }) {
+function Row({ a, digits }: { a: AchievementRow; digits: number }) {
   return (
     <li className={`ach ${a.rarity}`}>
       {a.icon ? <Image src={`/img/ach/${a.id}.webp`} alt="" width={36} height={36} unoptimized /> : <span className="ach-blank" />}
@@ -33,7 +33,7 @@ function Row({ a }: { a: AchievementRow }) {
       <span className="ach-side">
         <span className="small nowrap">
           <b className="ach-rarity">{RARITY[a.rarity] ?? a.rarity}</b>
-          {a.percent ? <span className="muted num"> {dec(a.percent, 2)}%</span> : null}
+          {a.percent ? <span className="muted num"> {dec(a.percent, digits)}%</span> : null}
         </span>
         <span className="muted small num nowrap">{date(a.at * 1000)}</span>
       </span>
@@ -41,7 +41,9 @@ function Row({ a }: { a: AchievementRow }) {
   );
 }
 
-export default function AchievementList({ rows }: { rows: AchievementRow[] }) {
+// Epic Games Store 달성률은 소수 첫째 자리까지만 줌
+export default function AchievementList({ rows, by = "tarkov.dev" }: { rows: AchievementRow[]; by?: "tarkov.dev" | "Epic Games Store" }) {
+  const digits = by === "tarkov.dev" ? 2 : 1;
   const [sort, setSort] = useState<Sort>("recent");
   const list = [...rows].sort(ORDER[sort]);
   return (
@@ -54,11 +56,11 @@ export default function AchievementList({ rows }: { rows: AchievementRow[] }) {
             </button>
           ))}
         </div>
-        <span className="sub small">비율은 tarkov.dev가 집계한 달성 비율입니다.</span>
+        <span className="sub small">비율은 {by}가 집계한 달성 비율입니다.</span>
       </div>
       <ul className="panel list achs">
         {list.slice(0, 8).map((a) => (
-          <Row key={a.id} a={a} />
+          <Row key={a.id} a={a} digits={digits} />
         ))}
       </ul>
       {list.length > 8 && (
@@ -66,7 +68,7 @@ export default function AchievementList({ rows }: { rows: AchievementRow[] }) {
           <summary>나머지 {list.length - 8}개 보기</summary>
           <ul className="panel list achs">
             {list.slice(8).map((a) => (
-              <Row key={a.id} a={a} />
+              <Row key={a.id} a={a} digits={digits} />
             ))}
           </ul>
         </details>

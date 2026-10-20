@@ -1,0 +1,226 @@
+{
+ "6722612dab4a24e9da0361aa": {
+  "name": "The First Hero",
+  "description": "Take the first place in LastHero",
+  "icon": true,
+  "rarity": "",
+  "percent": 37,
+  "hidden": false
+ },
+ "67229d0a04774d33a2056d55": {
+  "name": "Born Survivor",
+  "description": "Take the first place 50 times in LastHero",
+  "icon": true,
+  "rarity": "",
+  "percent": 0.7,
+  "hidden": false
+ },
+ "67229dd443d757b68f0975a2": {
+  "name": "Winner Takes All",
+  "description": "Win a match 100 times in BlastGang",
+  "icon": true,
+  "rarity": "",
+  "percent": 0.1,
+  "hidden": false
+ },
+ "67229e44ab4a24e9da0361da": {
+  "name": "Team Game",
+  "description": "Win a match 100 times in TeamFight",
+  "icon": true,
+  "rarity": "",
+  "percent": 0.4,
+  "hidden": false
+ },
+ "67229e9a7c8c397a5004f43d": {
+  "name": "Assault Rifle Master",
+  "description": "Eliminate 250 enemies with Assault rifles",
+  "icon": true,
+  "rarity": "",
+  "percent": 54,
+  "hidden": false
+ },
+ "6722a00eab4a24e9da0361dd": {
+  "name": "Assault Rifle Expert",
+  "description": "Eliminate 1000 enemies with Assault rifles",
+  "icon": true,
+  "rarity": "",
+  "percent": 26,
+  "hidden": false
+ },
+ "6722a08f6006cd22c70fce8e": {
+  "name": "Machine Gun Master",
+  "description": "Eliminate 250 enemies with Machine guns",
+  "icon": true,
+  "rarity": "",
+  "percent": 14,
+  "hidden": false
+ },
+ "6722a10504774d33a2056d59": {
+  "name": "Machine Gun Expert",
+  "description": "Eliminate 1000 enemies with Machine guns",
+  "icon": true,
+  "rarity": "",
+  "percent": 2,
+  "hidden": false
+ },
+ "6722a1556006cd22c70fce91": {
+  "name": "Marksman Rifle Master",
+  "description": "Eliminate 250 enemies with Marksman rifles",
+  "icon": true,
+  "rarity": "",
+  "percent": 9,
+  "hidden": false
+ },
+ "6722a28604774d33a2056d5c": {
+  "name": "Marksman Rifle Expert",
+  "description": "Eliminate 1000 enemies with Marksman rifles",
+  "icon": true,
+  "rarity": "",
+  "percent": 0.9,
+  "hidden": false
+ },
+ "6722a32c58871c73f3038bbc": {
+  "name": "Assault Carbine Master",
+  "description": "Eliminate 250 enemies with Assault carbines",
+  "icon": true,
+  "rarity": "",
+  "percent": 8,
+  "hidden": false
+ },
+ "6722a3d58d46d067f60eee90": {
+  "name": "Assault Carbine Expert",
+  "description": "Eliminate 1000 enemies with Assault carbines",
+  "icon": true,
+  "rarity": "",
+  "percent": 2,
+  "hidden": false
+ },
+ "6722a44aab4a24e9da0361e3": {
+  "name": "Bolt-Action Rifle Master",
+  "description": "Eliminate 250 enemies with Bolt-action rifles",
+  "icon": true,
+  "rarity": "",
+  "percent": 17,
+  "hidden": false
+ },
+ "6722a4bb7c8c397a5004f441": {
+  "name": "Bolt-Action Rifle Expert",
+  "description": "Eliminate 1000 enemies with Bolt-action rifles",
+  "icon": true,
+  "rarity": "",
+  "percent": 3,
+  "hidden": false
+ },
+ "6722a5092bcba14c030b7df1": {
+  "name": "Submachine Gun Master",
+  "description": "Eliminate 250 enemies with Submachine guns",
+  "icon": true,
+  "rarity": "",
+  "percent": 33,
+  "hidden": false
+ },
+ "6722a58726925a3eb600de2c": {
+  "name": "Submachine Gun Expert",
+  "description": "Eliminate 1000 enemies with Submachine guns",
+  "icon": true,
+  "rarity": "",
+  "percent": 10,
+  "hidden": false
+ },
+ "6722a5d28d46d067f60eee93": {
+  "name": "Shotgun Master",
+  "description": "Eliminate 250 enemies with Shotguns",
+  "icon": true,
+  "rarity": "",
+  "percent": 5,
+  "hidden": false
+ },
+ "6722a6c526925a3eb600de2f": {
+  "name": "Shotgun Expert",
+  "description": "Eliminate 1000 enemies with Shotguns",
+  "icon": true,
+  "rarity": "",
+  "percent": 0.5,
+  "hidden": false
+ },
+ "6722a73e26925a3eb600de32": {
+  "name": "Pistol Master",
+  "description": "Eliminate 100 enemies with Pistols",
+  "icon": true,
+  "rarity": "",
+  "percent": 7,
+  "hidden": false
+ },
+ "6722a7d46006cd22c70fce95": {
+  "name": "Pistol Expert",
+  "description": "Eliminate 500 enemies with Pistols",
+  "icon": true,
+  "rarity": "",
+  "percent": 1,
+  "hidden": false
+ },
+ "6722a8758d46d067f60eee97": {
+  "name": "Melee Master",
+  "description": "Eliminate 10 enemies with Melee weapons",
+  "icon": true,
+  "rarity": "",
+  "percent": 14,
+  "hidden": false
+ },
+ "6722a8e1ab4a24e9da0361e6": {
+  "name": "Melee Expert",
+  "description": "Eliminate 100 enemies with Melee weapons",
+  "icon": true,
+  "rarity": "",
+  "percent": 8,
+  "hidden": false
+ },
+ "6722a927297a7399d80b50d5": {
+  "name": "Throwables Master",
+  "description": "Eliminate 50 enemies with Throwables",
+  "icon": true,
+  "rarity": "",
+  "percent": 1,
+  "hidden": false
+ },
+ "6722a99e297a7399d80b50d8": {
+  "name": "Throwables Expert",
+  "description": "Eliminate 250 enemies with Throwables",
+  "icon": true,
+  "rarity": "",
+  "percent": 0.1,
+  "hidden": false
+ },
+ "6722c3ee26925a3eb600de3d": {
+  "name": "Good Job",
+  "description": "Earn the Match MVP award 10 times in any game mode",
+  "icon": true,
+  "rarity": "",
+  "percent": 21,
+  "hidden": false
+ },
+ "6722c41b8d46d067f60eee9e": {
+  "name": "Best of the Best",
+  "description": "Earn the Match MVP award 100 times in any game mode",
+  "icon": true,
+  "rarity": "",
+  "percent": 0.9,
+  "hidden": false
+ },
+ "6722c44c58871c73f3038bc7": {
+  "name": "Resilient Gladiator",
+  "description": "Earn the Round MVP award 50 times in any game mode",
+  "icon": true,
+  "rarity": "",
+  "percent": 8,
+  "hidden": false
+ },
+ "6722c47704774d33a2056d66": {
+  "name": "Freedom Contender",
+  "description": "Earn the Round MVP award 500 times in any game mode",
+  "icon": true,
+  "rarity": "",
+  "percent": 0.1,
+  "hidden": false
+ }
+}

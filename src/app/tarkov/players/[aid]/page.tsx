@@ -18,7 +18,7 @@ import { arenaModeLabel, memberChips, sideLabel } from "@/tarkov/lib/labels";
 import { MODES, pickMode, tarkovDevUrl } from "@/tarkov/lib/modes";
 import { PERK, encodeBuild, type Perk } from "@/tarkov/lib/kord";
 import { ARENA_PASSES, LEAGUE, leagueLabel } from "@/tarkov/lib/season";
-import { achievementInfo, type ArenaSummary, type EftSummary, type Progress, type Summary } from "@/tarkov/lib/summary";
+import { ARENA_NAMED, achievementInfo, type ArenaSummary, type EftSummary, type Progress, type Summary } from "@/tarkov/lib/summary";
 import { badgeRates, verdict } from "@/tarkov/server/baseline";
 import { isHidden } from "@/tarkov/server/db";
 import { account, displayName, load, nameHistory, snapshots } from "@/tarkov/server/profiles";
@@ -270,7 +270,18 @@ function Achievements({ s }: { s: Summary }) {
       <h2 className="h2">
         도전과제 <span className="muted num">{s.achievements.length}</span>
       </h2>
-      {rows.length > 0 ? <AchievementList rows={rows} /> : <p className="sub">아레나 도전과제는 공개된 이름 자료가 없어 개수만 표시합니다.</p>}
+      {s.kind === "arena" && (
+        <p className="sub">
+          아레나 도전과제는 공개된 이름 자료가 없어, 전적으로 확인한 {ARENA_NAMED}개만 Epic Games Store 영어 이름으로 표시합니다.
+          {rows.length < s.achievements.length && (
+            <>
+              <br />
+              이 계정은 {s.achievements.length}개 가운데 {rows.length}개를 표시합니다.
+            </>
+          )}
+        </p>
+      )}
+      {rows.length > 0 && <AchievementList rows={rows} by={s.kind === "arena" ? "Epic Games Store" : "tarkov.dev"} />}
     </section>
   );
 }

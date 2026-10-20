@@ -1,11 +1,12 @@
 import achievementsData from "@/tarkov/data/achievements.json";
+import arenaAchievementsData from "@/tarkov/data/arena-achievements.json";
 import levels from "@/tarkov/data/levels.json";
 import skillNames from "@/tarkov/data/skills.json";
 
 // players.tarkov.dev 프로필 JSON에서 화면과 판정에 쓰는 숫자만 뽑음. 없는 필드는 null
 
 type Achievement = { name: string; description: string; icon: boolean; rarity: string; percent: number; hidden: boolean };
-const ACHIEVEMENTS = achievementsData as Record<string, Achievement>;
+const ACHIEVEMENTS = { ...achievementsData, ...arenaAchievementsData } as Record<string, Achievement>;
 
 export const FLAGS = { developer: 1, eod: 2, moderator: 32, sherpa: 256, emissary: 512, unheard: 1024 } as const;
 
@@ -269,5 +270,6 @@ export function parseArena(raw: unknown): ArenaSummary {
 export const parse = (folder: string, raw: unknown): Summary => (folder === "arena" ? parseArena(raw) : parseEft(raw));
 
 export const achievementInfo = (id: string): Achievement | undefined => ACHIEVEMENTS[id];
+export const ARENA_NAMED = Object.keys(arenaAchievementsData).length;
 
 export const ratio = (a: number | null, b: number | null): number | null => (a == null || b == null ? null : b > 0 ? a / b : a > 0 ? a : null);
