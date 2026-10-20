@@ -28,12 +28,17 @@ function Title({ href, children }: { href: string; children: React.ReactNode }) 
   );
 }
 
-function Stats({ items }: { items: { label: string; value: string }[] }) {
+type Stat = { label: string; value: string; color?: string };
+
+function Stats({ items }: { items: Stat[] }) {
   return (
     <dl className="mt-auto flex flex-wrap gap-x-8 gap-y-3 border-t border-line-soft pt-4">
       {items.map((s) => (
         <div key={s.label} className="grid gap-0.5">
-          <dt className="text-[12px] text-fg-3">{s.label}</dt>
+          <dt className="flex items-center gap-1.5 text-[12px] text-fg-3">
+            {s.color && <span className="size-2 rounded-full" style={{ background: s.color }} aria-hidden="true" />}
+            {s.label}
+          </dt>
           <dd className="text-[20px] leading-tight font-extrabold tabular-nums">{s.value}</dd>
         </div>
       ))}
@@ -48,7 +53,7 @@ function Tool({ game, accent, href, name, desc, children, stats, className = "" 
   name: string;
   desc: string;
   children?: React.ReactNode;
-  stats: { label: string; value: string }[];
+  stats: Stat[];
   className?: string;
 }) {
   return (
@@ -102,25 +107,30 @@ export default async function Hub() {
             accent={ER_ACCENT}
             href="/er/cut"
             name="이터컷 예측"
+            className="cut"
             desc="휴면 강등을 반영한 아시아1 컷과 시즌 종료 예상"
             stats={
               cut
-                ? [
-                    { label: "이터니티 컷 위 휴면", value: `${rp(cut.tiers.eternity.decay.reduce((n, [, c]) => n + c, 0) + cut.tiers.eternity.decayStay)}명` },
-                    { label: "데미갓 컷 위 휴면", value: `${rp(cut.tiers.demigod.decay.reduce((n, [, c]) => n + c, 0) + cut.tiers.demigod.decayStay)}명` },
-                  ]
+                ? TIERS.map(({ key, name, color }) => ({
+                    label: `${name} 컷 위 휴면`,
+                    value: `${rp(cut.tiers[key].decay.reduce((n, [, c]) => n + c, 0) + cut.tiers[key].decayStay)}명`,
+                    color,
+                  }))
                 : []
             }
           >
             {cut ? (
-              <div className="cut">
+              <div>
                 <ul className="grid">
                   {TIERS.map(({ key, name, color }) => {
                     const tier = cut.tiers[key];
                     const end = tier.forecast?.[tier.forecast.length - 1];
                     return (
                       <li key={key} className="flex items-baseline gap-3 border-t border-line-soft py-2 first:border-t-0 first:pt-0">
-                        <span className="text-[14px] font-bold">{name}</span>
+                        <span className="flex items-center gap-1.5 text-[14px] font-bold">
+                          <span className="size-2 rounded-full" style={{ background: color }} aria-hidden="true" />
+                          {name}
+                        </span>
                         <span className="ml-auto text-[14px] font-extrabold tabular-nums">
                           {tier.estimated ? "약 " : ""}
                           {tier.cut != null ? rp(tier.cut) : "-"}
@@ -190,6 +200,7 @@ export default async function Hub() {
               { label: "부정 특성", value: int(minus.length) },
             ]}
           >
+            <p className="mb-2 text-[13px] text-fg-3">포인트가 가장 크게 바뀌는 특성</p>
             <ul className="grid">
               {picks.map((p) => (
                 <li key={p.id} className="flex items-center gap-3 border-t border-line-soft py-2 first:border-t-0 first:pt-0">
