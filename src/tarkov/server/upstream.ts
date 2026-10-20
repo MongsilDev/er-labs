@@ -3,7 +3,7 @@ import "server-only";
 export const PLAYERS_BASE = (process.env.PLAYERS_BASE || "https://players.tarkov.dev").replace(/\/$/, "");
 export const USER_AGENT = "Labs (+https://labs.mongsil.dev/tarkov)";
 
-// 화면 조회와 비교군 수집이 같은 간격 제한을 나눠 씀
+// 화면 조회는 0.5초, 비교군 수집은 1초 간격 제한을 따로 씀
 type Lane = { gap: number; next: number };
 const g = globalThis as unknown as { __tlLanes?: Record<string, Lane> };
 const lanes = (g.__tlLanes ??= { view: { gap: 500, next: 0 }, crawl: { gap: 1000, next: 0 } });

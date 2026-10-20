@@ -71,7 +71,7 @@ export type ArenaModeStats = {
   damage: number;
 };
 
-// Overall 카운터에만 있는 현재 연속 기록과 최고 ARP
+// Overall 카운터에서 읽는 현재 연속 기록과 최고 ARP
 export type ArenaOverall = { killStreak: number; loseStreak: number; bestArp: number };
 
 export type ArenaSummary = Base & {

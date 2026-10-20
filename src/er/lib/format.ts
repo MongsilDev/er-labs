@@ -36,7 +36,7 @@ export function rampColor(i: number, n: number): string {
   return `color-mix(in srgb, var(--ramp-b) ${p}%, var(--ramp-a))`;
 }
 
-// globals.css의 --ramp-a, --ramp-b와 같은 값
+// src/app/er/globals.css의 --ramp-a, --ramp-b와 같은 값
 const RAMP = { dark: ["#0f5c66", "#26f1f6"], light: ["#6fd6dd", "#0a5f66"] } as const;
 
 // 흰 글자와 검은 글자 모두 대비 4.5 이상이 되는 경계가 상대 휘도 0.179
