@@ -139,14 +139,14 @@ export default function Privacy() {
           <table>
             <thead>
               <tr>
-                <th scope="col">받는 곳</th>
+                <th scope="col">수탁자</th>
                 <th scope="col" className="whitespace-nowrap">국가</th>
                 <th scope="col">업무와 항목</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td data-label="받는 곳">
+                <td data-label="수탁자">
                   Sentry
                   <br />
                   <span className="whitespace-nowrap">compliance@sentry.io</span>
@@ -155,7 +155,7 @@ export default function Privacy() {
                 <td data-label="업무와 항목">서버 오류 기록.<br />서버 오류가 날 때 오류가 난 페이지 주소와 오류 내용이 전송됨.<br />접속 IP 주소, 쿠키, 요청 내용은 전송하지 않음.<br />보유 기간은 Sentry 보관 정책을 따름</td>
               </tr>
               <tr>
-                <td data-label="받는 곳">
+                <td data-label="수탁자">
                   Cloudflare
                   <br />
                   <span className="whitespace-nowrap">dpo@cloudflare.com</span>
@@ -164,7 +164,7 @@ export default function Privacy() {
                 <td data-label="업무와 항목">사이트 접속 중계, 방문 통계, 백업 보관.<br />접속할 때마다 접속 IP 주소, 요청 정보, 방문한 페이지 주소, 브라우저 종류가 전송됨.<br />Escape from Tarkov 기록의 암호화한 백업본이 매일 전송됨.<br />방문 통계는 쿠키를 사용하지 않음.<br />보유 기간은 Cloudflare 정책을 따르고, 백업본은 최대 5주 보관</td>
               </tr>
               <tr>
-                <td data-label="받는 곳">
+                <td data-label="수탁자">
                   Google LLC
                   <br />
                   <span className="whitespace-nowrap">googlekrsupport@google.com</span>
@@ -203,8 +203,8 @@ export default function Privacy() {
         <h2>8. 정보주체의 권리</h2>
         <p>
           언제든지 자신의 개인정보 열람, 정정, 삭제, 처리 정지를 요구할 수 있습니다.<br />로그인 정보는 로그아웃하면 바로 삭제되고, 대회는 개최자가 대회 삭제 버튼으로 바로 삭제할 수
-          있습니다.<br />Escape from Tarkov 기록은 아래 이메일로 계정 번호나 닉네임을 보내 주시면 게임 안에서 본인 계정임을 확인한 뒤 처리합니다.<br />그 밖의 요구도 아래 이메일로
-          보내 주시면 본인 확인 뒤 바로 처리합니다.<br />만 14세 미만 아동의 권리는 법정대리인이 행사할 수 있습니다.
+          있습니다.<br />Escape from Tarkov 기록은 아래 이메일로 계정 번호나 닉네임을 보내면 게임 안에서 본인 계정임을 확인한 뒤 처리합니다.<br />그 밖의 요구도 아래 이메일로
+          요청하면 본인 확인 후 지체 없이 처리합니다.<br />만 14세 미만 아동의 권리는 법정대리인이 행사할 수 있습니다.
         </p>
 
         <h2>9. 개인정보 보호책임자</h2>
@@ -223,7 +223,7 @@ export default function Privacy() {
         </ul>
 
         <h2>11. 변경</h2>
-        <p>처리방침을 변경하면 이 페이지에 시행일과 함께 공지합니다.</p>
+        <p>처리방침을 변경하면 이 페이지에 시행일과 함께 게시합니다.</p>
       </main>
       <SiteFooter />
     </>
