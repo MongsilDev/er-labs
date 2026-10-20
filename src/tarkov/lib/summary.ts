@@ -75,7 +75,7 @@ export type ArenaModeStats = {
 // Overall 카운터에서 읽는 현재 연속 기록과 최고 ARP
 export type ArenaOverall = { killStreak: number; loseStreak: number; bestArp: number };
 
-export type Gear = { slot: string; tpl: string; dur?: [number, number]; mods?: number; build?: string };
+export type Gear = { slot: string; tpl: string; dur?: [number, number]; mods?: number };
 
 export type ArenaSummary = Base & {
   kind: "arena";

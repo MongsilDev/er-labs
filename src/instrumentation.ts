@@ -46,13 +46,10 @@ export async function register() {
   // 비교군 수집이 몇 시간씩 이어질 수 있어 따로 돌림. 계산할 때인지는 refreshRates가 판단
   setTimeout(refreshRates, 60_000).unref();
   setInterval(refreshRates, 60 * 60 * 1000).unref();
-  const { renderBuilds } = await import("./tarkov/server/builds");
-  setTimeout(renderBuilds, 90_000).unref();
-  setInterval(renderBuilds, 30 * 60 * 1000).unref();
 }
 
 const toolOf = (path: string) =>
-  /^\/(er|auth|api\/(t|i|me))(\/|$)/.test(path) ? "er" : /^\/(tarkov|api\/(search|players|icon|build))(\/|$)/.test(path) ? "tarkov" : "labs";
+  /^\/(er|auth|api\/(t|i|me))(\/|$)/.test(path) ? "er" : /^\/(tarkov|api\/(search|players|icon))(\/|$)/.test(path) ? "tarkov" : "labs";
 
 export const onRequestError: Instrumentation.onRequestError = async (err, request, context) => {
   if (process.env.NEXT_RUNTIME !== "nodejs" || !process.env.SENTRY_DSN) return;
