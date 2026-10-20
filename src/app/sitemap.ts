@@ -6,6 +6,7 @@ export const dynamic = "force-dynamic";
 const PATHS = [
   "",
   "/privacy",
+  "/terms",
   "/er/score",
   "/er/cut",
   "/er/example/a",
