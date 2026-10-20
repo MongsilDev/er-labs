@@ -15,6 +15,7 @@ export const encodeBuild = (sel: Iterable<string>) => {
 };
 
 export function decodeBuild(raw: string) {
-  const n = /^[0-9a-z]{1,10}$/.test(raw) ? parseInt(raw, 36) : 0;
+  const v = /^[0-9a-z]{1,11}$/.test(raw) ? parseInt(raw, 36) : 0;
+  const n = Number.isSafeInteger(v) ? v : 0;
   return ORDER.filter((_, i) => Math.floor(n / 2 ** i) % 2 === 1);
 }
