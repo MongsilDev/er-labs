@@ -9,7 +9,7 @@ export type AchievementRow = { id: string; at: number; name: string; description
 const RARITY: Record<string, string> = { common: "일반", rare: "희귀", legendary: "전설", seasonal: "시즌" };
 
 const SORTS = [
-  { key: "recent", label: "최근 획득" },
+  { key: "recent", label: "최근 순" },
   { key: "old", label: "오래된 순" },
   { key: "rare", label: "희귀한 순" },
 ] as const;

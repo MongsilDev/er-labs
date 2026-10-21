@@ -88,10 +88,18 @@ export function nameHistory(aid: number): { old: string; next: string; at: numbe
     at: number;
   }[];
   const seen = new Set<string>();
-  return rows.filter((r) => {
+  const list = rows.filter((r) => {
     const k = `${r.old}\n${r.next}\n${date(r.at)}`;
     return !seen.has(k) && !!seen.add(k);
   });
+  // 모드별 색인 이름이 엇갈려 같은 날 A에서 B로, 다시 A로 기록된 쌍은 둘 다 뺌
+  const drop = new Set<number>();
+  list.forEach((r, i) => {
+    if (drop.has(i)) return;
+    const j = list.findIndex((o, k) => k > i && !drop.has(k) && o.old === r.next && o.next === r.old && date(o.at) === date(r.at));
+    if (j > 0) drop.add(i).add(j);
+  });
+  return list.filter((_, i) => !drop.has(i));
 }
 
 export function snapshots(aid: number, mode: ModeKey): Summary[] {

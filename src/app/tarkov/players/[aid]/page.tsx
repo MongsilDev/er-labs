@@ -602,7 +602,10 @@ function SeasonPerks({ ids }: { ids: string[] }) {
 }
 
 function Trend({ list }: { list: Summary[] }) {
-  if (list.length < 2) return null;
+  const key = (s: Summary) => (s.kind === "eft" ? `${s.raids}/${s.pmcKills}/${s.kia}/${s.survived}` : `${s.total?.games}/${s.total?.kills}/${s.total?.deaths}/${s.total?.headshots}`);
+  // 값이 그대로인 연속 기록은 가장 최근 것만
+  const rows = list.filter((s, i) => i === 0 || key(s) !== key(list[i - 1]));
+  if (rows.length < 2) return null;
   return (
     <section className="block">
       <h2 className="h2">이 사이트에 저장된 기록</h2>
@@ -629,7 +632,7 @@ function Trend({ list }: { list: Summary[] }) {
             </tr>
           </thead>
           <tbody>
-            {list.slice(0, 8).map((s) => (
+            {rows.slice(0, 8).map((s) => (
               <tr key={s.updated}>
                 <td className="nowrap num">{dateTime(s.updated)}</td>
                 {s.kind === "eft" ? (

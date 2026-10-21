@@ -27,13 +27,13 @@ async function readPairs(body: ReadableStream<Uint8Array>, flush: (pairs: [strin
   if (pairs.length) flush(pairs);
 }
 
-async function loadNames(folder: string, history: boolean): Promise<number> {
+async function loadNames(folder: string, key: ModeKey, history: boolean): Promise<number> {
   const metaKey = `index:${folder}/index.json`;
   const res = await fetchStream(`${folder}/index.json`, getMeta(metaKey) ?? undefined);
   if (!res) return 0;
   const seenAt = Date.parse(res.modified) || Date.now();
   const conn = db();
-  const get = conn.prepare("SELECT name FROM accounts WHERE aid = ?");
+  const get = conn.prepare("SELECT name, u_pvp, u_season, u_pve, u_arena FROM accounts WHERE aid = ?");
   const ins = conn.prepare("INSERT INTO accounts (aid, name, name_lc) VALUES (?, ?, ?)");
   const upd = conn.prepare("UPDATE accounts SET name = ?, name_lc = ? WHERE aid = ?");
   const hist = conn.prepare("INSERT INTO names (aid, old_name, new_name, seen_at) VALUES (?, ?, ?, ?)");
@@ -45,9 +45,10 @@ async function loadNames(folder: string, history: boolean): Promise<number> {
         const aid = Number(k);
         const name = String(v);
         if (!Number.isSafeInteger(aid) || !name) continue;
-        const row = get.get(aid) as { name: string } | undefined;
+        const row = get.get(aid) as ({ name: string } & Record<`u_${ModeKey}`, number | null>) | undefined;
         if (!row) ins.run(aid, name, name.toLowerCase());
-        else if (row.name !== name) {
+        // 모드마다 색인 이름이 달라 매번 오가던 계정이 있어, 가장 최근에 갱신된 모드의 이름만 따름
+        else if (row.name !== name && (row[`u_${key}`] ?? 0) >= Math.max(row.u_pvp ?? 0, row.u_season ?? 0, row.u_pve ?? 0, row.u_arena ?? 0)) {
           upd.run(name, name.toLowerCase(), aid);
           if (history && !hidden.get(aid)) hist.run(aid, row.name, name, seenAt);
           changed++;
@@ -88,7 +89,7 @@ export async function runIndex(): Promise<boolean> {
     const history = getMeta("names_ready") === "1";
     let changed = 0;
     for (const m of MODES) {
-      changed += await loadNames(m.folder, history);
+      changed += await loadNames(m.folder, m.key, history);
       await loadUpdated(m.folder, m.key);
     }
     setMeta("names_ready", "1");
