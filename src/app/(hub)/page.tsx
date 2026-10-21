@@ -1,21 +1,18 @@
+import Image from "next/image";
 import Link from "next/link";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
-import ExampleBoard from "@/er/components/ExampleBoard";
+import ExampleBoard, { exampleResult } from "@/er/components/ExampleBoard";
 import ThemeToggle from "@/er/components/ThemeToggle";
-import { tournamentCount } from "@/er/server/tournament";
 import { int as rp, TIERS, tens } from "@/er/lib/cut";
 import { getCut } from "@/er/server/cut";
-import DecayMini from "@/er/components/cut/DecayMini";
-import { ACCENT as TARKOV_ACCENT } from "@/tarkov/components/Mark";
+import CutMini from "@/er/components/cut/CutMini";
 import { date, int } from "@/tarkov/lib/format";
-import { COMMON, PERSONAL } from "@/tarkov/lib/kord";
+import { PERSONAL } from "@/tarkov/lib/kord";
 import { baselineAccounts } from "@/tarkov/server/baseline";
 import { getMeta } from "@/tarkov/server/db";
 
 export const dynamic = "force-dynamic";
-
-const ER_ACCENT = "#26f1f6";
 
 function Title({ href, children }: { href: string; children: React.ReactNode }) {
   return (
@@ -28,7 +25,7 @@ function Title({ href, children }: { href: string; children: React.ReactNode }) 
   );
 }
 
-type Stat = { label: string; value: string; color?: string };
+type Stat = { label: string; value: React.ReactNode; color?: string };
 
 function Stats({ items }: { items: Stat[] }) {
   return (
@@ -46,26 +43,26 @@ function Stats({ items }: { items: Stat[] }) {
   );
 }
 
-function Tool({ game, accent, href, name, desc, children, stats, className = "" }: {
+function Tool({ game, icon, href, name, desc, children, stats, className = "" }: {
   game: string;
-  accent: string;
+  icon: string;
   href: string;
   name: string;
   desc: string;
   children?: React.ReactNode;
-  stats: Stat[];
+  stats?: Stat[];
   className?: string;
 }) {
   return (
     <section className={`panel flex flex-col p-6 max-[760px]:p-5 ${className}`} aria-label={name}>
       <span className="mb-1.5 flex items-center gap-2 text-[13px] text-fg-3">
-        <span className="size-2 rounded-full" style={{ background: accent }} aria-hidden="true" />
+        <Image className="size-6 rounded-md" src={`/img/game/${icon}.webp`} alt="" width={24} height={24} unoptimized />
         {game}
       </span>
       <Title href={href}>{name}</Title>
       <p className="mt-1 text-[14px] text-fg-2">{desc}</p>
-      {children && <div className="mt-5 mb-5">{children}</div>}
-      <Stats items={stats} />
+      {children && <div className={stats ? "mt-5 mb-5" : "mt-5"}>{children}</div>}
+      {stats && <Stats items={stats} />}
     </section>
   );
 }
@@ -74,6 +71,7 @@ const signed = (n: number) => (n > 0 ? `+${n}` : String(n));
 
 export default async function Hub() {
   const cut = await getCut();
+  const example = exampleResult();
   const indexed = Number(getMeta("indexed_at")) || null;
   const plus = PERSONAL.filter((p) => (p.points ?? 0) < 0);
   const minus = PERSONAL.filter((p) => (p.points ?? 0) > 0);
@@ -93,18 +91,28 @@ export default async function Hub() {
         <div className="grid grid-cols-2 gap-3 max-[760px]:grid-cols-1">
           <Tool
             game="이터널 리턴"
-            accent={ER_ACCENT}
+            icon="er"
             href="/er/score"
             name="점수 계산"
             desc="결과 CSV로 대회 순위, 감점, 체크포인트, 밴 계산"
-            stats={[{ label: "진행 중인 대회", value: `${int(tournamentCount())}개` }]}
+            stats={[
+              {
+                label: "예시 대회",
+                value: (
+                  <Link className="link p-0 text-[20px] font-extrabold text-fg" href="/er/example/a">
+                    {example.name}
+                  </Link>
+                ),
+              },
+              { label: "진행", value: `${example.res.played}라운드` },
+            ]}
           >
             <ExampleBoard rows={3} bare />
           </Tool>
 
           <Tool
             game="이터널 리턴"
-            accent={ER_ACCENT}
+            icon="er"
             href="/er/cut"
             name="이터컷 예측"
             className="cut"
@@ -144,7 +152,7 @@ export default async function Hub() {
                     );
                   })}
                 </ul>
-                <DecayMini data={cut} />
+                <CutMini data={cut} />
               </div>
             ) : (
               <p className="text-[13px] text-fg-3">지금은 컷 정보를 가져올 수 없습니다.</p>
@@ -153,7 +161,7 @@ export default async function Hub() {
 
           <Tool
             game="Escape from Tarkov"
-            accent={TARKOV_ACCENT}
+            icon="eft"
             href="/tarkov/players"
             name="계정 조회"
             desc="시즌, PvP, PvE, 아레나 전적과 판정 배지"
@@ -190,15 +198,10 @@ export default async function Hub() {
 
           <Tool
             game="Escape from Tarkov"
-            accent={TARKOV_ACCENT}
+            icon="eft"
             href="/tarkov/kord-breach"
             name="KORD BREACH 특성 시뮬레이터"
             desc="시즌 1 특성 포인트 계산"
-            stats={[
-              { label: "공통 특성", value: int(COMMON.length) },
-              { label: "긍정 특성", value: int(plus.length) },
-              { label: "부정 특성", value: int(minus.length) },
-            ]}
           >
             <p className="mb-2 text-[13px] text-fg-3">포인트가 가장 크게 바뀌는 특성</p>
             <ul className="grid">
