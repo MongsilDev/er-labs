@@ -7,6 +7,7 @@ import Lines from "@/components/Lines";
 
 type Hit = { aid: number; name: string; last: number | null };
 
+const NOT_FOUND = "찾는 닉네임이 없습니다. 닉네임 목록은 하루 한 번 갱신되므로, 오늘 처음 조회된 계정은 tarkov.dev 주소 끝의 계정 번호로 찾아주세요.";
 
 export default function SearchBox({ autoFocus, compact, initial }: { autoFocus?: boolean; compact?: boolean; initial?: string }) {
   const router = useRouter();
@@ -53,7 +54,7 @@ export default function SearchBox({ autoFocus, compact, initial }: { autoFocus?:
             setOpen(false);
             setBusy(true);
             router.push(`/tarkov/players/${aid}`);
-          }
+          } else if (!list.length && !data.error) setMsg(NOT_FOUND);
         }
       } catch {
         if (n === seq.current) setMsg("검색하지 못했습니다.");
@@ -77,11 +78,7 @@ export default function SearchBox({ autoFocus, compact, initial }: { autoFocus?:
     // 닉네임 목록에 아직 없는 새 계정도 계정 번호로는 바로 열림
     else if (/^\d{1,10}$/.test(t)) go({ aid: Number(t), name: t, last: null });
     else
-      setMsg(
-        t.length < 2
-          ? "두 글자 이상 입력해주세요."
-          : "찾는 닉네임이 없습니다. 닉네임 목록은 하루 한 번 갱신되므로, 오늘 처음 조회된 계정은 tarkov.dev 주소 끝의 계정 번호로 찾아주세요.",
-      );
+      setMsg(t.length < 2 ? "두 글자 이상 입력해주세요." : NOT_FOUND);
   };
 
   const shown = open && q.trim().length > 0;
