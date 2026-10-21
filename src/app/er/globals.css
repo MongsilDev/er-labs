@@ -1099,3 +1099,30 @@
     font-size: 17px;
   }
 }
+
+/* 가로 스크롤이 남았을 때만 오른쪽 끝을 흐리게. 스크롤이 없으면 타임라인이 비활성이라 그대로 */
+@property --fade {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@keyframes scroll-fade {
+  from {
+    --fade: 28px;
+  }
+  92% {
+    --fade: 28px;
+  }
+  to {
+    --fade: 0px;
+  }
+}
+.scroll-fade {
+  mask-image: linear-gradient(to right, #000 calc(100% - var(--fade)), transparent);
+}
+@supports (animation-timeline: scroll()) {
+  .scroll-fade {
+    animation: scroll-fade linear both;
+    animation-timeline: scroll(self inline);
+  }
+}

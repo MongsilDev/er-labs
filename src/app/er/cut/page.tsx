@@ -87,7 +87,7 @@ export default async function CutPage() {
             잠시 뒤 다시 열어주세요.
           </p>
         ) : (
-          <div className="grid gap-4">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-4">
             <div className="grid grid-cols-2 gap-4 max-[760px]:grid-cols-1">
               {TIERS.map(({ key, name, color }) => (
                 <TierCard key={key} name={name} color={color} tier={data.tiers[key]} />
@@ -107,14 +107,12 @@ export default async function CutPage() {
               </div>
               <CutChart data={data} />
             </Section>
-            <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-4 max-[1000px]:grid-cols-[minmax(0,1fr)]">
-              <Section id="decay-h" title="휴면 강등 일정">
-                <DecayCalendar data={data} />
-              </Section>
-              <Section id="check-h" title="내 RP 진단">
-                <RpCheck data={data} />
-              </Section>
-            </div>
+            <Section id="check-h" title="내 RP 진단">
+              <RpCheck data={data} />
+            </Section>
+            <Section id="decay-h" title="휴면 강등 일정">
+              <DecayCalendar data={data} />
+            </Section>
             <Section id="method-h" title="계산 방법">
               <ul className="grid gap-2 text-[14px] text-fg-2">
                 <li>

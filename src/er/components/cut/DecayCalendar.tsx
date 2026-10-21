@@ -33,21 +33,21 @@ export default function DecayCalendar({ data }: { data: CutData }) {
           );
         })}
       </dl>
-      <div className="overflow-x-auto pb-1">
-        <ol className="flex min-w-max items-end gap-1" aria-label="날짜별 휴면 강등으로 컷 아래로 내려가는 인원">
+      <div className="scroll-fade overflow-x-auto pb-1">
+        <ol className="flex w-full min-w-max items-end gap-1" aria-label="날짜별 휴면 강등으로 컷 아래로 내려가는 인원">
           {dates.map((d) => {
             const c = counts.get(d) ?? {};
             const t = dayStart(d);
             const patch = d === PATCH.day;
             return (
-              <li key={d} className="grid w-10 justify-items-center gap-1 text-center">
-                <div className="flex h-[112px] items-end gap-[3px]">
+              <li key={d} className="grid min-w-10 flex-1 justify-items-center gap-1 text-center">
+                <div className="flex h-[112px] w-full items-end justify-center gap-[3px]">
                   {TIERS.map(({ key, name, color }) => {
                     const n = c[key] ?? 0;
                     return (
-                      <div key={key} className="grid w-4 justify-items-center gap-0.5" title={`${name} ${n}명`}>
+                      <div key={key} className="grid w-[clamp(16px,28%,24px)] justify-items-center gap-0.5" title={`${name} ${n}명`}>
                         {n > 0 && <span className="text-[11px] font-bold whitespace-nowrap tabular-nums text-fg-2">{n}</span>}
-                        <span className="block w-3.5 rounded-t-[2px]" style={{ height: n ? Math.max(4, (n / peak) * 88) : 2, background: n ? color : "var(--line)" }} />
+                        <span className="block w-[88%] rounded-t-[2px]" style={{ height: n ? Math.max(4, (n / peak) * 88) : 2, background: n ? color : "var(--line)" }} />
                       </div>
                     );
                   })}
