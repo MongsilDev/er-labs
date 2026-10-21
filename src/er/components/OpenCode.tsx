@@ -64,7 +64,7 @@ export default function OpenCode({ mine }: { mine: MyTournament[] }) {
           <label className="lbl" htmlFor="code">
             대회 코드
           </label>
-          <div className="grid grid-cols-[1fr_auto] gap-2">
+          <div className="grid max-w-[360px] grid-cols-[1fr_auto] gap-2">
             <input
               id="code"
               name="code"
