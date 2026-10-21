@@ -874,6 +874,22 @@
     z-index: 1;
     box-shadow: inset 1px 0 var(--line);
   }
+  .rt thead .sticky-r {
+    box-shadow:
+      inset 1px 0 var(--line),
+      inset 0 -1px var(--line-soft);
+  }
+  /* 밑으로 지나가는 칸이 잘린 숫자로 보이지 않게 경계를 흐림. 접힌 테두리 표라 칸 그림자는 안 그려짐 */
+  .rt .sticky-r::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -14px;
+    width: 14px;
+    background: linear-gradient(to right, transparent, var(--surface));
+    pointer-events: none;
+  }
   .rt .minus {
     color: var(--minus);
   }

@@ -21,17 +21,25 @@ type Props = {
 
 export default function Rounds({ group, result, mode, planned, multi, editable, run, pickFiles, openManual }: Props) {
   const [weatherFor, setWeatherFor] = useState<number | null>(null);
+  const [open, setOpen] = useState(false);
   const rows = new Map(group.rounds.map((r) => [r.roundNo, r]));
   const { rounds, next, ended, played } = result;
 
   const drop = editable && played === 0;
+  // 휴대폰에서는 지난 라운드 카드가 순위표를 한참 밀어내므로 접어 둠
+  const fold = rounds.length > 2;
 
   return (
     <div className={`grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] items-start gap-2.5 max-[760px]:grid-cols-2 ${drop ? "mt-2 w-full" : "mb-4"}`}>
+      {fold && (
+        <button type="button" className="btn col-span-full min-[761px]:hidden" aria-expanded={open} onClick={() => setOpen(!open)}>
+          {open ? "지난 라운드 접기" : `지난 라운드 ${rounds.length}개 보기`}
+        </button>
+      )}
       {rounds.map((r) => {
         const row = rows.get(r.roundNo);
         return (
-          <section key={r.roundNo} className="panel flex min-w-0 flex-col gap-2 px-3.5 py-3" aria-label={`${r.roundNo}라운드`}>
+          <section key={r.roundNo} className={`panel flex min-w-0 flex-col gap-2 px-3.5 py-3 ${fold && !open ? "max-[760px]:hidden" : ""}`} aria-label={`${r.roundNo}라운드`}>
             <div className="flex min-w-0 items-center gap-2">
               <span className="size-3 flex-none rounded-[2px]" style={{ background: rampColor(r.roundNo - 1, played) }} />
               <b className="text-[15px] font-extrabold whitespace-nowrap">{r.roundNo}라운드</b>
