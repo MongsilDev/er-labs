@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { mkdtempSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -208,6 +209,28 @@ describe("대회 서버", () => {
       expect(() => t.applyOp(code, owner, { op: "delete_round", id } as unknown as Op)).toThrow("없는 라운드입니다.");
       expect(() => t.applyOp(code, owner, { op: "restore_penalty", id } as unknown as Op)).toThrow("없는 감점입니다.");
     }
+  });
+
+  it("로그아웃하면 그 계정의 다른 기기 세션도 끝나고 다른 계정의 세션은 남는다", async () => {
+    const auth = await import("../../src/er/server/auth");
+    const n = (uid: string) => (db.db().prepare("SELECT COUNT(*) AS n FROM sessions WHERE user_id = ?").get(uid) as { n: number }).n;
+    const phone = auth.createSession(owner);
+    auth.createSession(owner);
+    auth.createSession(op);
+    const others = n(op.id);
+    auth.deleteSessions(phone.id);
+    expect([n(owner.id), n(op.id)]).toEqual([0, others]);
+  });
+
+  it("만료된 세션으로 로그아웃하면 그 세션만 지우고 다른 기기 세션은 남긴다", async () => {
+    const auth = await import("../../src/er/server/auth");
+    const n = () => (db.db().prepare("SELECT COUNT(*) AS n FROM sessions WHERE user_id = ?").get(stranger.id) as { n: number }).n;
+    const old = auth.createSession(stranger);
+    auth.createSession(stranger);
+    const before = n();
+    db.db().prepare("UPDATE sessions SET expires_at = 0 WHERE hash = ?").run(createHash("sha256").update(old.id).digest("hex"));
+    auth.deleteSessions(old.id);
+    expect(n()).toBe(before - 1);
   });
 
   it("같은 라운드를 여러 번 바꿔도 지운 기록은 최근 세 개만 남고 되돌리기는 된다", () => {

@@ -88,8 +88,10 @@ export function createSession(user: User): { id: string; maxAge: number } {
   return { id, maxAge: SESSION_TTL / 1000 };
 }
 
-export function deleteSession(id: string) {
-  db().prepare("DELETE FROM sessions WHERE hash = ?").run(hash(id));
+// 로그아웃하면 그 계정의 모든 기기 세션을 지움. 만료된 세션으로는 그 세션만 지움
+export function deleteSessions(id: string) {
+  const h = hash(id);
+  db().prepare("DELETE FROM sessions WHERE hash = ? OR user_id = (SELECT user_id FROM sessions WHERE hash = ? AND expires_at > ?)").run(h, h, Date.now());
 }
 
 export async function currentUser(): Promise<User | null> {
