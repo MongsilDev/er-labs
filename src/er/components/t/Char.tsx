@@ -1,3 +1,5 @@
+"use client";
+
 import { characterName } from "@/er/lib/format";
 
 // 얼굴 이미지는 scripts/er/portraits.mjs로 cdn.mongsil.dev에 올림

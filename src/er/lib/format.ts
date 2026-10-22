@@ -4,6 +4,7 @@ const KO = characters as Record<string, string>;
 
 export const fmt = (v: number) => (Number.isInteger(v) ? String(v) : (Math.round(v * 100) / 100).toString());
 export const fmt1 = (v: number) => (Math.round(v * 10) / 10).toFixed(1);
+export const pct = (v: number, digits = 1) => `${(v * 100).toFixed(digits)}%`;
 
 export function characterName(english: string): string {
   return KO[english] ?? KO[english.replace(/\s+/g, "")] ?? english;
@@ -48,4 +49,7 @@ export function rampDarkText(i: number, n: number, theme: keyof typeof RAMP): bo
   return lum > 0.179;
 }
 
+export const rampTextClass = (i: number, n: number) => [rampDarkText(i, n, "dark") && "dk", rampDarkText(i, n, "light") && "dl"].filter(Boolean).join(" ") || undefined;
+
 export const byText = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
+export const byCharacter = (a: string, b: string) => byText(characterName(a), characterName(b));

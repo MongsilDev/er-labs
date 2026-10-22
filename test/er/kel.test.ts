@@ -10,7 +10,7 @@ import { kelFixture } from "./helpers";
 process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "er-labs-kel-"));
 afterAll(() => rmSync(process.env.DATA_DIR!, { recursive: true, force: true }));
 
-const e = (placement: number, kills = 0, killScore = 0, penalty = 0): Entry => ({ placement, kills, killScore, penalty });
+const e = (placement: number, killScore = 0, penalty = 0): Entry => ({ placement, killScore, penalty });
 const TEAMS = "abcdefgh".split("");
 const order = (keys: string[], extra: Record<string, Partial<Entry>> = {}): Round => Object.fromEntries(keys.map((k, i) => [k, { ...e(i + 1), ...extra[k] }]));
 
@@ -28,18 +28,27 @@ describe("KEL 정규 시즌", () => {
 });
 
 describe("KEL 진출 계산", () => {
-  it("총점, 킬 수, 마지막 라운드 순위 순서로 줄을 세운다", () => {
-    const rounds: Round[] = [{ a: e(1), b: e(2, 3, 3), c: e(3, 1, 1), d: e(4, 1, 2) }];
-    expect(standings(["a", "b", "c", "d"], rounds).map((r) => r.key)).toEqual(["b", "a", "c", "d"]);
+  it("총점, 킬 점수, 마지막 라운드 순위 순서로 줄을 세운다", () => {
+    const rounds: Round[] = [{ a: e(1), b: e(2, 3), c: e(3, 1), d: e(4, 2) }];
+    expect(standings(["a", "b", "c", "d"], rounds).map((r) => r.key)).toEqual(["b", "a", "d", "c"]);
+    expect(
+      standings(
+        ["x", "y"],
+        [
+          { x: e(1), y: e(4) },
+          { x: e(4), y: e(1) },
+        ],
+      ).map((r) => r.key),
+    ).toEqual(["y", "x"]);
   });
 
   it("감점은 총점에서 뺀다", () => {
-    const [top] = standings(["a", "b"], [{ a: e(1, 0, 0, 4), b: e(2) }]);
+    const [top] = standings(["a", "b"], [{ a: e(1, 0, 4), b: e(2) }]);
     expect(top).toMatchObject({ key: "b", total: 7 });
   });
 
   it("확률 합은 진출 팀 수와 같고 같은 입력에는 같은 값을 낸다", () => {
-    const pool: KillPool = Array.from({ length: 8 }, (_, p) => [[(8 - p) / 2, 8 - p]]);
+    const pool: KillPool = Array.from({ length: 8 }, (_, p) => [(8 - p) / 2]);
     const rows = standings(TEAMS, [order(TEAMS)]);
     const a = advanceOdds(rows, 5, 4, pool, 3000, 1);
     expect([...a.values()].reduce((x, y) => x + y, 0)).toBeCloseTo(4);
@@ -48,7 +57,7 @@ describe("KEL 진출 계산", () => {
   });
 
   it("남은 라운드에 따라잡을 수 없으면 진출 확정, 넘어설 수 없으면 탈락 확정이다", () => {
-    const rows = [100, 90, 80, 70, 10, 5, 3, 0].map((total, i) => ({ key: TEAMS[i], total, kills: 0, penalty: 0, last: i + 1, places: [] }) as Row);
+    const rows = [100, 90, 80, 70, 10, 5, 3, 0].map((total, i) => ({ key: TEAMS[i], total, killScore: 0, penalty: 0, last: i + 1, places: [] }) as Row);
     const s = certainty(rows, 1, 4, 20);
     expect(TEAMS.map((k) => s.get(k) ?? null)).toEqual(["in", "in", "in", "in", "out", "out", "out", "out"]);
     expect(certainty(rows, 3, 4, 20).get("a")).toBeUndefined();
@@ -84,11 +93,11 @@ describe("KEL 자료", () => {
   it("CSV를 읽어 팀 경기와 계산기 자료를 만든다", () => {
     kelFixture(process.env.DATA_DIR!);
     const data = kelData()!;
-    expect(data.games).toHaveLength((4 + 6 + 6) * 8);
+    expect(data.games).toHaveLength(36 * 8);
     expect(new Set(data.rows.map((r) => r.character))).toEqual(new Set(["Nadine", "Alonso", "DebiMarlene", "LiDailin", "Niah", "YuMin", "Jackie", "Aya", "Eleven"]));
     const calc = kelCalcData(data);
-    expect(calc.pool.map((l) => l.length)).toEqual(Array(8).fill(16));
-    expect(calc.teamGames).toBe(128);
+    expect(calc.pool.map((l) => l.length)).toEqual(Array(8).fill(36));
+    expect(calc.teamGames).toBe(288);
     expect(calc.demo?.teams).toHaveLength(8);
     expect(calc.demo?.rounds[0]["gj-slasher"].penalty).toBe(1);
   });

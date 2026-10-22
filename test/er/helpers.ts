@@ -60,22 +60,27 @@ export function kelFixture(dataDir: string) {
   const dir = join(dataDir, "kel");
   mkdirSync(dir, { recursive: true });
   const all = KEL_TEAMS.map((t) => t.csv);
+  // 4~7번 팀 선수는 30게임이 되어 선수끼리 견주는 화면에도 나옴
   const files: [string, string[], number][] = [
     ["2026_KEL_Opening_week_Group_Alpha_2026-05-22.csv", all.slice(0, 8), 4],
-    ["2026_KEL_CIRCUIT_4_Finals_2026-10-18.csv", all.slice(4, 12), 6],
+    ["2026_KEL_CIRCUIT_1_Group_A_2026-06-06.csv", all.slice(0, 8), 6],
+    ["2026_KEL_CIRCUIT_2_Group_A_2026-07-04.csv", all.slice(0, 8), 6],
     ["2026_KEL_MIDSEASON_CUP_SEMIFINALS_2026-08-01.csv", all.slice(8, 16), 6],
+    ["2026_KEL_CIRCUIT_3_Finals_2026-09-20.csv", all.slice(0, 8), 8],
+    ["2026_KEL_CIRCUIT_4_Finals_2026-10-18.csv", all.slice(4, 12), 6],
   ];
   files.forEach(([name, teams, rounds], f) => {
     const date = name.slice(-14, -4);
     const lines = [KEL_HEADER];
     for (let r = 1; r <= rounds; r++) {
       teams.forEach((team, i) => {
+        const g = all.indexOf(team);
         const place = ((i + r * 3) % teams.length) + 1;
         const ks = ((r + i) % 5) * 1.5;
         for (let p = 0; p < 3; p++) {
           lines.push(
             [
-              name.slice(0, -15).replace(/_/g, " "), date, r, 10_000 + f * 100 + r, place, team, `T${i}_선수${f}${i}${p}`, KEL_CHARS[(i * 3 + p + r) % KEL_CHARS.length],
+              name.slice(0, -15).replace(/_/g, " "), date, r, 10_000 + f * 100 + r, place, team, `T${g}_선수${g}-${p}`, KEL_CHARS[(i * 3 + p + r) % KEL_CHARS.length],
               (r + i + p) % 4, (i + p) % 6, p % 2, 30 + i, 9000 + i * 700 + p * 300 + r * 50, 7000 + p * 900 + i * 100, RS[place - 1], ks, RS[place - 1] + ks, 1500 + i, (1 + ((i + p) % 3) / 2).toFixed(3),
             ].join(","),
           );

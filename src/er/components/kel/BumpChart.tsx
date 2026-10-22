@@ -1,0 +1,95 @@
+"use client";
+
+import { useState } from "react";
+import { TEAM, TONES } from "@/er/lib/kel";
+import { Logo } from "./Team";
+import { useWidth } from "@/er/lib/useWidth";
+
+type Row = { key: string; ranks: number[] };
+
+// 강조는 3팀까지, 새로 고르면 가장 먼저 고른 팀이 빠지고 남은 팀은 색을 그대로 유지
+function pick(picked: { key: string; tone: number }[], key: string) {
+  if (picked.some((p) => p.key === key)) return picked.filter((p) => p.key !== key);
+  const kept = picked.length >= TONES.length ? picked.slice(1) : picked;
+  const tone = TONES.findIndex((_, i) => !kept.some((p) => p.tone === i));
+  return [...kept, { key, tone }];
+}
+
+export default function BumpChart({ rows, labels, initial }: { rows: Row[]; labels: string[]; initial: string[] }) {
+  const [ref, w, measured] = useWidth<HTMLDivElement>(900);
+  const [picked, setPicked] = useState(() => initial.slice(0, TONES.length).map((key, tone) => ({ key, tone })));
+  const narrow = w < 560;
+  const step = 26;
+  const pad = { l: narrow ? 32 : 40, r: narrow ? 132 : 176, t: 12, b: 30 };
+  const h = pad.t + step * (rows.length - 1) + pad.b;
+  const x = (i: number) => pad.l + 8 + (i * (w - pad.l - pad.r - 16)) / (labels.length - 1);
+  const y = (rank: number) => pad.t + (rank - 1) * step;
+  const toneOf = (key: string) => picked.find((p) => p.key === key)?.tone ?? -1;
+  const points = (r: Row) => r.ranks.map((k, i) => `${x(i)},${y(k)}`).join(" ");
+  const last = labels.length - 1;
+  const ticksY = [1, 4, 8, 12, 16].filter((r) => r <= rows.length);
+
+  return (
+    <div ref={ref} className="relative" style={{ visibility: measured ? undefined : "hidden" }}>
+      <svg width="100%" height={h} viewBox={`0 0 ${w} ${h}`} role="img" aria-label={`${labels[0]}부터 ${labels[last]}까지 팀 순위 변화`}>
+        {labels.map((l, i) => (
+          <g key={l}>
+            <line x1={x(i)} x2={x(i)} y1={pad.t - 8} y2={h - pad.b + 6} stroke="var(--line-soft)" />
+            <text x={x(i)} y={h - 8} textAnchor="middle" fontSize={12} fill="var(--text-3)">
+              {l}
+            </text>
+          </g>
+        ))}
+        {ticksY.map((r) => (
+          <text key={r} x={pad.l - 4} y={y(r)} dy="0.32em" textAnchor="end" fontSize={11} fill="var(--text-3)">
+            {r}위
+          </text>
+        ))}
+        {rows
+          .filter((r) => toneOf(r.key) < 0)
+          .map((r) => (
+            <g key={r.key}>
+              <polyline points={points(r)} fill="none" stroke="var(--kel-0)" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+              {r.ranks.map((k, i) => (
+                <circle key={i} cx={x(i)} cy={y(k)} r={3} fill="var(--kel-0)" />
+              ))}
+            </g>
+          ))}
+        {rows
+          .filter((r) => toneOf(r.key) >= 0)
+          .map((r) => {
+            const color = TONES[toneOf(r.key)];
+            return (
+              <g key={r.key}>
+                <polyline points={points(r)} fill="none" stroke={color} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
+                {r.ranks.map((k, i) => (
+                  <circle key={i} cx={x(i)} cy={y(k)} r={4.5} fill={color} stroke="var(--surface)" strokeWidth={2}>
+                    <title>{`${TEAM.get(r.key)?.name} ${labels[i]} ${k}위`}</title>
+                  </circle>
+                ))}
+              </g>
+            );
+          })}
+      </svg>
+      {measured &&
+        rows.map((r) => {
+          const team = TEAM.get(r.key)!;
+          const tone = toneOf(r.key);
+          return (
+            <button
+              key={r.key}
+              type="button"
+              aria-pressed={tone >= 0}
+              onClick={() => setPicked((p) => pick(p, r.key))}
+              className="absolute flex items-center gap-1.5 rounded-md px-1 text-left hover:bg-hover"
+              style={{ left: x(last) + 8, top: y(r.ranks[last]) - 11, height: 22, maxWidth: pad.r - 10 }}
+            >
+              <span className="h-[3px] w-2.5 flex-none rounded-full" style={{ background: tone >= 0 ? TONES[tone] : "var(--kel-0)" }} aria-hidden="true" />
+              <Logo team={team} size={18} />
+              <span className={`truncate text-[13px] max-[560px]:text-[12px] ${tone >= 0 ? "font-bold text-fg" : "text-fg-2"}`}>{team.name}</span>
+            </button>
+          );
+        })}
+    </div>
+  );
+}

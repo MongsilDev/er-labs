@@ -29,6 +29,17 @@ export const LOGO_CDN = "https://cdn.mongsil.dev/er-labs/teams";
 
 export const wikiUrl = (title: string) => `${WIKI}/${encodeURIComponent(title.replace(/ /g, "_"))}`;
 
+// 차트 강조 3색, 값은 globals.css의 --kel-1~3
+export const TONES = ["var(--kel-1)", "var(--kel-2)", "var(--kel-3)"];
+
+// 영문과 숫자는 읽는 소리의 받침으로 고름
+export function josa(word: string, withFinal: string, without: string): string {
+  const c = word.trim().slice(-1);
+  const code = c.charCodeAt(0) - 0xac00;
+  const final = code >= 0 && code <= 11171 ? code % 28 !== 0 : /[lmnr013678]/i.test(c);
+  return word + (final ? withFinal : without);
+}
+
 // 마지막 칸은 9~12위 공통, 13위부터 0점
 export const CIRCUIT_POINTS: Record<"early" | "late", number[]> = { early: [800, 480, 320, 240, 200, 160, 120, 80, 40], late: [1200, 720, 480, 360, 300, 240, 180, 120, 60] };
 
@@ -70,13 +81,21 @@ export const KEL_EVENTS = [
 export type KelEvent = (typeof KEL_EVENTS)[number]["key"];
 export const EVENT_NAME = Object.fromEntries(KEL_EVENTS.map((e) => [e.key, e.name])) as Record<KelEvent, string>;
 
-export type KelScreen = "home" | "calc" | "rules";
+export type KelScreen = "home" | "calc" | "rules" | "circuits" | "finals" | "teams" | "players" | "roles" | "characters" | "comps" | "records";
 
 // public이 false인 화면은 KEL_OWNER_ID 계정만 열 수 있음
 export const KEL_SCREENS: Record<KelScreen, { path: string; title: string; public: boolean }> = {
   home: { path: "/er/kel", title: "2026 KEL 기록", public: false },
   calc: { path: "/er/kel/calc", title: "챔피언십 진출 계산기", public: false },
   rules: { path: "/er/kel/rules", title: "포맷과 규칙", public: false },
+  circuits: { path: "/er/kel/circuits", title: "서킷별 순위", public: false },
+  finals: { path: "/er/kel/finals", title: "결승 점수 흐름", public: false },
+  teams: { path: "/er/kel/teams", title: "팀 성향", public: false },
+  players: { path: "/er/kel/players", title: "선수 카드", public: false },
+  roles: { path: "/er/kel/roles", title: "팀 안에서 맡은 역할", public: false },
+  characters: { path: "/er/kel/characters", title: "실험체 선택률", public: false },
+  comps: { path: "/er/kel/comps", title: "자주 나온 3인 조합", public: false },
+  records: { path: "/er/kel/records", title: "한 게임 기록", public: false },
 };
 
 // 팀별 조합처럼 결승 뒤에 공개하기로 한 항목

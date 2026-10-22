@@ -1,33 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { type CutData, DAY, int, md, TIERS } from "@/er/lib/cut";
+import { ticks } from "@/er/lib/ticks";
+import { useWidth } from "@/er/lib/useWidth";
 
 type Point = { t: number; kind: "past" | "now" | "future"; v: Record<string, { a?: number | null; b?: number | null; mid?: number; lo?: number; hi?: number }> };
 
 const PAST_DAYS = 21;
 
-function ticks(lo: number, hi: number, count: number): number[] {
-  const raw = Math.max(hi - lo, 1) / count;
-  const mag = 10 ** Math.floor(Math.log10(raw));
-  const step = [1, 2, 2.5, 5, 10].map((m) => m * mag).find((s) => s >= raw)!;
-  const out = [Math.floor(lo / step) * step];
-  while (out[out.length - 1] < hi) out.push(out[out.length - 1] + step);
-  return out;
-}
-
 export default function CutChart({ data }: { data: CutData }) {
-  const box = useRef<HTMLDivElement>(null);
-  const [w, setW] = useState(960);
+  const [box, w] = useWidth<HTMLDivElement>(960);
   const [hover, setHover] = useState<number | null>(null);
-
-  useEffect(() => {
-    const el = box.current;
-    if (!el) return;
-    const ro = new ResizeObserver(([e]) => setW(Math.round(e.contentRect.width)));
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
 
   const now = data.updatedAt * 1000;
   const narrow = w < 560;

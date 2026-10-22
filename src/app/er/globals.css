@@ -40,6 +40,10 @@
     --ramp-b: #26f1f6;
     --adv-bg: #26f1f6;
     --dim: rgba(5, 7, 11, 0.72);
+    --kel-0: #343d4f;
+    --kel-1: #17a2ab;
+    --kel-2: #d95926;
+    --kel-3: #9085e9;
   }
 
   :root[data-theme="light"] {
@@ -62,6 +66,10 @@
     --ramp-b: #0a5f66;
     --adv-bg: #26f1f6;
     --dim: rgba(10, 13, 20, 0.45);
+    --kel-0: #ccd3de;
+    --kel-1: #0b9aa3;
+    --kel-2: #d4552a;
+    --kel-3: #6250d6;
   }
 
   html {
@@ -377,7 +385,9 @@
     color: #fff;
   }
   :root[data-theme="dark"] .bar s.dk,
-  :root[data-theme="light"] .bar s.dl {
+  :root[data-theme="light"] .bar s.dl,
+  :root[data-theme="dark"] .kel-heat td.h.dk,
+  :root[data-theme="light"] .kel-heat td.h.dl {
     color: #000;
   }
   .bar .pen {
@@ -1035,6 +1045,29 @@
     .kel-table .wide {
       display: none;
     }
+  }
+  .kel-heat td.h {
+    color: #fff;
+    font-weight: 600;
+    border: 2px solid var(--surface);
+    text-align: center;
+  }
+  /* border-collapse는 겹친 테두리 가운데 두꺼운 쪽을 그려서 머리글 구분선이 안 보임 */
+  .kel-heat tbody tr:first-child td.h {
+    border-top: 1px solid var(--line);
+  }
+  .kel-tip {
+    position: absolute;
+    z-index: 2;
+    pointer-events: none;
+    min-width: 150px;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--surface);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
+    font-size: 12px;
+    line-height: 1.55;
   }
 
   .ov {

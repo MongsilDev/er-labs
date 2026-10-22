@@ -12,8 +12,31 @@ const SECTIONS: { title: string; items: [KelScreen, string][] }[] = [
   {
     title: "챔피언십",
     items: [
-      ["calc", "준결승 결승 진출 확률과 확정 여부, 결승 체크포인트"],
+      ["calc", "준결승의 결승 진출 확률과 확정 여부, 결승 체크포인트"],
       ["rules", "결승 직행 조건, 순차 체크포인트, 감점, 동점 처리"],
+    ],
+  },
+  {
+    title: "팀",
+    items: [
+      ["circuits", "16팀의 서킷 1~4 최종 순위"],
+      ["finals", "서킷과 미드 시즌 컵 결승의 라운드별 누적 점수와 체크포인트"],
+      ["teams", "1위 횟수, 3위 이내 비율, 킬 점수 비중, 게임당 점수"],
+    ],
+  },
+  {
+    title: "선수",
+    items: [
+      ["players", "KPR, 게임당 킬, 딜량, 많이 고른 실험체"],
+      ["roles", "팀 딜량과 받은 피해에서 선수가 차지한 비중"],
+      ["records", "최다 킬, 딜량, 받은 피해와 실험체별 최고 기록"],
+    ],
+  },
+  {
+    title: "실험체",
+    items: [
+      ["characters", "대회별 등장 비율, 평균 순위, 1위 비율"],
+      ["comps", "조합별 횟수, 평균 순위, 1위 횟수"],
     ],
   },
 ];
@@ -53,7 +76,7 @@ export default async function Page() {
   const lead = summary?.first && summary.last ? `${day(summary.first)} 오프닝 위크부터 ${day(summary.last)} 서킷 4 결승까지 ${summary.games}게임의 기록입니다.` : undefined;
 
   return (
-    <KelPage user={user} owner={owner} screen="home" lead={lead} notes={["경기 기록은 님블뉴런 이스포츠 팀에게 받은 자료로 계산했습니다."]}>
+    <KelPage user={user} owner={owner} screen="home" lead={lead} source>
       <div className="grid grid-cols-2 gap-4 max-[760px]:grid-cols-1">
         <Event date="11월 7일 토요일, 대전이스포츠경기장" name="준결승" teams={semi} text="정규 시즌 5~12위 8팀이 6라운드를 치릅니다. 상위 4팀이 결승에 올라갑니다." />
         <Event

@@ -8,6 +8,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { type Browser, chromium, type Page } from "playwright";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { KEL_SCREENS } from "../../../src/er/lib/kel";
 import { csv, kelFixture } from "../helpers";
 
 const ROOT = fileURLToPath(new URL("../../..", import.meta.url));
@@ -123,11 +124,21 @@ const SCREENS: Screen[] = [
   { name: "KEL 진출 계산기 결승", path: () => "/er/kel/calc", login: true, tab: "11월 8일 결승" },
   { name: "KEL 진출 계산기 지난 경기", path: () => "/er/kel/calc", login: true, tab: "지난 경기" },
   { name: "KEL 포맷과 규칙", path: () => "/er/kel/rules", login: true },
+  { name: "KEL 서킷별 순위", path: () => "/er/kel/circuits", login: true },
+  { name: "KEL 결승 점수 흐름", path: () => "/er/kel/finals", login: true },
+  { name: "KEL 팀 성향", path: () => "/er/kel/teams", login: true },
+  { name: "KEL 선수 카드", path: () => `/er/kel/players?p=${encodeURIComponent("선수4-0")}`, login: true },
+  { name: "KEL 역할", path: () => "/er/kel/roles", login: true },
+  { name: "KEL 실험체 선택률", path: () => "/er/kel/characters", login: true },
+  { name: "KEL 3인 조합", path: () => "/er/kel/comps", login: true },
+  { name: "KEL 한 게임 기록", path: () => "/er/kel/records", login: true },
+  { name: "KEL 한 게임 기록 실험체별", path: () => "/er/kel/records?view=characters", login: true },
   { name: "KEL 로그아웃", path: () => "/er/kel", status: 404 },
   { name: "KEL 다른 계정", path: () => "/er/kel/calc", login: "other", status: 404 },
 ];
 
-const KEL_PATHS = ["/er/kel", "/er/kel/calc", "/er/kel/rules"];
+const KEL_PATHS = Object.values(KEL_SCREENS).map((s) => s.path);
+const KEL_TITLES = new RegExp(["KEL", ...Object.values(KEL_SCREENS).map((s) => s.title)].join("|"));
 
 type Problems = { overflow: number; undefinedClass: string[]; unstyled: string[] };
 
@@ -227,7 +238,7 @@ describe("화면 점검", () => {
         const res = await fetch(base + path, { headers: sid ? { cookie: `er_session=${sid}` } : {} });
         const html = await res.text();
         expect([path, sid, res.status]).toEqual([path, sid, 404]);
-        expect(html).not.toMatch(/KEL|진출 계산기|포맷과 규칙/);
+        expect(html).not.toMatch(KEL_TITLES);
       }
       const res = await fetch(base + path, { headers: { cookie: `er_session=${OWNER_SID}` } });
       expect([path, res.status]).toEqual([path, 200]);
@@ -243,7 +254,7 @@ describe("화면 점검", () => {
     const selects = page.locator("select[aria-label$=' 순위']");
     const count = await selects.count();
     for (let i = 0; i < count; i++) await selects.nth(i).selectOption(String(count - i));
-    await page.locator("input[aria-label$=' 킬']").first().fill("3");
+    await page.locator("input[aria-label$=' 킬 점수']").first().fill("3");
     await page.getByRole("button", { name: "1라운드 결과 저장" }).click();
     await expect(page.getByRole("heading", { name: "1라운드가 끝난 뒤" }).isVisible()).resolves.toBe(true);
     await expect(page.getByText("%").first().isVisible()).resolves.toBe(true);

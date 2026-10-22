@@ -31,7 +31,7 @@ function isRound(r: unknown, teams: string[]): r is Round {
   for (const k of teams) {
     const x = e[k];
     if (!x || !Number.isInteger(x.placement) || (x.placement as number) < 1 || (x.placement as number) > teams.length) return false;
-    if (![x.kills, x.killScore, x.penalty].every(isCount) || (x.rule !== undefined && !isCount(x.rule))) return false;
+    if (![x.killScore, x.penalty].every(isCount) || (x.rule !== undefined && !isCount(x.rule))) return false;
     places.add(x.placement);
   }
   return places.size === teams.length;
@@ -106,7 +106,7 @@ function ScoreTable<R extends Row>({ rows, rounds, rank, cols }: { rows: R[]; ro
               </th>
             ))}
             <th className="wide">감점</th>
-            <th className="wide">킬</th>
+            <th className="wide">킬 점수</th>
             <th>점수</th>
             {cols.map((c, i) => (
               <th key={i} className="l">
@@ -130,7 +130,7 @@ function ScoreTable<R extends Row>({ rows, rounds, rank, cols }: { rows: R[]; ro
                 </td>
               ))}
               <td className="wide">{r.penalty ? <span className="text-minus">-{fmt(r.penalty)}</span> : ""}</td>
-              <td className="wide">{r.kills}</td>
+              <td className="wide">{fmt(r.killScore)}</td>
               <td className="font-bold">{fmt(r.total)}</td>
               {cols.map((c, j) => (
                 <td key={j} className="l">
@@ -163,20 +163,20 @@ function OddsTable({
   return <ScoreTable rows={rows} rounds={rounds} rank={(_, i) => (i < SEMI.advance ? "rk adv" : "rk")} cols={cols} />;
 }
 
-type Field = "kills" | "killScore" | "penalty" | "rule";
+type Field = "killScore" | "penalty" | "rule";
 type Draft = Record<string, Record<"placement" | Field, string>>;
 
 // 넓은 화면은 팀과 입력 칸 한 줄, 좁은 화면은 팀 이름 아래 입력 칸
 const ROW = {
-  4: "grid grid-cols-[minmax(0,1fr)_88px_72px_72px_72px] items-center gap-x-3 max-[760px]:grid-cols-4 max-[760px]:gap-x-2 max-[760px]:gap-y-1.5",
-  5: "grid grid-cols-[minmax(0,1fr)_88px_72px_72px_72px_72px] items-center gap-x-3 max-[760px]:grid-cols-5 max-[760px]:gap-x-2 max-[760px]:gap-y-1.5",
+  3: "grid grid-cols-[minmax(0,1fr)_88px_80px_80px] items-center gap-x-3 max-[760px]:grid-cols-3 max-[760px]:gap-x-2 max-[760px]:gap-y-1.5",
+  4: "grid grid-cols-[minmax(0,1fr)_88px_80px_80px_80px] items-center gap-x-3 max-[760px]:grid-cols-4 max-[760px]:gap-x-2 max-[760px]:gap-y-1.5",
 };
 
 // 결승은 규정 감점만 체크포인트 유지에 반영하므로 감점을 두 칸으로 나눔
 function RoundForm({ teams, roundNo, rule = false, onSave }: { teams: KelTeam[]; roundNo: number; rule?: boolean; onSave: (r: Round) => void }) {
-  const fields: Field[] = rule ? ["kills", "killScore", "penalty", "rule"] : ["kills", "killScore", "penalty"];
-  const label: Record<Field, string> = { kills: "킬", killScore: "킬 점수", penalty: rule ? "탈락 감점" : "감점", rule: "규정 감점" };
-  const [draft, setDraft] = useState<Draft>(() => Object.fromEntries(teams.map((t) => [t.key, { placement: "", kills: "", killScore: "", penalty: "", rule: "" }])));
+  const fields: Field[] = rule ? ["killScore", "penalty", "rule"] : ["killScore", "penalty"];
+  const label: Record<Field, string> = { killScore: "킬 점수", penalty: rule ? "탈락 감점" : "감점", rule: "규정 감점" };
+  const [draft, setDraft] = useState<Draft>(() => Object.fromEntries(teams.map((t) => [t.key, { placement: "", killScore: "", penalty: "", rule: "" }])));
   const [error, setError] = useState("");
   const set = (key: string, field: keyof Draft[string], value: string) => setDraft((d) => ({ ...d, [key]: { ...d[key], [field]: value } }));
 
@@ -185,12 +185,11 @@ function RoundForm({ teams, roundNo, rule = false, onSave }: { teams: KelTeam[];
     for (const t of teams) {
       const d = draft[t.key];
       const placement = Number(d.placement);
-      const [kills, killScore, penalty, ruleCut] = [d.kills, d.killScore, d.penalty, d.rule].map((v) => (v.trim() === "" ? 0 : Number(v)));
+      const [killScore, penalty, ruleCut] = [d.killScore, d.penalty, d.rule].map((v) => (v.trim() === "" ? 0 : Number(v)));
       if (!placement) return setError("모든 팀의 순위를 골라주세요.");
-      if (!Number.isInteger(kills) || kills < 0 || kills > 99) return setError(`${t.name}: 킬은 0 이상의 정수로 입력해주세요.`);
       if (!Number.isInteger(killScore * 2) || killScore < 0 || killScore > 99) return setError(`${t.name}: 킬 점수는 0.5 단위로 입력해주세요.`);
       if (![penalty, ruleCut].every((v) => Number.isFinite(v) && v >= 0 && v <= 99)) return setError(`${t.name}: 감점은 0 이상으로 입력해주세요.`);
-      round[t.key] = rule ? { placement, kills, killScore, penalty, rule: ruleCut } : { placement, kills, killScore, penalty };
+      round[t.key] = rule ? { placement, killScore, penalty, rule: ruleCut } : { placement, killScore, penalty };
     }
     if (new Set(Object.values(round).map((e) => e.placement)).size !== teams.length) return setError("두 팀에 같은 순위를 입력했습니다. 순위를 다시 확인해주세요.");
     setError("");
@@ -208,7 +207,7 @@ function RoundForm({ teams, roundNo, rule = false, onSave }: { teams: KelTeam[];
         {roundNo}라운드 결과 넣기
       </h2>
       <div className="mt-3 grid max-w-[720px] text-[14px]" role="group" aria-label={`${roundNo}라운드 결과`}>
-        <div className={`${ROW[rule ? 5 : 4]} pb-1.5 text-[12px] font-semibold text-fg-3`} aria-hidden="true">
+        <div className={`${ROW[rule ? 4 : 3]} pb-1.5 text-[12px] font-semibold text-fg-3`} aria-hidden="true">
           <span className="max-[760px]:hidden">팀</span>
           <span>순위</span>
           {fields.map((f) => (
@@ -218,7 +217,7 @@ function RoundForm({ teams, roundNo, rule = false, onSave }: { teams: KelTeam[];
           ))}
         </div>
         {teams.map((t) => (
-          <div key={t.key} className={`${ROW[rule ? 5 : 4]} border-t border-line-soft py-2`}>
+          <div key={t.key} className={`${ROW[rule ? 4 : 3]} border-t border-line-soft py-2`}>
             <span className="min-w-0 max-[760px]:col-span-full">
               <TeamName team={t} link={false} />
             </span>
@@ -235,7 +234,7 @@ function RoundForm({ teams, roundNo, rule = false, onSave }: { teams: KelTeam[];
                 key={f}
                 className="field sm w-full px-2 text-right"
                 type="number"
-                inputMode={f === "killScore" ? "decimal" : "numeric"}
+                inputMode="decimal"
                 min={0}
                 step={f === "killScore" ? 0.5 : 1}
                 aria-label={`${t.name} ${label[f]}`}
@@ -262,10 +261,11 @@ function Method({ data }: { data: CalcData }) {
   const lines = [
     `게임 점수는 순위 점수와 킬 점수를 더한 값이고, 순위 점수는 1위부터 ${PLACEMENT_POINTS.join(", ")}점입니다.`,
     "남은 라운드의 순위는 8팀이 모두 같은 확률로 나눠 갖는다고 가정합니다.",
-    `킬 수와 킬 점수는 2026 시즌 ${data.teamGames.toLocaleString("ko-KR")}개 팀 경기에서 같은 순위 팀이 남긴 기록 가운데 하나를 무작위로 고릅니다.`,
+    `킬 점수는 2026 시즌 ${data.teamGames.toLocaleString("ko-KR")}개 팀 경기에서 같은 순위 팀이 얻은 킬 점수 가운데 하나를 무작위로 고릅니다.`,
     `남은 라운드를 ${RUNS.toLocaleString("ko-KR")}번 돌려서 상위 ${SEMI.advance}팀에 든 비율을 확률로 보여줍니다.`,
     `진출 확정은 다른 팀이 남은 라운드마다 1위와 시즌 최고 킬 점수인 ${fmt(data.maxKillScore)}점을 얻어도 ${SEMI.advance}위 밖으로 밀리지 않을 때만 표시하고, 앞으로 받을 감점은 넣지 않습니다.`,
-    "규정집 제9조 아에 따라 점수가 같으면 킬 수가 많은 팀이, 킬 수도 같으면 마지막 라운드 순위가 높은 팀이 위입니다.",
+    "점수가 같으면 킬 점수가 많은 팀이, 킬 점수도 같으면 마지막 라운드 순위가 높은 팀이 위입니다.",
+    "규정집 제9조에는 킬 수로 가린다고 적혀 있지만, 지난 공식 순위표는 킬 점수로 동점을 가렸습니다.",
   ];
   return (
     <section className="panel p-5 max-[760px]:p-4" aria-labelledby="method">
@@ -450,7 +450,7 @@ function Demo({ data }: { data: CalcData }) {
   const rounds = useMemo(() => demo.rounds.slice(0, step), [demo, step]);
   const { rows, odds, status } = useOdds(demo.teams, rounds, SEMI.rounds, data, true);
   const cuts = demo.teams.flatMap((k) => {
-    const p = demo.rounds.reduce((a, r) => a + (r[k]?.penalty ?? 0), 0);
+    const p = rounds.reduce((a, r) => a + (r[k]?.penalty ?? 0), 0);
     return p ? [`${team(k).name}의 감점 ${fmt(p)}점`] : [];
   });
   const result = useMemo(

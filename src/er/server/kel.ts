@@ -203,8 +203,27 @@ export function kelSummary(data: Kel): KelSummary {
   return { games: new Set(data.rows.map((r) => r.gameId)).size, first: dates[0] ?? "", last: dates[dates.length - 1] ?? "" };
 }
 
-// bori.wiki 미드 시즌 컵 결과 표 점수와 CSV 점수의 차이
-const DEMO_PENALTY: Record<string, number> = { "gj-slasher": 1 };
+// bori.wiki 결과 표 점수와 경기 기록 점수의 차이, 종류는 대회 문서에 적힌 감점 사유 기준이고 사유가 없으면 penalty
+const CORRECTIONS: { event: KelEvent; stage: string; round: number; team: string; points: number; kind: "penalty" | "rule" }[] = [
+  { event: "msc", stage: "준결승", round: 1, team: "gj-slasher", points: 1, kind: "penalty" },
+  { event: "msc", stage: "준결승", round: 6, team: "jeonnam-esports", points: 1, kind: "penalty" },
+  { event: "c1", stage: "결승", round: 4, team: "gj-slasher", points: 3, kind: "rule" },
+  { event: "msc", stage: "결승", round: 4, team: "daejeon-autoarms", points: 3, kind: "rule" },
+  { event: "msc", stage: "결승", round: 4, team: "gyeongbuk-ascenders", points: 5, kind: "rule" },
+  { event: "c4", stage: "결승", round: 3, team: "new-rise-gangwon", points: 1, kind: "penalty" },
+];
+
+// 기록이 빠진 라운드는 빈칸으로 남음
+export function stageRounds(data: Kel, event: KelEvent, stage: string): { teams: string[]; rounds: Round[] } {
+  const games = data.games.filter((g) => g.event === event && g.stage === stage);
+  const rounds: Round[] = [];
+  for (const g of games) (rounds[g.round - 1] ??= {})[g.team] = { placement: g.placement, killScore: g.killScore, penalty: 0 };
+  for (const c of CORRECTIONS) {
+    const e = c.event === event && c.stage === stage ? rounds[c.round - 1]?.[c.team] : undefined;
+    if (e) e[c.kind] = (e[c.kind] ?? 0) + c.points;
+  }
+  return { teams: [...new Set(games.map((g) => g.team))], rounds };
+}
 
 export type CalcData = { pool: KillPool; maxKillScore: number; teamGames: number; demo: { teams: string[]; rounds: Round[] } | null };
 
@@ -212,14 +231,10 @@ export function kelCalcData(data: Kel): CalcData {
   const pool: KillPool = Array.from({ length: 8 }, () => []);
   let maxKillScore = 0;
   for (const g of data.games) {
-    if (g.placement >= 1 && g.placement <= 8) pool[g.placement - 1].push([g.killScore, g.kills]);
+    if (g.placement >= 1 && g.placement <= 8) pool[g.placement - 1].push(g.killScore);
     maxKillScore = Math.max(maxKillScore, g.killScore);
   }
-  const semi = data.games.filter((g) => g.event === "msc" && g.stage === "준결승");
-  const rounds: Round[] = [];
-  for (const g of semi) (rounds[g.round - 1] ??= {})[g.team] = { placement: g.placement, kills: g.kills, killScore: g.killScore, penalty: 0 };
-  const teams = [...new Set(semi.map((g) => g.team))];
-  for (const [team, points] of Object.entries(DEMO_PENALTY)) if (rounds[0]?.[team]) rounds[0][team].penalty += points;
+  const { teams, rounds } = stageRounds(data, "msc", "준결승");
   const complete = teams.length === 8 && rounds.length === 6 && Array.from({ length: 6 }, (_, i) => rounds[i]).every((r) => r && Object.keys(r).length === 8);
   return { pool, maxKillScore, teamGames: data.games.length, demo: complete ? { teams, rounds } : null };
 }
