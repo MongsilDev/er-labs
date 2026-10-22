@@ -51,7 +51,7 @@ describe("대회 서버", () => {
 
   it("권한이 없는 사람은 바꿀 수 없고, 초대 링크는 한 번만 쓴다", () => {
     const code = t.createTournament(owner, { name: "권한", mode: "points", preset: "masters", plannedRounds: 4, groupCount: 1 });
-    expect(() => t.applyOp(code, stranger, { op: "set_weather", group: 0, round: 1, sub: "무풍" })).toThrow("이 대회의 운영자만 바꿀 수 있습니다.");
+    expect(() => t.applyOp(code, stranger, { op: "set_weather", group: 0, round: 1, sub: "무풍" })).toThrow("없는 대회이거나 이 대회의 운영자가 아닙니다.");
     const token = t.createInvite(code, owner);
     expect(t.acceptInvite(token, op)).toEqual({ code, already: false });
     expect(() => t.acceptInvite(token, stranger)).toThrow("인원이 다 찼거나 취소된 초대 링크입니다.");
@@ -138,6 +138,27 @@ describe("대회 서버", () => {
     const r = t.cleanup();
     expect(r.tournaments).toBeGreaterThanOrEqual(1);
     expect(t.loadView(code, null)).toBeNull();
+  });
+
+  it("운영자가 아닌 사람에게는 있는 코드와 없는 코드에 같은 오류를 낸다", () => {
+    const code = t.createTournament(owner, { name: "숨김", mode: "points", preset: "masters", plannedRounds: 4, groupCount: 1 });
+    const err = (fn: () => unknown) => {
+      try {
+        fn();
+        return "통과";
+      } catch (e) {
+        return (e as Error).message;
+      }
+    };
+    for (const c of [code, "ZZZZZ3"]) {
+      expect(err(() => t.members(c, stranger))).toBe("없는 대회이거나 이 대회의 운영자가 아닙니다.");
+      expect(err(() => t.applyOp(c, stranger, { op: "set_weather", group: 0, round: 1, sub: "무풍" }))).toBe("없는 대회이거나 이 대회의 운영자가 아닙니다.");
+      expect(err(() => t.removeMember(c, stranger, stranger.id))).toBe("없는 대회이거나 이 대회의 운영자가 아닙니다.");
+      expect(err(() => t.transferOwner(c, stranger, owner.id))).toBe("없는 대회이거나 이 대회의 운영자가 아닙니다.");
+      expect(err(() => t.deleteTournament(c, stranger, "숨김"))).toBe("없는 대회이거나 이 대회의 운영자가 아닙니다.");
+    }
+    t.acceptInvite(t.createInvite(code, owner), op);
+    expect(err(() => t.createInvite(code, op))).toBe("개최자만 할 수 있습니다.");
   });
 
   it("같은 라운드를 여러 번 바꿔도 지운 기록은 최근 세 개만 남고 되돌리기는 된다", () => {

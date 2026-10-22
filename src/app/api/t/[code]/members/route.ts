@@ -1,7 +1,8 @@
 import type { NextRequest } from "next/server";
 import { currentUser } from "@/er/server/auth";
-import { cancelInvite, createInvite, members, removeMember, transferOwner } from "@/er/server/tournament";
-import { fail, guardWrite, handle, json, readJson } from "@/er/server/http";
+import { allow, blocked, miss } from "@/er/server/limits";
+import { cancelInvite, createInvite, members, OpError, removeMember, transferOwner } from "@/er/server/tournament";
+import { clientIp, fail, guardWrite, handle, json, readJson } from "@/er/server/http";
 
 type Ctx = { params: Promise<{ code: string }> };
 
@@ -10,7 +11,14 @@ export async function GET(_req: NextRequest, ctx: Ctx) {
     const user = await currentUser();
     if (!user) return fail("디스코드로 로그인해주세요.", 401);
     const { code } = await ctx.params;
-    return json(members(code, user));
+    const ip = await clientIp();
+    if (!allow(`members:${ip}`, 600, 60_000) || blocked(ip)) return fail("요청이 너무 많습니다. 잠시 뒤 다시 시도해주세요.", 429);
+    try {
+      return json(members(code, user));
+    } catch (e) {
+      if (e instanceof OpError) miss(ip);
+      throw e;
+    }
   });
 }
 

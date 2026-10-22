@@ -84,6 +84,14 @@ function roleOf(t: TRow, user: User | null): Role {
   return m?.role ?? null;
 }
 
+// 운영자가 아니면 없는 코드와 같은 오류를 내서 코드가 있는지 알 수 없게 함
+function findRole(code: string, user: User): { t: TRow; role: "owner" | "operator" } {
+  const t = find(code);
+  const role = t ? roleOf(t, user) : null;
+  if (!t || !role) throw new OpError("없는 대회이거나 이 대회의 운영자가 아닙니다.");
+  return { t, role };
+}
+
 function rulesOf(t: TRow): Rules {
   const parsed = JSON.parse(t.rules) as Rules;
   return clampRules(parsed, parsed.preset);
@@ -218,10 +226,7 @@ function dropOlderDeleted(t: TRow, g: number, round: number) {
 }
 
 export function applyOp(code: string, user: User, op: Op): OpResult {
-  const t = find(code);
-  if (!t) throw new OpError("없는 대회입니다.");
-  const role = roleOf(t, user);
-  if (!role) throw new OpError("이 대회의 운영자만 바꿀 수 있습니다.");
+  const { t, role } = findRole(code, user);
   const notices: string[] = [];
   const errors: string[] = [];
   let undo: OpResult["undo"];
@@ -546,17 +551,13 @@ export function myTournaments(user: User): MyTournament[] {
 }
 
 function requireOwner(code: string, user: User): TRow {
-  const t = find(code);
-  if (!t) throw new OpError("없는 대회입니다.");
-  if (roleOf(t, user) !== "owner") throw new OpError("개최자만 할 수 있습니다.");
+  const { t, role } = findRole(code, user);
+  if (role !== "owner") throw new OpError("개최자만 할 수 있습니다.");
   return t;
 }
 
 export function members(code: string, user: User): { members: MemberRow[]; invites: InviteRow[] } {
-  const t = find(code);
-  if (!t) throw new OpError("없는 대회입니다.");
-  const role = roleOf(t, user);
-  if (!role) throw new OpError("이 대회의 운영자만 볼 수 있습니다.");
+  const { t, role } = findRole(code, user);
   const list = db()
     .prepare("SELECT u.id, u.name, u.avatar, m.role, m.joined_at FROM members m JOIN users u ON u.id = m.user_id WHERE m.tournament_id = ? ORDER BY m.role = 'owner' DESC, m.joined_at")
     .all(t.id) as { id: string; name: string; avatar: string | null; role: "owner" | "operator"; joined_at: number }[];
@@ -625,13 +626,10 @@ export function acceptInvite(tk: string, user: User): { code: string; already: b
 }
 
 export function removeMember(code: string, user: User, target: string) {
-  const t = find(code);
-  if (!t) throw new OpError("없는 대회입니다.");
-  const role = roleOf(t, user);
+  const { t, role } = findRole(code, user);
   const self = target === user.id;
   if (self) {
     if (role === "owner") throw new OpError("개최자는 다른 운영자에게 개최자를 넘긴 뒤 나갈 수 있습니다.");
-    if (!role) return;
   } else if (role !== "owner") {
     throw new OpError("개최자만 운영자를 뺄 수 있습니다.");
   }
