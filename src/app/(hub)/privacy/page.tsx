@@ -15,7 +15,7 @@ export default function Privacy() {
       </SiteHeader>
       <main id="main" className="wrap slim doc">
         <h1 className="mt-3 mb-[18px] text-[28px] font-extrabold tracking-[-0.5px]">개인정보 처리방침</h1>
-        <p className="text-[14px] text-fg-3">2026년 10월 20일 시행</p>
+        <p className="text-[14px] text-fg-3">2026년 10월 22일 시행</p>
         <p>
           labs.mongsil.dev가 처리하는 개인정보를 개인정보 보호법 제30조에 따라 공개합니다.<br />개인이 운영하는 무료 서비스이며, 이터널 리턴 도구와 Escape from Tarkov 도구가
           있습니다.<br />로그인 기능은 이터널 리턴 대회 운영자만 사용합니다.
@@ -62,6 +62,7 @@ export default function Privacy() {
           </table>
         </div>
         <p>디스코드 로그인은 사용자 식별 권한만 요청합니다.<br />디스코드 서버 목록, 메시지, 이메일은 수집하지 않고, 디스코드 접속 토큰은 저장하지 않습니다.</p>
+        <p>디스코드에서 몽실봇의 /대회 명령을 쓰면, 몽실봇이 사용자의 디스코드 ID로 그 사람이 운영하는 대회 목록과 대회 권한을 Labs에 조회합니다.<br />조회에 쓴 디스코드 ID는 Labs에 따로 저장하지 않습니다.</p>
 
         <h3 className={H3}>Escape from Tarkov</h3>
         <div className="doc-table cards">

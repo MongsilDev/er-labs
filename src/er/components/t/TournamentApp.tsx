@@ -260,6 +260,9 @@ export default function TournamentApp({ initial, groupIdx, basePath, created = f
               닫기
             </button>
           </div>
+          <p className="text-[14px] text-fg-2">
+            디스코드에서는 몽실봇의 <b className="text-fg" translate="no">/대회</b> 명령에 이 코드를 넣으면 순위 카드를 올릴 수 있습니다.
+          </p>
         </section>
       )}
 

@@ -49,7 +49,7 @@ export async function register() {
 }
 
 const toolOf = (path: string) =>
-  /^\/(er|auth|api\/(t|i|me))(\/|$)/.test(path) ? "er" : /^\/(tarkov|api\/(search|players|icon))(\/|$)/.test(path) ? "tarkov" : "labs";
+  /^\/(er|auth|api\/(t|i|me|bot))(\/|$)/.test(path) ? "er" : /^\/(tarkov|api\/(search|players|icon))(\/|$)/.test(path) ? "tarkov" : "labs";
 
 export const onRequestError: Instrumentation.onRequestError = async (err, request, context) => {
   if (process.env.NEXT_RUNTIME !== "nodejs" || !process.env.SENTRY_DSN) return;

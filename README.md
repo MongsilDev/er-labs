@@ -25,6 +25,8 @@
 - 순위표 이미지, 선수 기록 이미지, 순위 CSV로 내보낼 수 있고, OBS 브라우저 소스용 방송 화면 주소가 있습니다.\
   방송 화면 주소 뒤에 `?top=8&scale=1.5&side=left`처럼 붙이면 표시할 팀 수, 크기, 위치를 바꿀 수 있습니다.
 - 대회는 마지막으로 수정한 지 24시간이 지나면 자동으로 삭제합니다.
+- 디스코드에서 몽실봇의 `/대회`에 대회 코드를 넣으면 채널에 순위 카드를 올릴 수 있습니다.\
+  개최자와 운영자는 카드가 30초마다 저절로 바뀌도록 자동 갱신을 켤 수 있습니다.
 
 ### 이터컷 예측
 
@@ -96,6 +98,7 @@ pnpm build
 | `PLAYERS_BASE` | Tarkov 프로필 JSON을 받을 주소.<br>기본값은 `https://players.tarkov.dev` |
 | `JOBS` | `0`이면 Tarkov 이름 목록 적재와 비교군 수집을 하지 않습니다 |
 | `CUT_API` | 이터컷 예측 데이터를 받을 주소.<br>기본값은 `https://bot.mongsil.dev/api/cut` |
+| `LABS_BOT_TOKEN` | 몽실봇이 `x-bot-token` 헤더로 보내는 토큰.<br>`/api/bot/t/{코드}`와 `/api/bot/users/{디스코드 ID}/tournaments`에 씁니다.<br>비우면 두 주소는 응답하지 않습니다 |
 | `SENTRY_DSN` | 서버 오류를 보낼 Sentry DSN.<br>비우면 보내지 않습니다 |
 
 ## 데이터
