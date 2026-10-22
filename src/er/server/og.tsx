@@ -2,6 +2,7 @@ import "server-only";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
+import { type CutData, daysLeft, int, tens } from "@/er/lib/cut";
 import { computeGroup, type GroupResult } from "@/er/lib/engine";
 import { fmt1 } from "@/er/lib/format";
 import type { TournamentView } from "@/er/lib/view";
@@ -124,6 +125,61 @@ export async function boardImage(view: TournamentView | null, idx: number) {
             </div>
           ))}
         </div>
+      </div>
+    ),
+    await options(),
+  );
+}
+
+const TIER_OG = [
+  { key: "eternity", name: "이터니티", color: "#e84c7d" },
+  { key: "demigod", name: "데미갓", color: "#d9a24a" },
+] as const;
+
+export async function cutImage(data: CutData) {
+  const left = data.season.end ? daysLeft(data.season.end * 1000, data.updatedAt * 1000) : null;
+  return new ImageResponse(
+    (
+      <div style={{ display: "flex", flexDirection: "column", width: "100%", height: "100%", background: C.bg, color: C.text, fontFamily: "Pretendard", padding: "48px 64px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <Mark />
+          <span style={{ fontSize: 26, fontWeight: 700, color: C.text2 }}>Labs</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 22, marginTop: 26 }}>
+          <span style={{ fontSize: 56, fontWeight: 800 }}>이터컷 예측</span>
+          <span style={{ fontSize: 26, fontWeight: 500, color: C.text3 }}>
+            {data.season.name} | 아시아1{left != null ? ` | 종료 D-${left}` : ""}
+          </span>
+        </div>
+        <div style={{ display: "flex", gap: 24, marginTop: 34 }}>
+          {TIER_OG.map(({ key, name, color }) => {
+            const tier = data.tiers[key];
+            const end = tier.forecast?.[tier.forecast.length - 1];
+            return (
+              <div key={key} style={{ display: "flex", flexDirection: "column", flex: 1, background: C.panel, border: `1px solid ${C.line}`, borderRadius: 14, padding: "26px 30px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 26, fontWeight: 700, color: C.text2 }}>
+                  <div style={{ width: 14, height: 14, borderRadius: 7, background: color }} />
+                  {name} {int(tier.place)}위
+                </div>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginTop: 14 }}>
+                  {tier.estimated && <span style={{ fontSize: 32, fontWeight: 700, color: C.text3 }}>약</span>}
+                  <span style={{ fontSize: 76, fontWeight: 800, lineHeight: 1 }}>{tier.cut != null ? int(tier.cut) : "-"}</span>
+                  <span style={{ fontSize: 26, fontWeight: 700, color: C.text3 }}>RP</span>
+                </div>
+                {end && (
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginTop: 22, paddingTop: 16, borderTop: `1px solid ${C.line}`, fontSize: 24, color: C.text3 }}>
+                    종료 예상
+                    <span style={{ fontSize: 34, fontWeight: 800, color }}>{tens(end[1])}</span>
+                    <span style={{ fontWeight: 700, color: C.text2 }}>
+                      {tens(end[2])}~{tens(end[3])}
+                    </span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <span style={{ fontSize: 24, fontWeight: 500, color: C.text3, marginTop: "auto" }}>labs.mongsil.dev/er/cut</span>
       </div>
     ),
     await options(),

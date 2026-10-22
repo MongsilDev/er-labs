@@ -65,8 +65,14 @@ function Section({ id, title, children }: { id: string; title: string; children:
   );
 }
 
-export default async function CutPage() {
-  const [user, data] = await Promise.all([currentUser(), getCut()]);
+/** ?rp= 값. 진단 칸 입력 규칙과 같은 0~20000 정수만 */
+function rpParam(v: string | string[] | undefined): number | undefined {
+  const s = Array.isArray(v) ? v[0] : v;
+  return s && /^\d{1,5}$/.test(s) && Number(s) <= 20000 ? Number(s) : undefined;
+}
+
+export default async function CutPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const [user, data, query] = await Promise.all([currentUser(), getCut(), searchParams]);
   const left = data?.season.end ? daysLeft(data.season.end * 1000, data.updatedAt * 1000) : null;
   return (
     <>
@@ -108,7 +114,7 @@ export default async function CutPage() {
               <CutChart data={data} />
             </Section>
             <Section id="check-h" title="내 RP 진단">
-              <RpCheck data={data} />
+              <RpCheck data={data} initial={rpParam(query.rp)} />
             </Section>
             <Section id="decay-h" title="휴면 강등 일정">
               <DecayCalendar data={data} />
@@ -134,7 +140,7 @@ export default async function CutPage() {
                 <li>
                   몽실봇이 매시 아시아1 상위 1000명 순위표를 기록해 계산합니다.
                   <br />
-                  디스코드 /이터컷 명령과 같은 값입니다.
+                  디스코드 <a href="https://bot.mongsil.dev">몽실봇</a>의 /이터컷 명령과 같은 값입니다.
                 </li>
               </ul>
             </Section>

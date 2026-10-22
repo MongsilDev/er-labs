@@ -15,8 +15,8 @@ function Row({ label, value, note }: { label: string; value: React.ReactNode; no
   );
 }
 
-export default function RpCheck({ data }: { data: CutData }) {
-  const [text, setText] = useState("");
+export default function RpCheck({ data, initial }: { data: CutData; initial?: number }) {
+  const [text, setText] = useState(initial != null ? String(initial) : "");
   const rp = Number(text);
   const valid = text !== "" && Number.isFinite(rp) && rp >= 0 && rp <= 20000;
   const left = data.season.end ? daysLeft(data.season.end * 1000, data.updatedAt * 1000) : null;

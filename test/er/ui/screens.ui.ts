@@ -102,6 +102,7 @@ const SCREENS: Screen[] = [
   { name: "Labs", path: () => "/" },
   { name: "점수 계산", path: () => "/er/score" },
   { name: "이터컷 예측", path: () => "/er/cut" },
+  { name: "이터컷 예측 RP 주소", path: () => "/er/cut?rp=9050" },
   { name: "점수 계산 로그인", path: () => "/er/score", login: true },
   { name: "처리방침", path: () => "/privacy" },
   { name: "예시 대회 선수 기록", path: () => "/er/example/a", tab: "선수 기록" },
@@ -193,6 +194,18 @@ describe("화면 점검", () => {
     await page.context().close();
     expect(p).toEqual({ overflow: 0, undefinedClass: [], unstyled: [] });
     expect(errors).toEqual([]);
+  });
+
+  it("이터컷 예측 주소의 rp 값으로 진단이 바로 나오고, 미리보기 이미지가 열린다", async () => {
+    const { page, errors } = await open(SCREENS.find((x) => x.name === "이터컷 예측 RP 주소")!, 1440, "dark");
+    await expect(page.inputValue("#my-rp")).resolves.toBe("9050");
+    await expect(page.getByText("가능성").first().isVisible()).resolves.toBe(true);
+    const og = await page.getAttribute('meta[property="og:image"]', "content");
+    await page.context().close();
+    expect(errors).toEqual([]);
+    const res = await fetch(new URL(new URL(og!).pathname + new URL(og!).search, base));
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toBe("image/png");
   });
 
   it("방송 화면은 1920x1080 안에 들어간다", async () => {
