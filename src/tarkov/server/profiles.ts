@@ -4,7 +4,7 @@ import { date } from "@/tarkov/lib/format";
 import type { Mode, ModeKey } from "@/tarkov/lib/modes";
 import { parse, type Summary } from "@/tarkov/lib/summary";
 import { db, isHidden } from "./db";
-import { allow } from "./limits";
+import { allow } from "@/limits";
 import { fetchProfile, Upstream } from "./upstream";
 
 const TTL = 10 * 60 * 1000;

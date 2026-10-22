@@ -1,6 +1,6 @@
 import { modeOf } from "@/tarkov/lib/modes";
-import { clientIp, fail, handle, json, sameOrigin } from "@/tarkov/server/http";
-import { allow } from "@/tarkov/server/limits";
+import { fail, handle, json, sameOrigin } from "@/tarkov/server/http";
+import { allow, clientIp } from "@/limits";
 import { load } from "@/tarkov/server/profiles";
 
 export const dynamic = "force-dynamic";

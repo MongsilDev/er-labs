@@ -7,7 +7,7 @@ import { MODES } from "@/tarkov/lib/modes";
 import { crawl } from "@/tarkov/server/baseline";
 import { db, getMeta } from "@/tarkov/server/db";
 import { runIndex } from "@/tarkov/server/indexer";
-import { allow } from "@/tarkov/server/limits";
+import { allow } from "@/limits";
 import { account, load, search } from "@/tarkov/server/profiles";
 
 process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "tarkov-labs-test-"));

@@ -1,4 +1,4 @@
-import { allow } from "@/er/server/limits";
+import { allow } from "@/limits";
 import { createTournament } from "@/er/server/tournament";
 import { fail, guardWrite, handle, json, readJson } from "@/er/server/http";
 import type { CreateInput } from "@/er/lib/view";

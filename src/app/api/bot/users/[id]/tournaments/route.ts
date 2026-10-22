@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { botAuthorized, botTournaments } from "@/er/server/board";
 import { fail, handle, json } from "@/er/server/http";
-import { allow } from "@/er/server/limits";
+import { allow } from "@/limits";
 
 type Ctx = { params: Promise<{ id: string }> };
 

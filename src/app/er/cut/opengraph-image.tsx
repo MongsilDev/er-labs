@@ -1,5 +1,4 @@
-import { clientIp } from "@/er/server/http";
-import { allow, blocked } from "@/er/server/limits";
+import { allow, blocked, clientIp } from "@/limits";
 import { getCut } from "@/er/server/cut";
 import { cutImage, OG_SIZE, siteImage } from "@/er/server/og";
 

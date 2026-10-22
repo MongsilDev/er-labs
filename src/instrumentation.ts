@@ -21,7 +21,10 @@ export async function register() {
     });
   }
   const { cleanup } = await import("./er/server/tournament");
+  const { sweep } = await import("./limits");
   const run = () => {
+    // 요청 제한 기록에 IP가 들어 있어, 개인정보 처리방침의 1시간 안 삭제를 지키려고 창이 끝난 기록을 지움
+    sweep();
     try {
       const r = cleanup();
       if (r.tournaments || r.users) console.log(`[정리] 대회 ${r.tournaments}개, 세션 ${r.sessions}개, 사용자 ${r.users}명 삭제`);

@@ -144,23 +144,16 @@ describe("대회 서버", () => {
 
   it("운영자가 아닌 사람에게는 있는 코드와 없는 코드에 같은 오류를 낸다", () => {
     const code = t.createTournament(owner, { name: "숨김", mode: "points", preset: "masters", plannedRounds: 4, groupCount: 1 });
-    const err = (fn: () => unknown) => {
-      try {
-        fn();
-        return "통과";
-      } catch (e) {
-        return (e as Error).message;
-      }
-    };
+    const NOT_OP = /^없는 대회이거나 이 대회의 운영자가 아닙니다\.$/;
     for (const c of [code, "ZZZZZ3"]) {
-      expect(err(() => t.members(c, stranger))).toBe("없는 대회이거나 이 대회의 운영자가 아닙니다.");
-      expect(err(() => t.applyOp(c, stranger, { op: "set_weather", group: 0, round: 1, sub: "무풍" }))).toBe("없는 대회이거나 이 대회의 운영자가 아닙니다.");
-      expect(err(() => t.removeMember(c, stranger, stranger.id))).toBe("없는 대회이거나 이 대회의 운영자가 아닙니다.");
-      expect(err(() => t.transferOwner(c, stranger, owner.id))).toBe("없는 대회이거나 이 대회의 운영자가 아닙니다.");
-      expect(err(() => t.deleteTournament(c, stranger, "숨김"))).toBe("없는 대회이거나 이 대회의 운영자가 아닙니다.");
+      expect(() => t.members(c, stranger)).toThrow(NOT_OP);
+      expect(() => t.applyOp(c, stranger, { op: "set_weather", group: 0, round: 1, sub: "무풍" })).toThrow(NOT_OP);
+      expect(() => t.removeMember(c, stranger, stranger.id)).toThrow(NOT_OP);
+      expect(() => t.transferOwner(c, stranger, owner.id)).toThrow(NOT_OP);
+      expect(() => t.deleteTournament(c, stranger, "숨김")).toThrow(NOT_OP);
     }
     t.acceptInvite(t.createInvite(code, owner), op);
-    expect(err(() => t.createInvite(code, op))).toBe("개최자만 할 수 있습니다.");
+    expect(() => t.createInvite(code, op)).toThrow(/^개최자만 할 수 있습니다\.$/);
   });
 
   it("내보낸 운영자는 전에 받은 링크로 돌아오지 못하고, 내보낸 뒤 만든 링크로는 들어온다", () => {
@@ -231,6 +224,28 @@ describe("대회 서버", () => {
     db.db().prepare("UPDATE sessions SET expires_at = 0 WHERE hash = ?").run(createHash("sha256").update(old.id).digest("hex"));
     auth.deleteSessions(old.id);
     expect(n()).toBe(before - 1);
+  });
+
+  it("JSON 본문이 객체가 아니면 형식 오류로 400을 낸다", async () => {
+    const { handle, readJson } = await import("../../src/er/server/http");
+    const post = (body: string) => new Request("http://localhost/api/t", { method: "POST", body });
+    for (const body of ["null", "[]", "1", '"x"']) await expect(readJson(post(body))).rejects.toThrow(SyntaxError);
+    expect(await readJson(post('{"a":1}'))).toEqual({ a: 1 });
+    const res = await handle(async () => {
+      await readJson(post("null"));
+      return new Response();
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it("창이 끝난 요청 제한 기록은 정리할 때 지운다", async () => {
+    const limits = await import("../../src/limits");
+    const map = (globalThis as unknown as { __limits: Map<string, unknown> }).__limits;
+    limits.allow("page:203.0.113.1", 5, 1000);
+    limits.sweep(Date.now() + 500);
+    expect(map.has("page:203.0.113.1")).toBe(true);
+    limits.sweep(Date.now() + 1500);
+    expect(map.has("page:203.0.113.1")).toBe(false);
   });
 
   it("같은 라운드를 여러 번 바꿔도 지운 기록은 최근 세 개만 남고 되돌리기는 된다", () => {

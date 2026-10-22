@@ -23,7 +23,7 @@ import { ARENA_PASSES, LEAGUE, leagueLabel } from "@/tarkov/lib/season";
 import { ARENA_NAMED, achievementInfo, type ArenaSummary, type EftSummary, type Gear as Worn, type Progress, type Summary } from "@/tarkov/lib/summary";
 import { badgeRates, verdict } from "@/tarkov/server/baseline";
 import { isHidden } from "@/tarkov/server/db";
-import { clientIp } from "@/tarkov/server/http";
+import { clientIp } from "@/limits";
 import { account, displayName, load, nameHistory, snapshots } from "@/tarkov/server/profiles";
 import "./profile.css";
 

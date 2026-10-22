@@ -1,7 +1,7 @@
 import { pickMode } from "@/tarkov/lib/modes";
 import { verdict } from "@/tarkov/server/baseline";
 import { isHidden } from "@/tarkov/server/db";
-import { clientIp } from "@/tarkov/server/http";
+import { clientIp } from "@/limits";
 import { profileImage } from "@/tarkov/server/og";
 import { account, displayName, load } from "@/tarkov/server/profiles";
 

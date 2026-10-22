@@ -1,5 +1,5 @@
-import { clientIp, fail, handle, json } from "@/tarkov/server/http";
-import { allow } from "@/tarkov/server/limits";
+import { fail, handle, json } from "@/tarkov/server/http";
+import { allow, clientIp } from "@/limits";
 import { search } from "@/tarkov/server/profiles";
 
 export const dynamic = "force-dynamic";

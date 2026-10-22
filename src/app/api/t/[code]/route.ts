@@ -1,8 +1,8 @@
 import type { NextRequest } from "next/server";
 import { currentUser } from "@/er/server/auth";
-import { allow, blocked, miss } from "@/er/server/limits";
+import { allow, blocked, clientIp, miss } from "@/limits";
 import { applyOp, deleteTournament, loadView, tournamentVersion } from "@/er/server/tournament";
-import { clientIp, fail, guardWrite, handle, json, readJson } from "@/er/server/http";
+import { fail, guardWrite, handle, json, readJson } from "@/er/server/http";
 import type { Op } from "@/er/lib/view";
 
 type Ctx = { params: Promise<{ code: string }> };

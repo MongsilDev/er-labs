@@ -2,20 +2,14 @@ import "server-only";
 import { captureException } from "@sentry/node";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
-import { limitKey } from "@/ip";
 import { currentUser, sameOrigin, type User } from "./auth";
-import { allow, blocked, miss } from "./limits";
+import { allow, blocked, clientIp, miss } from "@/limits";
 import { loadView, OpError } from "./tournament";
 
 export const json = (data: unknown, status = 200) =>
   NextResponse.json(data, { status, headers: { "Cache-Control": "no-store" } });
 
 export const fail = (message: string, status = 400) => json({ error: message }, status);
-
-export async function clientIp(): Promise<string> {
-  const h = await headers();
-  return limitKey(h.get("cf-connecting-ip") || h.get("x-forwarded-for")?.split(",")[0].trim() || "local");
-}
 
 // 코드로 대회를 여는 화면은 모두 이 검사를 거침. 막힌 IP에는 있는 코드도 열어 주지 않고, 없는 코드를 열면 막힘 횟수에 셈
 export async function openView(code: string, user: User | null, bucket?: string, max = 300) {
@@ -53,5 +47,7 @@ export function handle(fn: () => Response | Promise<Response>): Promise<Response
 export async function readJson<T>(req: Request): Promise<T> {
   const text = await req.text();
   if (text.length > MAX_BODY) throw new SyntaxError("too large");
-  return JSON.parse(text) as T;
+  const body: unknown = JSON.parse(text);
+  if (typeof body !== "object" || body === null || Array.isArray(body)) throw new SyntaxError("not an object");
+  return body as T;
 }
