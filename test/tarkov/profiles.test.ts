@@ -1,11 +1,14 @@
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { MODES } from "@/tarkov/lib/modes";
-import { db } from "@/tarkov/server/db";
+import { crawl } from "@/tarkov/server/baseline";
+import { db, getMeta } from "@/tarkov/server/db";
+import { runIndex } from "@/tarkov/server/indexer";
 import { allow } from "@/tarkov/server/limits";
-import { load, search } from "@/tarkov/server/profiles";
+import { account, load, search } from "@/tarkov/server/profiles";
 
 process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "tarkov-labs-test-"));
 afterAll(() => {
@@ -15,7 +18,7 @@ afterAll(() => {
 
 const pvp = MODES.find((m) => m.key === "pvp")!;
 const fixture = (aid: number) => readFileSync(join(__dirname, "fixtures/profile", `${aid}.json`), "utf8");
-const lanes = (globalThis as unknown as { __tlLanes: Record<string, { next: number }> }).__tlLanes;
+const lanes = (globalThis as unknown as { __tlLanes: Record<string, { gap: number; next: number }> }).__tlLanes;
 let calls: string[] = [];
 
 beforeEach(() => {
@@ -69,5 +72,80 @@ describe("이름 검색", () => {
     expect(search("ma", 3).map((r) => r.name)).toEqual(["Ma", "Ma0498", "Ma0497"]);
     expect(search("1")).toEqual([]);
     expect(search("1a").map((r) => r.name)).toEqual(["1abc"]);
+  });
+});
+
+describe("숨긴 계정", () => {
+  const script = (name: string, ...args: string[]) => execFileSync(process.execPath, [join(__dirname, "../../scripts/tarkov", name), ...args]);
+  const count = (sql: string) => (db().prepare(`SELECT COUNT(*) AS n FROM ${sql}`).get() as { n: number }).n;
+
+  it("비교군 수집이 응답을 기다리는 사이 숨긴 계정은 통계를 다시 저장하지 않는다", async () => {
+    const add = db().prepare("INSERT INTO accounts (aid, name, name_lc, u_season) VALUES (?, ?, ?, ?)");
+    add.run(5001, "Crawl", "crawl", Date.now() - 1000);
+    add.run(5002, "Kept", "kept", Date.now() - 2000);
+    lanes.crawl.gap = 0;
+    vi.stubGlobal("fetch", async (url: string) => {
+      calls.push(url);
+      if (url.endsWith("/5001.json")) script("hide.mjs", "5001");
+      return new Response(readFileSync(join(__dirname, "fixtures/pvp-season/1001.json")), { status: 200 });
+    });
+    const row = (aid: number) => db().prepare("SELECT updated, n FROM baseline WHERE mode = 'season' AND aid = ?").get(aid) as { updated: number; n: number } | undefined;
+    expect(await crawl()).toBe(2);
+    expect(row(5001)).toBeUndefined();
+    expect(row(5002)?.n).toBeGreaterThan(0);
+    const next = Date.now();
+    db().prepare("UPDATE accounts SET u_season = ? WHERE aid = 5002").run(next);
+    expect(await crawl()).toBe(1);
+    expect(row(5002)?.updated).toBe(next);
+    expect(calls.filter((u) => u.endsWith("/5001.json"))).toHaveLength(1);
+    lanes.crawl.gap = 1000;
+  });
+
+  it("삭제 요청을 처리하면 계정 정보, 검색, 조회에서 빠지고 색인을 다시 받아도 계정 행이 생기지 않는다", async () => {
+    db().prepare("INSERT OR REPLACE INTO accounts (aid, name, name_lc) VALUES (1001, 'Fixture-Alpha', 'fixture-alpha')").run();
+    script("hide.mjs", "1001");
+    expect(account(1001)).toBeNull();
+    expect(search("1001")).toEqual([]);
+    expect(search("fixture-alpha")).toEqual([]);
+    expect(await load(pvp, 1001, true)).toEqual({ summary: null, stale: false, error: false });
+    expect(calls).toEqual([]);
+    vi.stubGlobal("fetch", async (url: string) => {
+      const m = url.match(/\/([\w-]+)\/(index|updated)\.json$/);
+      const file = m ? join(__dirname, "fixtures", m[1], `${m[2]}.json`) : "";
+      return existsSync(file) ? new Response(readFileSync(file), { headers: { "last-modified": new Date().toUTCString() } }) : new Response(null, { status: 304 });
+    });
+    expect(await runIndex()).toBe(true);
+    expect(getMeta("index:profile/index.json")).not.toBeNull();
+    expect(count("accounts WHERE aid = 1001")).toBe(0);
+  });
+
+  it("백업을 복원해도 숨긴 계정의 기록은 되살아나지 않는다", () => {
+    const backup = join(process.env.DATA_DIR!, ".backup-tarkov-labs.db");
+    const snap = db().prepare("INSERT INTO snapshots (aid, mode, updated, fetched_at, data) VALUES (?, 'pvp', 1, 1, '{}')");
+    const name = db().prepare("INSERT INTO names (aid, old_name, new_name, seen_at) VALUES (?, 'old', 'new', 1)");
+    for (const aid of [6001, 6002]) {
+      snap.run(aid);
+      name.run(aid);
+    }
+    script("backup.mjs");
+    // 백업 뒤에 들어온 삭제 요청과, 복원 전에 색인이 다시 만든 숨긴 계정 행
+    script("hide.mjs", "6002");
+    db().exec("DELETE FROM names; DELETE FROM snapshots; DELETE FROM hidden WHERE aid = 1001; INSERT INTO accounts (aid, name, name_lc) VALUES (1001, 'Fixture-Alpha', 'fixture-alpha')");
+    script("restore.mjs", backup);
+    script("restore.mjs", backup);
+    expect([count("names WHERE aid = 6001"), count("snapshots WHERE aid = 6001")]).toEqual([1, 1]);
+    expect([count("names WHERE aid = 6002"), count("snapshots WHERE aid = 6002")]).toEqual([0, 0]);
+    expect(count("hidden WHERE aid IN (1001, 5001, 6002)")).toBe(3);
+    expect(count("accounts WHERE aid = 1001")).toBe(0);
+  });
+
+  it("트리거가 생기기 전에 숨긴 계정의 계정 행은 DB를 다시 열 때 지운다", () => {
+    db().exec("DROP TRIGGER hidden_purge; INSERT INTO accounts (aid, name, name_lc) VALUES (7001, 'Legacy', 'legacy'); INSERT INTO hidden (aid, at) VALUES (7001, 0)");
+    expect(count("accounts WHERE aid = 7001")).toBe(1);
+    const g = globalThis as unknown as { __tlDb?: { close(): void } };
+    g.__tlDb!.close();
+    g.__tlDb = undefined;
+    expect(count("accounts WHERE aid = 7001")).toBe(0);
+    expect(count("sqlite_master WHERE type = 'trigger' AND name = 'hidden_purge'")).toBe(1);
   });
 });

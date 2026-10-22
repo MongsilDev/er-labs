@@ -46,13 +46,14 @@ function lastSnapshot(aid: number, mode: ModeKey): Summary | null {
 }
 
 // 같은 계정의 동시 조회는 업스트림 호출 하나를 나눠 쓰되 다시 불러오기는 새로 요청하고, ip를 넘긴 조회는 업스트림 호출을 IP마다 분당 30번까지 함
-export function load(mode: Mode, aid: number, fresh = false, ip?: string): Promise<Loaded> {
+export async function load(mode: Mode, aid: number, fresh = false, ip?: string): Promise<Loaded> {
+  if (isHidden(aid)) return { summary: null, stale: false, error: false };
   const key = `${mode.key}:${aid}`;
   const hit = cache.get(key);
-  if (hit && !fresh && Date.now() - hit.at < TTL) return Promise.resolve({ summary: hit.summary, stale: false, error: false });
+  if (hit && !fresh && Date.now() - hit.at < TTL) return { summary: hit.summary, stale: false, error: false };
   const running = inflight.get(key);
   if (running && !fresh) return running;
-  if (ip && !allow(`u:${ip}`, 30, 60_000)) return Promise.resolve({ summary: lastSnapshot(aid, mode.key), stale: true, error: true });
+  if (ip && !allow(`u:${ip}`, 30, 60_000)) return { summary: lastSnapshot(aid, mode.key), stale: true, error: true };
   const p: Promise<Loaded> = fetchAndStore(mode, aid, key).finally(() => {
     if (inflight.get(key) === p) inflight.delete(key);
   });
@@ -123,13 +124,9 @@ export function snapshots(aid: number, mode: ModeKey): Summary[] {
 
 export function search(q: string, limit = 10): { aid: number; name: string; last: number | null }[] {
   const t = q.trim();
-  if (/^\d{1,10}$/.test(t)) {
-    const a = isHidden(Number(t)) ? null : account(Number(t));
-    const byName = t.length >= 2 ? prefix(t.toLowerCase(), limit) : [];
-    return a ? [{ aid: a.aid, name: a.name, last: latest(a) }, ...byName.filter((r) => r.aid !== a.aid)].slice(0, limit) : byName;
-  }
-  if (t.length < 2) return [];
-  return prefix(t.toLowerCase(), limit);
+  const a = /^\d{1,10}$/.test(t) ? account(Number(t)) : null;
+  const byName = t.length >= 2 ? prefix(t.toLowerCase(), limit) : [];
+  return a ? [{ aid: a.aid, name: a.name, last: latest(a) }, ...byName.filter((r) => r.aid !== a.aid)].slice(0, limit) : byName;
 }
 
 const latest = (a: Account) => Math.max(0, ...Object.values(a.modes).map((v) => v ?? 0)) || null;

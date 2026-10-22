@@ -15,7 +15,7 @@ COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
 COPY --from=build /app/public ./public
 COPY --from=build /app/assets ./assets
-COPY --from=build /app/scripts/tarkov/hide.mjs /app/scripts/tarkov/backup.mjs ./scripts/tarkov/
+COPY --from=build /app/scripts/tarkov/hide.mjs /app/scripts/tarkov/backup.mjs /app/scripts/tarkov/restore.mjs ./scripts/tarkov/
 RUN mkdir -p /data && chown node:node /data
 USER node
 EXPOSE 3000
