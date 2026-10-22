@@ -2,6 +2,7 @@ import "server-only";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
+import { glyphs, keepGlyphs } from "@/glyphs";
 import { type CutData, daysLeft, int, tens } from "@/er/lib/cut";
 import { groupResult } from "@/er/lib/engine";
 import { fmt1 } from "@/er/lib/format";
@@ -11,6 +12,7 @@ export const OG_SIZE = { width: 1200, height: 630 };
 
 const font = (w: string) => readFile(join(process.cwd(), `assets/fonts/Pretendard-${w}.otf`));
 const fonts = Promise.all([font("Medium"), font("Bold"), font("ExtraBold")]);
+const covered = fonts.then(([medium]) => glyphs(medium));
 
 const C = { bg: "#0a0d14", panel: "#121722", line: "#232a38", text: "#e8edf5", text2: "#aab3c5", text3: "#7c879c", accent: "#26f1f6", gold: "#ffd621" };
 
@@ -70,6 +72,7 @@ export async function boardImage(view: TournamentView | null, idx: number) {
   const res = view ? groupResult(view, idx) : null;
   const rows = res ? res.standings.slice(0, 8) : [];
   const meta = view ? summary(view, idx).split(", 1위")[0] : "";
+  const shown = await covered;
 
   return new ImageResponse(
     (
@@ -80,7 +83,7 @@ export async function boardImage(view: TournamentView | null, idx: number) {
         </div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 26, gap: 24 }}>
           <span style={{ fontSize: 52, fontWeight: 800, maxWidth: 820, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
-            {view ? view.name : "없거나 지워진 대회"}
+            {view ? keepGlyphs(view.name, shown) || view.code : "없거나 지워진 대회"}
           </span>
           <span style={{ fontSize: 26, fontWeight: 500, color: C.text3, whiteSpace: "nowrap" }}>{meta}</span>
         </div>
@@ -104,7 +107,7 @@ export async function boardImage(view: TournamentView | null, idx: number) {
               >
                 {s.rank}
               </span>
-              <span style={{ flex: 1, fontSize: 26, fontWeight: 700, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{s.name}</span>
+              <span style={{ flex: 1, fontSize: 26, fontWeight: 700, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{keepGlyphs(s.name, shown) || "이름 없는 팀"}</span>
               {s.checkpoint && view?.mode !== "points" && (
                 <span style={{ fontSize: 17, fontWeight: 700, color: C.gold, border: `1.5px solid ${C.gold}`, borderRadius: 5, padding: "2px 8px" }}>체크포인트</span>
               )}

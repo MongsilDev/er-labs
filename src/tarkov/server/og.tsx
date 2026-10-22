@@ -2,6 +2,7 @@ import "server-only";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
+import { glyphs, keepGlyphs } from "@/glyphs";
 import { ACCENT } from "@/tarkov/components/Mark";
 import { rankLabel, VERDICT_LABEL, type Verdict } from "@/tarkov/lib/criteria";
 import { dateTime, dec, div, hours, int, pct } from "@/tarkov/lib/format";
@@ -12,6 +13,7 @@ export const OG_SIZE = { width: 1200, height: 630 };
 
 const font = (w: string) => readFile(join(process.cwd(), `assets/fonts/Pretendard-${w}.otf`));
 const fonts = Promise.all([font("Medium"), font("Bold"), font("ExtraBold")]);
+const covered = fonts.then(([medium]) => glyphs(medium));
 
 const C = { bg: "#0a0d14", panel: "#121722", line: "#232a38", text: "#e8edf5", text2: "#aab3c5", text3: "#7c879c", warn: "#f0b429", alert: "#ff6b6b" };
 
@@ -85,7 +87,7 @@ export async function profileImage(name: string, mode: Mode, s: Summary | null, 
           <span style={{ fontSize: 26, fontWeight: 700, color: C.text2 }}>Labs</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 20, marginTop: 34 }}>
-          <span style={{ fontSize: 64, fontWeight: 800, maxWidth: 760, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{name}</span>
+          <span style={{ fontSize: 64, fontWeight: 800, maxWidth: 760, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{keepGlyphs(name, await covered) || "이름 없음"}</span>
           <span style={{ fontSize: 28, fontWeight: 700, color: C.text2, border: `2px solid ${C.line}`, borderRadius: 8, padding: "4px 14px" }}>{mode.label}</span>
           {badge && (
             <span style={{ fontSize: 28, fontWeight: 800, color: badgeFg, background: badgeBg, borderRadius: 8, padding: "6px 16px" }}>{badge}</span>
