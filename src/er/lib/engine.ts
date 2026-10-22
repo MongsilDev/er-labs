@@ -241,7 +241,11 @@ export function banRoundsFor(count: number): number {
 function rank<T>(items: T[], value: (t: T) => number): (T & { value: number; rank: number })[] {
   const withValue = items.map((t) => ({ ...t, value: value(t) }));
   withValue.sort((a, b) => b.value - a.value);
-  return withValue.map((t) => ({ ...t, rank: 1 + withValue.filter((o) => o.value > t.value).length }));
+  let r = 1;
+  return withValue.map((t, i) => {
+    if (i > 0 && withValue[i - 1].value > t.value) r = i + 1;
+    return { ...t, rank: r };
+  });
 }
 
 export function computeGroup(input: GroupInput): GroupResult {

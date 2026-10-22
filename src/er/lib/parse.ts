@@ -18,6 +18,8 @@ export type ParsedRound = { gameId: number; players: Player[] };
 export type ParseResult = { ok: true; round: ParsedRound } | { ok: false; error: string };
 
 const REQUIRED = ["teamName", "tournament total score", "tournament kill score", "gameId"] as const;
+// 실제 경기 기록은 24줄이고, 24팀에 팀당 4명까지 여유를 둠
+const MAX_ROWS = 96;
 
 function num(value: string): number {
   const n = Number.parseFloat(value);
@@ -27,6 +29,7 @@ function num(value: string): number {
 export function parseRoundCsv(text: string): ParseResult {
   const rows = parseCsv(text);
   if (rows.length < 2) return { ok: false, error: "경기 기록이 없는 파일입니다." };
+  if (rows.length - 1 > MAX_ROWS) return { ok: false, error: `한 경기 기록은 ${MAX_ROWS}줄까지 올릴 수 있습니다.` };
 
   const header = rows[0].map((h) => h.trim());
   const index = new Map(header.map((h, i) => [h, i]));

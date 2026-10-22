@@ -36,6 +36,27 @@ describe("CSV 해석", () => {
     expect(parseRoundCsv("teamName,gameId\nA,1\n")).toEqual({ ok: false, error: "이터널 리턴 결과 CSV가 아닙니다. 없는 열: tournament total score, tournament kill score" });
     expect(parseRoundCsv("")).toEqual({ ok: false, error: "경기 기록이 없는 파일입니다." });
   });
+
+  it("96줄이 넘는 파일은 경기 기록으로 받지 않는다", () => {
+    const rows = (n: number) => csv(1, [{ team: "가", place: 1, ks: 0, players: Array.from({ length: n }, (_, i) => ({ nick: `p${i}` })) }]);
+    expect(parseRoundCsv(rows(96)).ok).toBe(true);
+    expect(parseRoundCsv(rows(97))).toEqual({ ok: false, error: "한 경기 기록은 96줄까지 올릴 수 있습니다." });
+  });
+});
+
+describe("선수 순위", () => {
+  it("평균 킬이 같으면 같은 순위이고 다음 순위는 같은 선수 수만큼 건너뛴다", () => {
+    const r1 = round(1, 1, [
+      { team: "Alpha", place: 1, ks: 0, players: [{ nick: "a", kill: 5 }, { nick: "b", kill: 3 }, { nick: "c", kill: 3 }] },
+      { team: "Beta", place: 2, ks: 0, players: [{ nick: "d", kill: 1 }] },
+    ]);
+    expect(computeGroup(group({ rounds: [r1] })).players.map((p) => [p.nickname, p.rank])).toEqual([
+      ["a", 1],
+      ["b", 2],
+      ["c", 2],
+      ["d", 4],
+    ]);
+  });
 });
 
 describe("포인트제", () => {
