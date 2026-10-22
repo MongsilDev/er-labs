@@ -7,11 +7,14 @@ export const USER_AGENT = "Labs (+https://labs.mongsil.dev/tarkov)";
 type Lane = { gap: number; next: number };
 const g = globalThis as unknown as { __tlLanes?: Record<string, Lane> };
 const lanes = (g.__tlLanes ??= { view: { gap: 500, next: 0 }, crawl: { gap: 1000, next: 0 } });
+// 화면 조회는 이만큼 넘게 밀리면 업스트림을 부르지 않고 마지막 기록으로 대신함
+const MAX_VIEW_WAIT = 5_000;
 
 async function wait(lane: keyof typeof lanes) {
   const l = lanes[lane];
   const t = Date.now();
   const at = Math.max(t, l.next);
+  if (lane === "view" && at - t > MAX_VIEW_WAIT) throw new Upstream(503);
   l.next = at + l.gap;
   if (at > t) await new Promise((r) => setTimeout(r, at - t));
 }

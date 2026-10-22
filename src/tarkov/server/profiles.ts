@@ -4,13 +4,15 @@ import { date } from "@/tarkov/lib/format";
 import type { Mode, ModeKey } from "@/tarkov/lib/modes";
 import { parse, type Summary } from "@/tarkov/lib/summary";
 import { db, isHidden } from "./db";
+import { allow } from "./limits";
 import { fetchProfile, Upstream } from "./upstream";
 
 const TTL = 10 * 60 * 1000;
 
 type Entry = { summary: Summary | null; at: number };
-const g = globalThis as unknown as { __tlCache?: Map<string, Entry> };
+const g = globalThis as unknown as { __tlCache?: Map<string, Entry>; __tlInflight?: Map<string, Promise<Loaded>> };
 const cache = (g.__tlCache ??= new Map());
+const inflight = (g.__tlInflight ??= new Map());
 
 export type Loaded = { summary: Summary | null; stale: boolean; error: boolean };
 
@@ -43,10 +45,22 @@ function lastSnapshot(aid: number, mode: ModeKey): Summary | null {
   return row ? (JSON.parse(row.data) as Summary) : null;
 }
 
-export async function load(mode: Mode, aid: number, fresh = false): Promise<Loaded> {
+// 같은 계정의 동시 조회는 업스트림 호출 하나를 나눠 쓰되 다시 불러오기는 새로 요청하고, ip를 넘긴 조회는 업스트림 호출을 IP마다 분당 30번까지 함
+export function load(mode: Mode, aid: number, fresh = false, ip?: string): Promise<Loaded> {
   const key = `${mode.key}:${aid}`;
   const hit = cache.get(key);
-  if (hit && !fresh && Date.now() - hit.at < TTL) return { summary: hit.summary, stale: false, error: false };
+  if (hit && !fresh && Date.now() - hit.at < TTL) return Promise.resolve({ summary: hit.summary, stale: false, error: false });
+  const running = inflight.get(key);
+  if (running && !fresh) return running;
+  if (ip && !allow(`u:${ip}`, 30, 60_000)) return Promise.resolve({ summary: lastSnapshot(aid, mode.key), stale: true, error: true });
+  const p: Promise<Loaded> = fetchAndStore(mode, aid, key).finally(() => {
+    if (inflight.get(key) === p) inflight.delete(key);
+  });
+  inflight.set(key, p);
+  return p;
+}
+
+async function fetchAndStore(mode: Mode, aid: number, key: string): Promise<Loaded> {
   try {
     const raw = await fetchProfile(mode.folder, aid);
     const summary = raw ? parse(mode.folder, raw) : null;

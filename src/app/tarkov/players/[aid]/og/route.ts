@@ -1,6 +1,7 @@
 import { pickMode } from "@/tarkov/lib/modes";
 import { verdict } from "@/tarkov/server/baseline";
 import { isHidden } from "@/tarkov/server/db";
+import { clientIp } from "@/tarkov/server/http";
 import { profileImage } from "@/tarkov/server/og";
 import { account, displayName, load } from "@/tarkov/server/profiles";
 
@@ -15,10 +16,10 @@ export async function GET(req: Request, ctx: Ctx) {
   const aid = n && !isHidden(n) ? n : 0;
   const acc = aid ? account(aid) : null;
   const mode = pickMode(acc?.modes ?? null, new URL(req.url).searchParams.get("mode"));
-  const res = aid ? await load(mode, aid) : null;
+  const res = aid ? await load(mode, aid, false, await clientIp()) : null;
   const s = res?.summary ?? null;
   const v = s ? verdict(mode, aid, s) : null;
   const img = await profileImage(aid ? displayName(aid, acc, s) : `#${raw}`, mode, s, v);
-  img.headers.set("Cache-Control", "public, max-age=600");
+  img.headers.set("Cache-Control", res?.error ? "no-store" : "public, max-age=600");
   return img;
 }

@@ -23,6 +23,7 @@ import { ARENA_PASSES, LEAGUE, leagueLabel } from "@/tarkov/lib/season";
 import { ARENA_NAMED, achievementInfo, type ArenaSummary, type EftSummary, type Gear as Worn, type Progress, type Summary } from "@/tarkov/lib/summary";
 import { badgeRates, verdict } from "@/tarkov/server/baseline";
 import { isHidden } from "@/tarkov/server/db";
+import { clientIp } from "@/tarkov/server/http";
 import { account, displayName, load, nameHistory, snapshots } from "@/tarkov/server/profiles";
 import "./profile.css";
 
@@ -684,9 +685,10 @@ export default async function Profile({ params, searchParams }: Props) {
   // 아레나 JSON의 등급 값에는 Unheard가 없어 EFT 기록의 등급을 함께 씀
   const eftMode = mode.key === "arena" && acc ? MODES.filter((m) => m.key !== "arena" && acc.modes[m.key]).sort((a, b) => acc.modes[b.key]! - acc.modes[a.key]!)[0] : undefined;
   const season = mode.key === "season";
+  const ip = await clientIp();
   const [res, other] = await Promise.all([
-    load(mode, aid),
-    mode.key !== "arena" && acc?.modes.arena ? load(arenaMode, aid) : eftMode ? load(eftMode, aid) : Promise.resolve(null),
+    load(mode, aid, false, ip),
+    mode.key !== "arena" && acc?.modes.arena ? load(arenaMode, aid, false, ip) : eftMode ? load(eftMode, aid, false, ip) : Promise.resolve(null),
   ]);
   const arena = mode.key !== "arena" ? other : null;
   const s = res.summary;
