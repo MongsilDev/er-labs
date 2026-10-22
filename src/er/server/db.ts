@@ -45,6 +45,12 @@ CREATE TABLE IF NOT EXISTS invites (
   created_at INTEGER NOT NULL,
   uses_left INTEGER NOT NULL DEFAULT 1
 );
+CREATE TABLE IF NOT EXISTS removals (
+  tournament_id INTEGER NOT NULL REFERENCES tournaments(id) ON DELETE CASCADE,
+  user_id TEXT NOT NULL,
+  removed_at INTEGER NOT NULL,
+  PRIMARY KEY (tournament_id, user_id)
+);
 CREATE TABLE IF NOT EXISTS rounds (
   id INTEGER PRIMARY KEY,
   tournament_id INTEGER NOT NULL REFERENCES tournaments(id) ON DELETE CASCADE,

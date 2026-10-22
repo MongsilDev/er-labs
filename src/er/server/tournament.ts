@@ -611,10 +611,14 @@ export function inviteInfo(tk: string): InviteInfo {
 
 export function acceptInvite(tk: string, user: User): { code: string; already: boolean } {
   return tx(() => {
-    const inv = db().prepare("SELECT tournament_id, uses_left FROM invites WHERE token = ?").get(tk) as { tournament_id: number; uses_left: number } | undefined;
+    const inv = db().prepare("SELECT tournament_id, uses_left, created_at FROM invites WHERE token = ?").get(tk) as
+      | { tournament_id: number; uses_left: number; created_at: number }
+      | undefined;
     if (!inv) throw new OpError("인원이 다 찼거나 취소된 초대 링크입니다. 개최자에게 새 링크를 요청해주세요.");
     const t = db().prepare("SELECT * FROM tournaments WHERE id = ?").get(inv.tournament_id) as TRow;
     if (roleOf(t, user)) return { code: t.code, already: true };
+    const gone = db().prepare("SELECT removed_at FROM removals WHERE tournament_id = ? AND user_id = ?").get(t.id, user.id) as { removed_at: number } | undefined;
+    if (gone && gone.removed_at >= inv.created_at) throw new OpError("이 링크로는 다시 참여할 수 없습니다. 개최자에게 새 링크를 요청해주세요.");
     const n = db().prepare("SELECT COUNT(*) AS n FROM members WHERE tournament_id = ? AND role = 'operator'").get(t.id) as { n: number };
     if (n.n >= LIMITS.operators) throw new OpError(`운영자는 개최자 외 최대 ${LIMITS.operators}명입니다. 개최자에게 문의해주세요.`);
     if (inv.uses_left > 1) db().prepare("UPDATE invites SET uses_left = uses_left - 1 WHERE token = ?").run(tk);
@@ -639,6 +643,13 @@ export function removeMember(code: string, user: User, target: string) {
       .get(t.id, target) as { name: string; role: string } | undefined;
     if (!m || m.role === "owner") return;
     db().prepare("DELETE FROM members WHERE tournament_id = ? AND user_id = ?").run(t.id, target);
+    // 내보낸 사람은 전에 받았거나 만든 링크로 돌아오지 못함
+    if (!self) {
+      db().prepare("DELETE FROM invites WHERE tournament_id = ? AND created_by = ?").run(t.id, target);
+      db()
+        .prepare("INSERT INTO removals(tournament_id, user_id, removed_at) VALUES (?, ?, ?) ON CONFLICT DO UPDATE SET removed_at = excluded.removed_at")
+        .run(t.id, target, now());
+    }
     bump(t, user, self ? "운영자 그만두기" : `운영자에서 빼기: ${m.name}`);
   });
 }

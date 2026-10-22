@@ -161,6 +161,25 @@ describe("대회 서버", () => {
     expect(err(() => t.createInvite(code, op))).toBe("개최자만 할 수 있습니다.");
   });
 
+  it("내보낸 운영자는 전에 받은 링크로 돌아오지 못하고, 내보낸 뒤 만든 링크로는 들어온다", () => {
+    const other = { id: "4", name: "다른 사람", avatar: null };
+    db.db().prepare("INSERT OR IGNORE INTO users(id, name, avatar, updated_at) VALUES (?, ?, NULL, ?)").run(other.id, other.name, Date.now());
+    const code = t.createTournament(owner, { name: "내보내기", mode: "points", preset: "masters", plannedRounds: 4, groupCount: 1 });
+    const token = t.createInvite(code, owner, 3);
+    t.acceptInvite(token, op);
+    t.removeMember(code, owner, op.id);
+    expect(() => t.acceptInvite(token, op)).toThrow("이 링크로는 다시 참여할 수 없습니다. 개최자에게 새 링크를 요청해주세요.");
+    expect(t.acceptInvite(token, other)).toEqual({ code, already: false });
+    const until = Date.now() + 2;
+    while (Date.now() < until);
+    expect(t.acceptInvite(t.createInvite(code, owner), op)).toEqual({ code, already: false });
+
+    const minted = t.createInvite(code, owner);
+    t.transferOwner(code, owner, op.id);
+    t.removeMember(code, op, owner.id);
+    expect(() => t.acceptInvite(minted, owner)).toThrow("인원이 다 찼거나 취소된 초대 링크입니다.");
+  });
+
   it("같은 라운드를 여러 번 바꿔도 지운 기록은 최근 세 개만 남고 되돌리기는 된다", () => {
     const code = t.createTournament(owner, { name: "교체 반복", mode: "points", preset: "masters", plannedRounds: 1, groupCount: 1 });
     const count = () => db.db().prepare("SELECT COUNT(*) AS n, SUM(deleted_at IS NOT NULL) AS d FROM rounds WHERE tournament_id = (SELECT id FROM tournaments WHERE code = ?)").get(code);
