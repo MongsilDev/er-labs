@@ -125,7 +125,7 @@ export function search(q: string, limit = 10): { aid: number; name: string; last
   const t = q.trim();
   if (/^\d{1,10}$/.test(t)) {
     const a = isHidden(Number(t)) ? null : account(Number(t));
-    const byName = prefix(t.toLowerCase(), limit);
+    const byName = t.length >= 2 ? prefix(t.toLowerCase(), limit) : [];
     return a ? [{ aid: a.aid, name: a.name, last: latest(a) }, ...byName.filter((r) => r.aid !== a.aid)].slice(0, limit) : byName;
   }
   if (t.length < 2) return [];
@@ -134,11 +134,14 @@ export function search(q: string, limit = 10): { aid: number; name: string; last
 
 const latest = (a: Account) => Math.max(0, ...Object.values(a.modes).map((v) => v ?? 0)) || null;
 
+// 짧은 접두어는 수만 행이 걸려 정렬 비용이 커지므로 이름순 앞 500개 안에서만 최근 순으로 고름
 function prefix(lc: string, limit: number) {
   const rows = db()
     .prepare(
-      `SELECT aid, name, MAX(COALESCE(u_pvp, 0), COALESCE(u_season, 0), COALESCE(u_pve, 0), COALESCE(u_arena, 0)) AS last
-       FROM accounts WHERE name_lc >= ? AND name_lc < ? AND aid NOT IN (SELECT aid FROM hidden) ORDER BY name_lc = ? DESC, last DESC, name_lc LIMIT ?`,
+      `SELECT aid, name, last FROM (
+         SELECT aid, name, name_lc, MAX(COALESCE(u_pvp, 0), COALESCE(u_season, 0), COALESCE(u_pve, 0), COALESCE(u_arena, 0)) AS last
+         FROM accounts WHERE name_lc >= ? AND name_lc < ? AND aid NOT IN (SELECT aid FROM hidden) ORDER BY name_lc LIMIT 500)
+       ORDER BY name_lc = ? DESC, last DESC, name_lc LIMIT ?`,
     )
     .all(lc, lc + "￿", lc, limit) as { aid: number; name: string; last: number }[];
   return rows.map((r) => ({ ...r, last: r.last || null }));
