@@ -2,6 +2,7 @@ import "server-only";
 import { captureException } from "@sentry/node";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
+import { limitKey } from "@/ip";
 
 export const BASE_URL = (process.env.BASE_URL || "http://localhost:3000").replace(/\/$/, "");
 
@@ -12,7 +13,7 @@ export const fail = (message: string, status = 400) => json({ error: message }, 
 
 export async function clientIp(): Promise<string> {
   const h = await headers();
-  return h.get("cf-connecting-ip") || h.get("x-forwarded-for")?.split(",")[0].trim() || "local";
+  return limitKey(h.get("cf-connecting-ip") || h.get("x-forwarded-for")?.split(",")[0].trim() || "local");
 }
 
 export async function sameOrigin(): Promise<boolean> {
