@@ -114,6 +114,15 @@ export function db(): DatabaseSync {
     const dir = process.env.DATA_DIR || join(process.cwd(), "data");
     mkdirSync(dir, { recursive: true });
     const conn = new DatabaseSync(join(dir, "er-labs.db"));
+    // 정리한 행의 빈 페이지를 파일 크기에서 돌려받으려면 incremental auto_vacuum이 필요하고, 이미 있는 파일은 VACUUM 한 번으로 바뀜
+    if ((conn.prepare("PRAGMA auto_vacuum").get() as { auto_vacuum: number }).auto_vacuum !== 2) {
+      try {
+        conn.exec("PRAGMA busy_timeout = 5000; PRAGMA auto_vacuum = INCREMENTAL; VACUUM;");
+      } catch (e) {
+        // 바꾸지 못해도 연결은 그대로 쓰고 다음에 열 때 다시 시도
+        console.error("[DB] auto_vacuum 전환 실패", e);
+      }
+    }
     conn.exec(SCHEMA);
     const cols = conn.prepare("PRAGMA table_info(invites)").all() as { name: string }[];
     if (!cols.some((c) => c.name === "uses_left")) conn.exec("ALTER TABLE invites ADD COLUMN uses_left INTEGER NOT NULL DEFAULT 1");

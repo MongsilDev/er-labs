@@ -207,6 +207,16 @@ function assertRound(t: TRow, round: unknown): number {
 
 const prefix = (t: TRow, g: number) => (t.group_count > 1 ? `${groupLabel(g)}조 ` : "");
 
+// 되돌리기 알림은 세 개까지 떠 있으므로, 같은 슬롯에서 지운 기록은 최근 세 개만 두고 나머지는 정리 시각을 기다리지 않고 지움
+function dropOlderDeleted(t: TRow, g: number, round: number) {
+  db()
+    .prepare(
+      `DELETE FROM rounds WHERE tournament_id = ? AND group_idx = ? AND round_no = ? AND deleted_at IS NOT NULL AND id NOT IN
+       (SELECT id FROM rounds WHERE tournament_id = ? AND group_idx = ? AND round_no = ? AND deleted_at IS NOT NULL ORDER BY deleted_at DESC, id DESC LIMIT 3)`,
+    )
+    .run(t.id, g, round, t.id, g, round);
+}
+
 export function applyOp(code: string, user: User, op: Op): OpResult {
   const t = find(code);
   if (!t) throw new OpError("없는 대회입니다.");
@@ -262,6 +272,7 @@ export function applyOp(code: string, user: User, op: Op): OpResult {
               .prepare("SELECT id FROM rounds WHERE tournament_id = ? AND group_idx = ? AND round_no = ? AND deleted_at IS NULL")
               .get(t.id, g, slot) as { id: number };
             conn.prepare("UPDATE rounds SET deleted_at = ? WHERE id = ?").run(now(), old.id);
+            dropOlderDeleted(t, g, slot);
             undo = { op: { op: "restore_round", id: old.id, replace: true }, label: `${slot}라운드 이전 기록 되살리기` };
           }
           if (slot === null) {
@@ -312,6 +323,7 @@ export function applyOp(code: string, user: User, op: Op): OpResult {
           .get(t.id, g, round) as { id: number } | undefined;
         if (old) {
           conn.prepare("UPDATE rounds SET deleted_at = ? WHERE id = ?").run(now(), old.id);
+          dropOlderDeleted(t, g, round);
           undo = { op: { op: "restore_round", id: old.id, replace: true }, label: `${round}라운드 이전 기록 되살리기` };
         }
         const players: Player[] = teams.map((x) => ({
@@ -342,6 +354,7 @@ export function applyOp(code: string, user: User, op: Op): OpResult {
         if (op.op === "delete_round") {
           if (r.deleted_at) break;
           conn.prepare("UPDATE rounds SET deleted_at = ? WHERE id = ?").run(now(), r.id);
+          dropOlderDeleted(t, r.group_idx, r.round_no);
           undo = { op: { op: "restore_round", id: r.id }, label: "되돌리기" };
           bump(t, user, `${prefix(t, r.group_idx)}${r.round_no}라운드 삭제`);
         } else {
@@ -358,6 +371,7 @@ export function applyOp(code: string, user: User, op: Op): OpResult {
             throw new OpError("같은 경기가 다른 라운드에 있어 되살릴 수 없습니다.");
           }
           conn.prepare("UPDATE rounds SET deleted_at = NULL WHERE id = ?").run(r.id);
+          if (taken) dropOlderDeleted(t, r.group_idx, r.round_no);
           bump(t, user, `${prefix(t, r.group_idx)}${r.round_no}라운드 되살림`);
         }
         break;
@@ -662,6 +676,7 @@ export function cleanup(): { tournaments: number; sessions: number; users: numbe
       .prepare("DELETE FROM users WHERE id NOT IN (SELECT user_id FROM sessions) AND id NOT IN (SELECT user_id FROM members)")
       .run().changes,
   );
+  if ((conn.prepare("PRAGMA freelist_count").get() as { freelist_count: number }).freelist_count > 1024) conn.exec("PRAGMA incremental_vacuum; PRAGMA wal_checkpoint(TRUNCATE);");
   return { tournaments, sessions, users };
 }
 

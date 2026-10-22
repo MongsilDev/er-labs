@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -138,5 +138,45 @@ describe("대회 서버", () => {
     const r = t.cleanup();
     expect(r.tournaments).toBeGreaterThanOrEqual(1);
     expect(t.loadView(code, null)).toBeNull();
+  });
+
+  it("같은 라운드를 여러 번 바꿔도 지운 기록은 최근 세 개만 남고 되돌리기는 된다", () => {
+    const code = t.createTournament(owner, { name: "교체 반복", mode: "points", preset: "masters", plannedRounds: 1, groupCount: 1 });
+    const count = () => db.db().prepare("SELECT COUNT(*) AS n, SUM(deleted_at IS NOT NULL) AS d FROM rounds WHERE tournament_id = (SELECT id FROM tournaments WHERE code = ?)").get(code);
+    let r = t.applyOp(code, owner, { op: "add_csv", group: 0, files: [{ name: "0.csv", text: csv(1000, teams(["가"])) }] });
+    for (let i = 1; i <= 10; i++) r = t.applyOp(code, owner, { op: "add_csv", group: 0, round: 1, files: [{ name: `${i}.csv`, text: csv(1000 + (i % 2), teams(["가"])) }] });
+    expect(count()).toEqual({ n: 4, d: 3 });
+    t.applyOp(code, owner, r.undo!.op);
+    expect(t.loadView(code, null)!.groups[0].rounds.map((x) => x.gameId)).toEqual([1001]);
+    expect(count()).toEqual({ n: 4, d: 3 });
+    const del = t.applyOp(code, owner, { op: "delete_round", id: t.loadView(code, null)!.groups[0].rounds[0].id });
+    expect(count()).toEqual({ n: 3, d: 3 });
+    t.applyOp(code, owner, del.undo!.op);
+    expect(t.loadView(code, null)!.groups[0].rounds.map((x) => x.gameId)).toEqual([1001]);
+  });
+
+  it("같은 라운드를 연달아 바꿔도 먼저 뜬 되돌리기 알림으로 처음 기록을 되살린다", () => {
+    const code = t.createTournament(owner, { name: "연속 교체", mode: "points", preset: "masters", plannedRounds: 1, groupCount: 1 });
+    t.applyOp(code, owner, { op: "add_csv", group: 0, files: [{ name: "a.csv", text: csv(2000, teams(["가"])) }] });
+    const first = t.applyOp(code, owner, { op: "add_csv", group: 0, round: 1, files: [{ name: "b.csv", text: csv(2001, teams(["가"])) }] });
+    t.applyOp(code, owner, { op: "add_csv", group: 0, round: 1, files: [{ name: "c.csv", text: csv(2002, teams(["가"])) }] });
+    t.applyOp(code, owner, first.undo!.op);
+    expect(t.loadView(code, null)!.groups[0].rounds.map((x) => x.gameId)).toEqual([2000]);
+  });
+
+  it("정리한 행이 남긴 빈 페이지를 DB 파일에서 돌려준다", () => {
+    const conn = db.db();
+    expect(conn.prepare("PRAGMA auto_vacuum").get()).toEqual({ auto_vacuum: 2 });
+    const code = t.createTournament(owner, { name: "파일 크기", mode: "points", preset: "masters", plannedRounds: 1, groupCount: 1 });
+    const tid = (conn.prepare("SELECT id FROM tournaments WHERE code = ?").get(code) as { id: number }).id;
+    const ins = conn.prepare("INSERT INTO rounds(tournament_id, group_idx, round_no, source, players, deleted_at, created_at) VALUES (?, 0, 1, 'csv', ?, ?, ?)");
+    for (let i = 0; i < 200; i++) ins.run(tid, "x".repeat(40_000), Date.now() - 2 * 3600_000, Date.now());
+    conn.exec("PRAGMA wal_checkpoint(TRUNCATE)");
+    const file = join(process.env.DATA_DIR!, "er-labs.db");
+    const before = statSync(file).size;
+    t.cleanup();
+    expect(conn.prepare("SELECT COUNT(*) AS n FROM rounds WHERE tournament_id = ?").get(tid)).toEqual({ n: 0 });
+    expect(conn.prepare("PRAGMA freelist_count").get()).toEqual({ freelist_count: 0 });
+    expect(statSync(file).size).toBeLessThan(before - 7_000_000);
   });
 });
