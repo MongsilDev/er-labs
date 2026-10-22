@@ -1,19 +1,27 @@
 #!/usr/bin/env bash
-# labs.mongsil.dev 배포: 이미지를 빌드하고 compose의 labs 서비스 컨테이너를 새 이미지로 다시 만든다
+# labs.mongsil.dev 배포: 커밋된 내용으로 이미지를 빌드하고 compose의 labs 서비스 컨테이너를 새 이미지로 다시 만든다
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 export PATH="/opt/homebrew/opt/node@24/bin:/Applications/OrbStack.app/Contents/MacOS/xbin:$PATH"
 
+if [ -n "$(git status --porcelain)" ]; then
+  echo "커밋하지 않은 변경이 있어 배포하지 않습니다. 커밋하거나 정리한 뒤 다시 실행해주세요." >&2
+  git status --short >&2
+  exit 1
+fi
+
+echo "==> 테스트"
+pnpm test
 if [ "${SKIP_UI_CHECK:-}" != 1 ]; then
-  echo "==> 테스트와 화면 점검"
-  pnpm test
+  echo "==> 화면 점검"
   pnpm test:ui
 fi
 
-TAG="labs:$(date +%Y%m%d-%H%M)"
+TAG="labs:$(date +%Y%m%d-%H%M)-$(git rev-parse --short HEAD)"
 echo "==> 이미지 빌드 $TAG"
-docker build -t "$TAG" -t labs:latest .
+# git이 무시하는 로컬 파일도 이미지에 들어가지 않게 HEAD만 빌드 컨텍스트로 넘김
+git archive HEAD | docker build -t "$TAG" -t labs:latest -
 
 echo "==> 컨테이너 교체"
 docker compose -f "$HOME/docker/compose.yaml" up -d labs
