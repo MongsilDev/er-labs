@@ -87,7 +87,7 @@ export type PlayerStat = { nickname: string; team: string; rounds: number; kills
 
 export type GroupResult = {
   standings: Standing[];
-  displayOf: Record<string, string>;
+  displayOf: Map<string, string>;
   orphanPenalties: number[];
   rounds: RoundSummary[];
   played: number;
@@ -268,7 +268,7 @@ export function computeGroup(input: GroupInput): GroupResult {
   const roundByNo = new Map(ordered.map((r) => [r.roundNo, r]));
   const names = new Map<string, string>();
   const baseOf = new Map<string, string>();
-  const displayOf: Record<string, string> = {};
+  const displayOf = new Map<string, string>();
   const nickTeam = new Map<string, string>();
 
   const raws: Raw[] = [];
@@ -292,7 +292,7 @@ export function computeGroup(input: GroupInput): GroupResult {
     for (const m of c.members) {
       if (!memberKey.has(normalize(m.base))) memberKey.set(normalize(m.base), key);
       list.push({ round: m.round, base: m.base });
-      displayOf[normalize(m.base)] = display;
+      displayOf.set(normalize(m.base), display);
       const teams = (perRound[m.round - 1] ??= new Map<string, Agg>());
       const sc = score(m, rules);
       const prev = teams.get(key);

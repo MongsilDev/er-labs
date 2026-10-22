@@ -127,13 +127,13 @@ export function Penalties({ group, result, rules, run }: { group: GroupView; res
             <li key={p.id}>
               <span className="chip">{p.roundNo ? `${p.roundNo}R` : "전체"}</span>
               <span className="min-w-0 flex-1 truncate">
-                {result.displayOf[normalize(p.team)] ?? p.team} {p.kind === "death" ? `처치자 불명 사망 ${p.count}회` : p.reason}
+                {result.displayOf.get(normalize(p.team)) ?? p.team} {p.kind === "death" ? `처치자 불명 사망 ${p.count}회` : p.reason}
               </span>
               {result.orphanPenalties.includes(p.id) && (
                 <span className="chip dashed" title="이 감점을 받은 팀이 경기 기록에 없습니다">팀 없음</span>
               )}
               <b>-{fmt(p.points)}</b>
-              <button type="button" className="link" aria-label={`${result.displayOf[normalize(p.team)] ?? p.team} 감점 삭제`} onClick={() => run({ op: "delete_penalty", id: p.id })}>
+              <button type="button" className="link" aria-label={`${result.displayOf.get(normalize(p.team)) ?? p.team} 감점 삭제`} onClick={() => run({ op: "delete_penalty", id: p.id })}>
                 삭제
               </button>
             </li>
@@ -199,17 +199,12 @@ export function Teams({ group, result, mode, rules, run }: { group: GroupView; r
       )}
       {Object.keys(group.aliases).length > 0 && (
         <ul className="plist">
-          {Object.entries(
-            Object.entries(group.aliases).reduce<Record<string, string[]>>((acc, [from, to]) => {
-              (acc[to] ??= []).push(from);
-              return acc;
-            }, {}),
-          ).map(([to, froms]) => (
+          {[...Object.entries(group.aliases).reduce((acc, [from, to]) => acc.set(to, [...(acc.get(to) ?? []), from]), new Map<string, string[]>())].map(([to, froms]) => (
             <li key={to}>
               <span className="min-w-0 flex-1 truncate">
                 {(() => {
                   const own = froms.filter((f) => normalize(f) !== normalize(to));
-                  const records = own.filter((f) => normalize(f) in result.displayOf);
+                  const records = own.filter((f) => result.displayOf.has(normalize(f)));
                   return (records.length ? records : own).join(", ");
                 })()}{" "}
                 대신 <b className="plain">{to}</b>
