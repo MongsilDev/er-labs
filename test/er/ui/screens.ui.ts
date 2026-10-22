@@ -8,7 +8,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { type Browser, chromium, type Page } from "playwright";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { csv } from "../helpers";
+import { csv, kelFixture } from "../helpers";
 
 const ROOT = fileURLToPath(new URL("../../..", import.meta.url));
 const STANDALONE = join(ROOT, ".next/standalone");
@@ -18,6 +18,7 @@ process.env.DATA_DIR = DATA;
 
 const owner = { id: "9001", name: "개최자", avatar: null };
 const OWNER_SID = "ui-owner-session";
+const OTHER_SID = "ui-other-session";
 const LONG_TEAM = "아주아주긴팀이름입니다정말로";
 const TEAMS = [LONG_TEAM, "모래성", "번개팀", "새벽길", "은하수", "파도", "단풍", "등대"];
 
@@ -46,6 +47,9 @@ async function seed() {
   conn
     .prepare("INSERT INTO sessions(hash, user_id, expires_at) VALUES (?, ?, ?)")
     .run(createHash("sha256").update(OWNER_SID).digest("hex"), owner.id, Date.now() + 864e5);
+  conn.prepare("INSERT INTO users(id, name, avatar, updated_at) VALUES (?, ?, NULL, ?)").run("9002", "다른 사람", Date.now());
+  conn.prepare("INSERT INTO sessions(hash, user_id, expires_at) VALUES (?, ?, ?)").run(createHash("sha256").update(OTHER_SID).digest("hex"), "9002", Date.now() + 864e5);
+  kelFixture(DATA);
   code = t.createTournament(owner, {
     name: "조별 예선 아주 긴 대회 이름을 넣어서 줄바꿈 확인하기",
     mode: "checkpoint",
@@ -78,7 +82,7 @@ beforeAll(async () => {
   // 운영 .env가 섞이지 않게 환경 변수를 직접 지정
   server = spawn(process.execPath, ["server.js"], {
     cwd: STANDALONE,
-    env: { NODE_ENV: "production", PATH: process.env.PATH ?? "", PORT: String(port), HOSTNAME: "127.0.0.1", BASE_URL: base, DATA_DIR: DATA, DISCORD_CLIENT_ID: "1111", JOBS: "0", CUT_API: `http://127.0.0.1:${cutPort}/api/cut` },
+    env: { NODE_ENV: "production", PATH: process.env.PATH ?? "", PORT: String(port), HOSTNAME: "127.0.0.1", BASE_URL: base, DATA_DIR: DATA, DISCORD_CLIENT_ID: "1111", JOBS: "0", KEL_OWNER_ID: owner.id, CUT_API: `http://127.0.0.1:${cutPort}/api/cut` },
     stdio: "ignore",
   });
   for (let i = 0; i < 50; i++) {
@@ -96,7 +100,7 @@ afterAll(async () => {
   if (readdirSync(SHOTS).length === 0) rmSync(SHOTS, { recursive: true });
 });
 
-type Screen = { name: string; path: () => string; login?: boolean; tab?: string; status?: number };
+type Screen = { name: string; path: () => string; login?: boolean | "other"; tab?: string; status?: number };
 
 const SCREENS: Screen[] = [
   { name: "Labs", path: () => "/" },
@@ -114,7 +118,16 @@ const SCREENS: Screen[] = [
   { name: "초대", path: () => `/er/i/${invite}` },
   { name: "없는 대회", path: () => "/er/t/ZZZZZZ/a", status: 404 },
   { name: "없는 페이지", path: () => "/nope", status: 404 },
+  { name: "KEL 기록", path: () => "/er/kel", login: true },
+  { name: "KEL 진출 계산기", path: () => "/er/kel/calc", login: true },
+  { name: "KEL 진출 계산기 결승", path: () => "/er/kel/calc", login: true, tab: "11월 8일 결승" },
+  { name: "KEL 진출 계산기 지난 경기", path: () => "/er/kel/calc", login: true, tab: "지난 경기" },
+  { name: "KEL 포맷과 규칙", path: () => "/er/kel/rules", login: true },
+  { name: "KEL 로그아웃", path: () => "/er/kel", status: 404 },
+  { name: "KEL 다른 계정", path: () => "/er/kel/calc", login: "other", status: 404 },
 ];
+
+const KEL_PATHS = ["/er/kel", "/er/kel/calc", "/er/kel/rules"];
 
 type Problems = { overflow: number; undefinedClass: string[]; unstyled: string[] };
 
@@ -147,7 +160,7 @@ function inspect(): Problems {
 
 async function open(screen: Screen, width: number, theme: "dark" | "light"): Promise<{ page: Page; errors: string[]; status: number }> {
   const ctx = await browser.newContext({ viewport: { width, height: 900 } });
-  if (screen.login) await ctx.addCookies([{ name: "er_session", value: OWNER_SID, url: base }]);
+  if (screen.login) await ctx.addCookies([{ name: "er_session", value: screen.login === "other" ? OTHER_SID : OWNER_SID, url: base }]);
   await ctx.addInitScript((t) => localStorage.setItem("labs-theme", t), theme);
   const page = await ctx.newPage();
   const errors: string[] = [];
@@ -206,6 +219,40 @@ describe("화면 점검", () => {
     const res = await fetch(new URL(new URL(og!).pathname + new URL(og!).search, base));
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toBe("image/png");
+  });
+
+  it("KEL 화면은 운영자에게만 열리고, 다른 사람에게는 제목 없이 404가 나간다", async () => {
+    for (const path of KEL_PATHS) {
+      for (const sid of [null, OTHER_SID]) {
+        const res = await fetch(base + path, { headers: sid ? { cookie: `er_session=${sid}` } : {} });
+        const html = await res.text();
+        expect([path, sid, res.status]).toEqual([path, sid, 404]);
+        expect(html).not.toMatch(/KEL|진출 계산기|포맷과 규칙/);
+      }
+      const res = await fetch(base + path, { headers: { cookie: `er_session=${OWNER_SID}` } });
+      expect([path, res.status]).toEqual([path, 200]);
+      expect(await res.text()).toMatch(/<meta name="robots" content="noindex, nofollow"/);
+    }
+    const sitemap = await fetch(`${base}/sitemap.xml`).then((r) => r.text());
+    expect(sitemap).not.toContain("/er/kel");
+  });
+
+  it("KEL 준결승 라운드를 넣으면 순위와 확률이 바뀌고 새로고침해도 남는다", async () => {
+    const { page, errors } = await open(SCREENS.find((x) => x.name === "KEL 진출 계산기")!, 390, "dark");
+    await page.getByRole("tab", { name: "11월 7일 준결승" }).click();
+    const selects = page.locator("select[aria-label$=' 순위']");
+    const count = await selects.count();
+    for (let i = 0; i < count; i++) await selects.nth(i).selectOption(String(count - i));
+    await page.locator("input[aria-label$=' 킬']").first().fill("3");
+    await page.getByRole("button", { name: "1라운드 결과 저장" }).click();
+    await expect(page.getByRole("heading", { name: "1라운드가 끝난 뒤" }).isVisible()).resolves.toBe(true);
+    await expect(page.getByText("%").first().isVisible()).resolves.toBe(true);
+    await page.reload({ waitUntil: "networkidle" });
+    await expect(page.getByRole("heading", { name: "1라운드가 끝난 뒤" }).isVisible()).resolves.toBe(true);
+    const p = await page.evaluate(inspect);
+    await page.context().close();
+    expect(p).toEqual({ overflow: 0, undefinedClass: [], unstyled: [] });
+    expect(errors).toEqual([]);
   });
 
   it("방송 화면은 1920x1080 안에 들어간다", async () => {

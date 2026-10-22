@@ -1004,6 +1004,39 @@
     font-weight: 800;
   }
 
+  /* KEL 기록 표. wide 칸은 좁은 화면에서 숨김 */
+  .kel-table {
+    font-size: 14px;
+  }
+  .kel-table th,
+  .kel-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--line-soft);
+    text-align: right;
+    white-space: nowrap;
+  }
+  .kel-table thead th {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-3);
+    border-bottom-color: var(--line);
+  }
+  .kel-table .l {
+    text-align: left;
+  }
+  .kel-table tbody tr:last-child td {
+    border-bottom: 0;
+  }
+  @media (max-width: 760px) {
+    .kel-table th,
+    .kel-table td {
+      padding: 8px 4px;
+    }
+    .kel-table .wide {
+      display: none;
+    }
+  }
+
   .ov {
     position: fixed;
     top: 24px;
