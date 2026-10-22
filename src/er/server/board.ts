@@ -1,11 +1,11 @@
 import "server-only";
 import { timingSafeEqual } from "node:crypto";
 import { exampleView } from "@/er/lib/example";
+import { groupResult } from "@/er/lib/engine";
 import { characterName } from "@/er/lib/format";
 import type { Mode, Tiebreak } from "@/er/lib/rules";
-import { RETENTION_MS, type Role, type TournamentView } from "@/er/lib/view";
+import type { Role, TournamentView } from "@/er/lib/view";
 import { BASE_URL } from "./auth";
-import { groupResult } from "./og";
 import { loadView, myTournaments, tournamentVersion } from "./tournament";
 
 export const EXAMPLE_CODE = "EXAMPLE";
@@ -43,7 +43,7 @@ export type Board = {
   next: { roundNo: number; main: string; sub: string | null; bans: string[] } | null;
 };
 
-export type BotTournament = { code: string; name: string; role: "owner" | "operator"; mode: Mode; groupCount: number; played: number; updatedAt: number };
+export type BotTournament = { code: string; name: string; role: "owner" | "operator"; played: number };
 
 export function botAuthorized(header: string | null): boolean {
   const want = process.env.LABS_BOT_TOKEN;
@@ -103,6 +103,6 @@ export function botTournaments(userId: string): BotTournament[] {
   const user = asUser(userId);
   if (!user) return [];
   return myTournaments(user)
-    .slice(0, 25)
-    .map((t) => ({ code: t.code, name: t.name, role: t.role, mode: t.mode, groupCount: t.groupCount, played: t.played, updatedAt: t.expiresAt - RETENTION_MS }));
+    .slice(0, 100)
+    .map((t) => ({ code: t.code, name: t.name, role: t.role, played: t.played }));
 }

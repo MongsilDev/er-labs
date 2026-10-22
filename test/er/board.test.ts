@@ -58,7 +58,7 @@ describe("몽실봇 순위 API", () => {
 
   it("디스코드 ID로 그 사람이 맡은 대회만 준다", () => {
     const list = b.botTournaments(owner.id);
-    expect(list[0]).toMatchObject({ name: "봇 시험", role: "owner", groupCount: 2, played: 1 });
+    expect(list[0]).toEqual({ code: expect.any(String), name: "봇 시험", role: "owner", played: 1 });
     expect(b.botTournaments("999")).toEqual([]);
     expect(b.botTournaments("abc")).toEqual([]);
   });

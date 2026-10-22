@@ -1,4 +1,5 @@
 import type { Player } from "./parse";
+import type { TournamentView } from "./view";
 import { CHECKPOINT_SEQUENCE, MAIN_WEATHERS, SUB_WEATHERS, defaultMainWeather, type Mode, type Rules } from "./rules";
 
 export type RoundInput = {
@@ -534,3 +535,17 @@ export function computeGroup(input: GroupInput): GroupResult {
 }
 
 export { MAIN_WEATHERS, SUB_WEATHERS };
+
+export function groupResult(view: TournamentView, idx: number): GroupResult {
+  const g = view.groups[idx];
+  return computeGroup({
+    mode: view.mode,
+    rules: view.rules,
+    plannedRounds: view.plannedRounds,
+    rounds: g.rounds,
+    penalties: g.penalties,
+    weather: g.weather,
+    aliases: g.aliases,
+    overrides: g.overrides,
+  });
+}

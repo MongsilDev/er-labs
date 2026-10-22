@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { type CutData, daysLeft, int, tens } from "@/er/lib/cut";
-import { computeGroup, type GroupResult } from "@/er/lib/engine";
+import { groupResult } from "@/er/lib/engine";
 import { fmt1 } from "@/er/lib/format";
 import type { TournamentView } from "@/er/lib/view";
 
@@ -14,19 +14,6 @@ const fonts = Promise.all([font("Medium"), font("Bold"), font("ExtraBold")]);
 
 const C = { bg: "#0a0d14", panel: "#121722", line: "#232a38", text: "#e8edf5", text2: "#aab3c5", text3: "#7c879c", accent: "#26f1f6", gold: "#ffd621" };
 
-export function groupResult(view: TournamentView, idx: number): GroupResult {
-  const g = view.groups[idx];
-  return computeGroup({
-    mode: view.mode,
-    rules: view.rules,
-    plannedRounds: view.plannedRounds,
-    rounds: g.rounds,
-    penalties: g.penalties,
-    weather: g.weather,
-    aliases: g.aliases,
-    overrides: g.overrides,
-  });
-}
 
 export function summary(view: TournamentView, idx: number): string {
   const res = groupResult(view, idx);
