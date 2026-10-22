@@ -67,7 +67,7 @@ export default function Manage({ view, me, initialMembers, initialInvites }: { v
 
       <section className={BOX} aria-labelledby="m-h">
         <h2 className={H2} id="m-h">
-          운영자 <span className="text-[13px] font-medium text-fg-3">{list.length}명, 최대 {LIMITS.operators + 1}명</span>
+          운영자 <span className="text-[13px] font-medium text-fg-3">{list.filter((m) => m.role === "operator").length}명, 개최자 외 최대 {LIMITS.operators}명</span>
         </h2>
         <ul className="mt-2.5 list-none">
           {list.map((m) => (
@@ -107,7 +107,7 @@ export default function Manage({ view, me, initialMembers, initialInvites }: { v
       {owner && (
         <section className={BOX} aria-labelledby="i-h">
           <h2 className={H2} id="i-h">
-            초대 링크 <span className="text-[13px] font-medium text-fg-3">정한 인원만큼 쓸 수 있고, 대회가 지워지면 함께 만료</span>
+            초대 링크
           </h2>
           {invites.length > 0 && (
             <ul className="mt-2.5 list-none">
@@ -124,7 +124,7 @@ export default function Manage({ view, me, initialMembers, initialInvites }: { v
                       onClick={async () => {
                         try {
                           await navigator.clipboard.writeText(inviteUrl(i.token));
-                          setMsg({ text: "초대 링크를 복사했습니다. 운영을 맡길 사람에게 보내주세요." });
+                          setMsg({ text: "초대 링크를 복사했습니다." });
                         } catch {
                           setMsg({ text: "복사하지 못했습니다. 링크를 직접 선택해 복사해주세요.", bad: true });
                         }
@@ -173,7 +173,7 @@ export default function Manage({ view, me, initialMembers, initialInvites }: { v
             </div>
           ) : (
             <p className="text-[13px] text-fg-3" style={{ marginTop: 12 }}>
-              <Lines text={`운영자 자리 ${LIMITS.operators}개가 모두 찼습니다. 더 초대하려면 쓰지 않을 링크를 취소하거나 운영자를 빼주세요.`} />
+              <Lines text={`운영자는 개최자 외 최대 ${LIMITS.operators}명이고 남은 자리가 없습니다. 더 초대하려면 쓰지 않을 링크를 취소하거나 운영자를 빼주세요.`} />
             </p>
           )}
         </section>

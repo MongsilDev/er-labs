@@ -143,7 +143,6 @@ export default function CreateForm({ loggedIn, autoCreate }: { loggedIn: boolean
       <button className={`btn lg w-full ${loggedIn ? "primary" : "discord"}`} disabled={busy}>
         {busy ? "만드는 중" : loggedIn ? "대회 만들기" : "디스코드로 로그인하고 만들기"}
       </button>
-      <p className="-mt-1.5 text-center text-[13px] text-fg-3">마지막 수정 24시간 뒤 자동 삭제</p>
     </form>
   );
 }

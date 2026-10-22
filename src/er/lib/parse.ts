@@ -41,7 +41,7 @@ export function parseRoundCsv(text: string): ParseResult {
   };
 
   const gameId = Number.parseInt(at(rows[1], "gameId"), 10);
-  if (!Number.isFinite(gameId)) return { ok: false, error: "gameId를 읽을 수 없습니다." };
+  if (!Number.isFinite(gameId)) return { ok: false, error: "gameId를 읽을 수 없습니다. 게임에서 내보낸 CSV를 고치지 않고 올려주세요." };
 
   const players: Player[] = [];
   for (const r of rows.slice(1)) {

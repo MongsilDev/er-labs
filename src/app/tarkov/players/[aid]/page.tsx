@@ -174,7 +174,7 @@ function ArenaStats({ s, hide }: { s: ArenaSummary; hide: string[] }) {
                   <th>승률</th>
                   <th>K/D</th>
                   <th>매치당 킬</th>
-                  <th>헤드샷</th>
+                  <th>헤드샷 비율</th>
                   <th>매치당 피해량</th>
                   <th>최다 킬</th>
                   <th>연속 킬</th>
@@ -217,8 +217,8 @@ function ArenaStats({ s, hide }: { s: ArenaSummary; hide: string[] }) {
             rows: [
               ["킬", int(t.kills)],
               ["사망", int(t.deaths)],
-              ["어시스트", int(t.assists)],
-              ["헤드샷", int(t.headshots)],
+              ["킬 도움", int(t.assists)],
+              ["헤드샷 킬", int(t.headshots)],
               ["피해량", int(t.damage)],
               ["팀킬", int(t.teamKills)],
               ["근접무기 킬", int(t.knifeKills)],
@@ -252,7 +252,7 @@ function ArenaStats({ s, hide }: { s: ArenaSummary; hide: string[] }) {
             title: "평균",
             rows: [
               ["매치당 킬", per(t.kills)],
-              ["매치당 어시스트", per(t.assists)],
+              ["매치당 킬 도움", per(t.assists)],
               ["시간당 킬", dec(s.seconds ? t.kills / (s.seconds / 3600) : null, 1)],
             ],
           },
@@ -413,7 +413,7 @@ function Skills({ s }: { s: EftSummary }) {
     <li key={k.id} className={k.level >= 51 ? "elite" : undefined}>
       <Image src={`/img/skill/${k.id}.webp`} alt="" width={28} height={28} unoptimized />
       <span className="ellipsis">{SKILL_NAME[k.id]}</span>
-      <b className="num">{k.level >= 51 ? "엘리트" : dec(k.level, 1)}</b>
+      <b className="num">{k.level >= 51 ? "최대 레벨" : dec(k.level, 1)}</b>
       {k.level < 51 && <i className="sk-bar" style={{ width: `${(k.level % 1) * 100}%` }} aria-hidden="true" />}
     </li>
   );
@@ -625,7 +625,7 @@ function Trend({ list }: { list: Summary[] }) {
                 <>
                   <th>매치</th>
                   <th>K/D</th>
-                  <th>헤드샷</th>
+                  <th>헤드샷 비율</th>
                   <th>킬</th>
                 </>
               )}
@@ -741,7 +741,7 @@ export default async function Profile({ params, searchParams }: Props) {
               )}
               {eft?.prestige ? (
                 <div>
-                  <dt>프레스티지</dt>
+                  <dt>Prestige</dt>
                   <dd className="num with-icon">
                     {eft.prestige <= 6 && <Image src={`/img/prestige/${eft.prestige}.webp`} alt="" width={22} height={22} unoptimized />}
                     {eft.prestige}
@@ -768,13 +768,13 @@ export default async function Profile({ params, searchParams }: Props) {
               )}
               {registered && (
                 <div>
-                  <dt>가입일</dt>
+                  <dt>캐릭터 생성 일자</dt>
                   <dd className="num">{date(registered * 1000)}</dd>
                 </div>
               )}
               {eft?.lastActive && (
                 <div>
-                  <dt>마지막 활동</dt>
+                  <dt>마지막 게임 세션</dt>
                   <dd className="num">{date(eft.lastActive * 1000)}</dd>
                 </div>
               )}
@@ -790,7 +790,13 @@ export default async function Profile({ params, searchParams }: Props) {
                 </p>
               )}
             </div>
-            {res.error && <p className="err">tarkov.dev에서 받아오지 못해 {s ? "이전에 받은 기록을 표시합니다." : "표시할 기록이 없습니다."}</p>}
+            {res.error && (
+              <p className="err">
+                tarkov.dev에서 기록을 받아오지 못했습니다.
+                <br />
+                {s ? "이전에 받은 기록을 표시합니다." : "잠시 뒤 다시 불러오기를 눌러주세요."}
+              </p>
+            )}
           </section>
           {s && v && <Verdict v={v} mode={mode.key} official={chips.some((c) => c.official)} rate={badgeRates().modes[mode.key]} />}
         </div>
@@ -798,7 +804,7 @@ export default async function Profile({ params, searchParams }: Props) {
         {!s && !res.error && (
           <section className="panel empty">
             <p>아직 tarkov.dev에서 이 계정의 {mode.label} 기록을 조회한 사람이 없습니다.</p>
-            <p className="sub">tarkov.dev에서 이 계정을 한 번 열면 기록이 생성됩니다.<br />tarkov.dev에서 연 뒤 이 화면으로 돌아오면 기록을 자동으로 다시 불러옵니다.</p>
+            <p className="sub">위의 tarkov.dev에서 갱신 버튼으로 이 계정을 열면 tarkov.dev에 기록이 생성됩니다.<br />그 뒤 이 화면으로 돌아오면 기록을 자동으로 다시 불러옵니다.</p>
           </section>
         )}
 

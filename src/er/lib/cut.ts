@@ -75,7 +75,7 @@ export function chance(rp: number, mid: number, low: number, high: number): numb
 export function chanceLabel(p: number): string {
   if (p >= 0.8) return "높음";
   if (p >= 0.55) return "조금 높음";
-  if (p >= 0.45) return "반반";
+  if (p >= 0.45) return "중간";
   if (p >= 0.2) return "낮음";
   return "매우 낮음";
 }

@@ -4,7 +4,7 @@ import { dec, pct } from "@/tarkov/lib/format";
 import { arenaModeLabel } from "@/tarkov/lib/labels";
 
 const REASON = {
-  few: "기록이 30회 미만이라 판정하지 않습니다.",
+  few: "PMC 레이드가 30회 미만이라 판정하지 않습니다.",
   peers: "비교할 비슷한 계정이 30명보다 적어 판정하지 않습니다.",
   missing: "판정에 필요한 값이 없습니다.",
 } as const;

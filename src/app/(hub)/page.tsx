@@ -94,7 +94,7 @@ export default async function Hub() {
             icon="er"
             href="/er/score"
             name="점수 계산"
-            desc="결과 CSV로 대회 순위, 감점, 체크포인트, 밴 계산"
+            desc="결과 CSV로 대회 순위, 감점, 체크포인트, 금지 실험체 계산"
             stats={[
               {
                 label: "예시 대회",
@@ -155,7 +155,11 @@ export default async function Hub() {
                 <CutMini data={cut} />
               </div>
             ) : (
-              <p className="text-[13px] text-fg-3">지금은 컷 정보를 가져올 수 없습니다.</p>
+              <p className="text-[13px] text-fg-3">
+                지금은 컷 정보를 가져올 수 없습니다.
+                <br />
+                잠시 뒤 다시 열어주세요.
+              </p>
             )}
           </Tool>
 
@@ -189,7 +193,12 @@ export default async function Hub() {
             <p className="mt-3 text-[13px] text-fg-3">
               tarkov.dev에서 한 번 이상 조회된 계정만 찾을 수 있습니다.
               <br />
-              {indexed && <>이름 목록 {date(indexed)} 기준, </>}
+              {indexed && (
+                <>
+                  이름 목록 {date(indexed)} 기준.
+                  <br />
+                </>
+              )}
               <Link className="link" href="/tarkov/criteria">
                 판정 기준
               </Link>
@@ -201,7 +210,7 @@ export default async function Hub() {
             icon="eft"
             href="/tarkov/kord-breach"
             name="KORD BREACH 특성 시뮬레이터"
-            desc="시즌 1 특성 포인트 계산"
+            desc="시즌 1"
           >
             <p className="mb-2 text-[13px] text-fg-3">포인트가 가장 크게 바뀌는 특성</p>
             <ul className="grid">

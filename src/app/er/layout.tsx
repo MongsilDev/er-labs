@@ -6,7 +6,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.BASE_URL || "https://labs.mongsil.dev"),
   title: { default: "이터널 리턴 - Labs", template: "%s - Labs" },
-  description: "이터널 리턴 도구 모음. 커뮤니티 대회 점수 계산.",
+  description: "이터널 리턴 커뮤니티 대회 점수 계산과 이터컷 예측이 있는 도구 모음입니다.",
   openGraph: { siteName: "Labs", type: "website", locale: "ko_KR" },
   twitter: { card: "summary_large_image" },
   robots: { index: true, follow: true },

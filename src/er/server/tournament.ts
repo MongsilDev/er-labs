@@ -306,7 +306,7 @@ export function applyOp(code: string, user: User, op: Op): OpResult {
         }
         if (teams.length === 0) throw new OpError("팀과 순위를 입력해주세요.");
         if (new Set(teams.map((x) => x.placement)).size !== teams.length) throw new OpError("두 팀에 같은 순위를 입력했습니다. 순위를 다시 확인해주세요.");
-        if (new Set(teams.map((x) => normalize(x.team))).size !== teams.length) throw new OpError("같은 팀 이름이 두 번 있습니다.");
+        if (new Set(teams.map((x) => normalize(x.team))).size !== teams.length) throw new OpError("같은 팀 이름이 두 번 있습니다. 한 줄을 지우거나 팀 이름을 고쳐주세요.");
         const old = conn
           .prepare("SELECT id FROM rounds WHERE tournament_id = ? AND group_idx = ? AND round_no = ? AND deleted_at IS NULL")
           .get(t.id, g, round) as { id: number } | undefined;
@@ -570,7 +570,7 @@ export function createInvite(code: string, user: User, uses = 1): string {
   const n = Math.floor(Number(uses));
   if (!Number.isFinite(n) || n < 1) throw new OpError("인원은 1명 이상이어야 합니다.");
   const slots = inviteSlots(t.id);
-  if (slots <= 0) throw new OpError(`운영자는 ${LIMITS.operators}명까지입니다. 쓰지 않을 초대 링크를 취소해주세요.`);
+  if (slots <= 0) throw new OpError(`운영자는 개최자 외 최대 ${LIMITS.operators}명입니다. 쓰지 않을 초대 링크를 취소해주세요.`);
   if (n > slots) throw new OpError(`지금은 ${slots}명까지 더 초대할 수 있습니다.`);
   const tk = token(12);
   db().prepare("INSERT INTO invites(token, tournament_id, created_by, created_at, uses_left) VALUES (?, ?, ?, ?, ?)").run(tk, t.id, user.id, now(), n);
@@ -601,7 +601,7 @@ export function acceptInvite(tk: string, user: User): { code: string; already: b
     const t = db().prepare("SELECT * FROM tournaments WHERE id = ?").get(inv.tournament_id) as TRow;
     if (roleOf(t, user)) return { code: t.code, already: true };
     const n = db().prepare("SELECT COUNT(*) AS n FROM members WHERE tournament_id = ? AND role = 'operator'").get(t.id) as { n: number };
-    if (n.n >= LIMITS.operators) throw new OpError(`운영자는 ${LIMITS.operators}명까지입니다. 개최자에게 문의해주세요.`);
+    if (n.n >= LIMITS.operators) throw new OpError(`운영자는 개최자 외 최대 ${LIMITS.operators}명입니다. 개최자에게 문의해주세요.`);
     if (inv.uses_left > 1) db().prepare("UPDATE invites SET uses_left = uses_left - 1 WHERE token = ?").run(tk);
     else db().prepare("DELETE FROM invites WHERE token = ?").run(tk);
     db().prepare("INSERT INTO members(tournament_id, user_id, role, joined_at) VALUES (?, ?, 'operator', ?)").run(t.id, user.id, now());
@@ -646,7 +646,7 @@ export function transferOwner(code: string, user: User, target: string) {
 
 export function deleteTournament(code: string, user: User, confirmName: string) {
   const t = requireOwner(code, user);
-  if (clean(confirmName, LIMITS.nameLength) !== t.name) throw new OpError("대회 이름이 일치하지 않습니다.");
+  if (clean(confirmName, LIMITS.nameLength) !== t.name) throw new OpError("대회 이름이 일치하지 않습니다. 대회 이름을 다시 확인해주세요.");
   db().prepare("DELETE FROM tournaments WHERE id = ?").run(t.id);
 }
 

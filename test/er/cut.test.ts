@@ -13,7 +13,7 @@ describe("이터컷 계산", () => {
     expect(chance(9380, 9380, 9200, 9480)).toBeCloseTo(0.5, 2);
     expect(chance(9200, 9380, 9200, 9480)).toBeCloseTo(0.1, 2);
     expect(chance(9480, 9380, 9200, 9480)).toBeCloseTo(0.9, 2);
-    expect(chanceLabel(0.5)).toBe("반반");
+    expect(chanceLabel(0.5)).toBe("중간");
     expect(chanceLabel(0.95)).toBe("높음");
   });
 

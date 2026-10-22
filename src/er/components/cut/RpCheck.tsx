@@ -35,7 +35,7 @@ export default function RpCheck({ data }: { data: CutData }) {
         value={text}
         onChange={(e) => setText(e.target.value.replace(/[^0-9]/g, "").slice(0, 5))}
       />
-      {valid ? (
+      {valid && (
         <div className="mt-4 grid grid-cols-2 gap-3 max-[760px]:grid-cols-1">
           {TIERS.map(({ key, name, color }) => {
             const tier = data.tiers[key];
@@ -82,8 +82,6 @@ export default function RpCheck({ data }: { data: CutData }) {
             );
           })}
         </div>
-      ) : (
-        <p className="mt-3 text-[13px] text-fg-3">RP를 입력하면 두 컷과의 RP 차이와 시즌 종료 때 컷을 넘을 가능성을 계산합니다.</p>
       )}
     </div>
   );

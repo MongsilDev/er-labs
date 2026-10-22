@@ -57,7 +57,7 @@ export default function OpenCode({ mine }: { mine: MyTournament[] }) {
           onSubmit={(e) => {
             e.preventDefault();
             const c = code.trim().toUpperCase();
-            if (!/^[A-Z0-9]{6}$/.test(c)) return setError("대회 코드는 영문과 숫자 6자입니다.");
+            if (!/^[A-Z0-9]{6}$/.test(c)) return setError("대회 코드는 영문과 숫자 6자입니다. 받은 코드를 다시 확인해주세요.");
             router.push(`/er/t/${c}/a`);
           }}
         >

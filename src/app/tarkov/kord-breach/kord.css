@@ -12,9 +12,6 @@ html:has(.kord) {
   --pos: #2f7d34;
   --neg: #b8442f;
 }
-.kb-lead {
-  margin: -8px 0 18px;
-}
 
 .kb-bar {
   position: sticky;

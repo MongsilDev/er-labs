@@ -148,7 +148,7 @@ export default function SearchBox({ autoFocus, compact, initial }: { autoFocus?:
             </li>
           ))}
           <li className="hits-note" role="presentation" aria-hidden="true">
-            날짜는 tarkov.dev 기록이 마지막으로 갱신된 날입니다
+            날짜는 tarkov.dev 기록이 마지막으로 갱신된 날입니다.
           </li>
         </ul>
       )}

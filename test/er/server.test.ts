@@ -75,7 +75,7 @@ describe("대회 서버", () => {
     expect(t.inviteInfo(token)).toBeNull();
     expect(() => t.createInvite(code, owner, 9)).toThrow("지금은 8명까지 더 초대할 수 있습니다.");
     t.createInvite(code, owner, 8);
-    expect(() => t.createInvite(code, owner, 1)).toThrow("운영자는 10명까지입니다.");
+    expect(() => t.createInvite(code, owner, 1)).toThrow("운영자는 개최자 외 최대 10명입니다.");
   });
 
   it("조와 라운드 수는 기록이 있는 범위 아래로 줄일 수 없다", () => {

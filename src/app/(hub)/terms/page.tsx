@@ -27,7 +27,7 @@ export default function Terms() {
           <br />
           이터널 리턴 점수 계산과 이터컷 예측, Escape from Tarkov 계정 조회와 KORD BREACH 특성 시뮬레이터가 있습니다.
           <br />
-          님블뉴런, Battlestate Games와 관계없는 비공식 서비스입니다.
+          님블뉴런, Battlestate Games와 관계없는 개인 서비스입니다.
           <br />
           게임 정보는 공식 API와 공식 사이트, tarkov.dev가 공개하는 자료에서 수집하므로 실제와 다르거나 늦게 반영될 수 있습니다.
         </p>
