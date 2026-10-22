@@ -490,4 +490,10 @@ describe("규칙 정리", () => {
     expect(clampRules({ scoreSource: "table" }, "masters").scoreSource).toBe("csv");
     expect(clampRules({ scoreSource: "csv" }, "custom").scoreSource).toBe("table");
   });
+
+  it("참거짓 규칙에는 참거짓 값만 남긴다", () => {
+    const r = clampRules({ deathPenalty: "x".repeat(1_000_000), bans: 5, subWeather: {}, checkpoint: { type: "sequential", penaltyKeeps: "y" } } as never, "masters");
+    expect([r.deathPenalty, r.bans, r.subWeather, r.checkpoint.penaltyKeeps].every((v) => typeof v === "boolean")).toBe(true);
+    expect(JSON.stringify(r).length).toBeLessThan(1024);
+  });
 });

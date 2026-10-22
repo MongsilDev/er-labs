@@ -2,6 +2,7 @@ import { mkdtempSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import type { Op } from "../../src/er/lib/view";
 import { csv } from "./helpers";
 
 process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "er-labs-test-"));
@@ -178,6 +179,35 @@ describe("대회 서버", () => {
     t.transferOwner(code, owner, op.id);
     t.removeMember(code, op, owner.id);
     expect(() => t.acceptInvite(minted, owner)).toThrow("인원이 다 찼거나 취소된 초대 링크입니다.");
+  });
+
+  it("감점 되살리기와 체크포인트 수동 판정도 조마다 300건을 넘지 않는다", () => {
+    const code = t.createTournament(owner, { name: "상한", mode: "checkpoint", preset: "masters", plannedRounds: 12, groupCount: 2 });
+    const tid = (db.db().prepare("SELECT id FROM tournaments WHERE code = ?").get(code) as { id: number }).id;
+    const ins = db.db().prepare("INSERT INTO penalties(tournament_id, group_idx, team, round_no, kind, count, points, reason, deleted_at, created_at) VALUES (?, ?, 't', 1, 'rule', 1, 1, 'x', ?, ?)");
+    for (let i = 0; i < 300; i++) ins.run(tid, 0, null, Date.now());
+    const gone = Number(ins.run(tid, 0, Date.now(), Date.now()).lastInsertRowid);
+    const other = Number(ins.run(tid, 1, Date.now(), Date.now()).lastInsertRowid);
+    expect(() => t.applyOp(code, owner, { op: "restore_penalty", id: gone })).toThrow("한 조에 감점은 300건까지 둘 수 있습니다.");
+    t.applyOp(code, owner, { op: "update_settings", groupCount: 1 });
+    expect(() => t.applyOp(code, owner, { op: "restore_penalty", id: other })).toThrow("지금 대회 설정의 라운드 수나 조 수를 벗어난 감점이라 되살릴 수 없습니다.");
+    const set = db.db().prepare("INSERT INTO overrides(tournament_id, group_idx, round_no, team, state) VALUES (?, 0, ?, ?, 1)");
+    for (let i = 0; i < 300; i++) set.run(tid, (i % 12) + 1, `team${i}`);
+    expect(() => t.applyOp(code, owner, { op: "set_checkpoint", group: 0, round: 1, team: "새 팀", state: true })).toThrow("한 조에 체크포인트 수동 판정은 300건까지 할 수 있습니다.");
+    t.applyOp(code, owner, { op: "set_checkpoint", group: 0, round: 1, team: "team0", state: false });
+    const late = Number(
+      db.db().prepare("INSERT INTO penalties(tournament_id, group_idx, team, round_no, kind, count, points, reason, deleted_at, created_at) VALUES (?, 0, 't', 12, 'rule', 1, 1, 'x', ?, ?)").run(tid, Date.now(), Date.now()).lastInsertRowid,
+    );
+    t.applyOp(code, owner, { op: "update_settings", plannedRounds: 11 });
+    expect(() => t.applyOp(code, owner, { op: "restore_penalty", id: late })).toThrow("지금 대회 설정의 라운드 수나 조 수를 벗어난 감점이라 되살릴 수 없습니다.");
+  });
+
+  it("id가 정수가 아닌 라운드와 감점 요청은 없는 기록으로 거부한다", () => {
+    const code = t.createTournament(owner, { name: "잘못된 id", mode: "points", preset: "masters", plannedRounds: 1, groupCount: 1 });
+    for (const id of [undefined, [1], { a: 1 }, "1", 1.5]) {
+      expect(() => t.applyOp(code, owner, { op: "delete_round", id } as unknown as Op)).toThrow("없는 라운드입니다.");
+      expect(() => t.applyOp(code, owner, { op: "restore_penalty", id } as unknown as Op)).toThrow("없는 감점입니다.");
+    }
   });
 
   it("같은 라운드를 여러 번 바꿔도 지운 기록은 최근 세 개만 남고 되돌리기는 된다", () => {

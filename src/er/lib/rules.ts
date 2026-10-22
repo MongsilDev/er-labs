@@ -84,6 +84,8 @@ export const LIMITS = {
   operators: 10,
 };
 
+const bool = (v: unknown, d: boolean) => (typeof v === "boolean" ? v : d);
+
 export function clampRules(input: Partial<Rules> | undefined, preset: Preset): Rules {
   const base = presetRules(preset);
   if (!input) return base;
@@ -101,9 +103,9 @@ export function clampRules(input: Partial<Rules> | undefined, preset: Preset): R
     placementPoints: points,
     killMultiplier: num(input.killMultiplier, 0, 10, 1),
     tiebreak: (["killScore", "kills", "rankScore", "wins"] as const).includes(input.tiebreak as Tiebreak) ? (input.tiebreak as Tiebreak) : "killScore",
-    deathPenalty: input.deathPenalty ?? base.deathPenalty,
-    bans: input.bans ?? base.bans,
-    subWeather: input.subWeather ?? base.subWeather,
+    deathPenalty: bool(input.deathPenalty, base.deathPenalty),
+    bans: bool(input.bans, base.bans),
+    subWeather: bool(input.subWeather, base.subWeather),
     advance: Math.round(num(input.advance, 0, LIMITS.teamsPerGroup, 0)),
     checkpoint: {
       type: cp.type === "points" ? "points" : "sequential",
@@ -112,7 +114,7 @@ export function clampRules(input: Partial<Rules> | undefined, preset: Preset): R
         : base.checkpoint.sequence,
       points: num(cp.points, 1, 1000, 70),
       keep: Boolean(cp.keep),
-      penaltyKeeps: cp.penaltyKeeps ?? base.checkpoint.penaltyKeeps,
+      penaltyKeeps: bool(cp.penaltyKeeps, base.checkpoint.penaltyKeeps),
     },
   };
 }

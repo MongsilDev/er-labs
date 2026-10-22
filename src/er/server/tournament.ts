@@ -215,6 +215,11 @@ function assertRound(t: TRow, round: unknown): number {
 
 const prefix = (t: TRow, g: number) => (t.group_count > 1 ? `${groupLabel(g)}조 ` : "");
 
+// 조마다 살아 있는 감점과 체크포인트 수동 판정의 상한. 판정은 12라운드 24팀이 모두 받아도 288건
+const GROUP_ROWS = 300;
+const livePenalties = (t: TRow, g: number) =>
+  (db().prepare("SELECT COUNT(*) AS n FROM penalties WHERE tournament_id = ? AND group_idx = ? AND deleted_at IS NULL").get(t.id, g) as { n: number }).n;
+
 // 되돌리기 알림은 세 개까지 떠 있으므로, 같은 슬롯에서 지운 기록은 최근 세 개만 두고 나머지는 정리 시각을 기다리지 않고 지움
 function dropOlderDeleted(t: TRow, g: number, round: number) {
   db()
@@ -352,7 +357,7 @@ export function applyOp(code: string, user: User, op: Op): OpResult {
       }
       case "delete_round":
       case "restore_round": {
-        const r = conn.prepare("SELECT * FROM rounds WHERE id = ? AND tournament_id = ?").get(op.id, t.id) as
+        const r = (Number.isSafeInteger(op.id) ? conn.prepare("SELECT * FROM rounds WHERE id = ? AND tournament_id = ?").get(op.id, t.id) : undefined) as
           | { id: number; group_idx: number; round_no: number; game_id: number | null; deleted_at: number | null }
           | undefined;
         if (!r) throw new OpError("없는 라운드입니다.");
@@ -403,8 +408,7 @@ export function applyOp(code: string, user: User, op: Op): OpResult {
         const round = int(op.round, 0, t.planned_rounds, 0);
         const team = cleanName(op.team, 60);
         if (!team) throw new OpError("팀을 골라주세요.");
-        const count0 = (conn.prepare("SELECT COUNT(*) AS n FROM penalties WHERE tournament_id = ? AND group_idx = ? AND deleted_at IS NULL").get(t.id, g) as { n: number }).n;
-        if (count0 >= 300) throw new OpError("한 조에 감점은 300건까지 추가할 수 있습니다.");
+        if (livePenalties(t, g) >= GROUP_ROWS) throw new OpError(`한 조에 감점은 ${GROUP_ROWS}건까지 추가할 수 있습니다.`);
         const kind = op.kind === "death" ? "death" : "rule";
         const count = kind === "death" ? int(op.count, 1, 30, 1) : 1;
         const points = kind === "death" ? count : Math.round(Math.min(100, Math.max(0.5, Number(op.points) || 0)) * 2) / 2;
@@ -418,8 +422,8 @@ export function applyOp(code: string, user: User, op: Op): OpResult {
       }
       case "delete_penalty":
       case "restore_penalty": {
-        const p = conn.prepare("SELECT * FROM penalties WHERE id = ? AND tournament_id = ?").get(op.id, t.id) as
-          | { id: number; group_idx: number; team: string; points: number; deleted_at: number | null }
+        const p = (Number.isSafeInteger(op.id) ? conn.prepare("SELECT * FROM penalties WHERE id = ? AND tournament_id = ?").get(op.id, t.id) : undefined) as
+          | { id: number; group_idx: number; round_no: number; team: string; points: number; deleted_at: number | null }
           | undefined;
         if (!p) throw new OpError("없는 감점입니다.");
         if (op.op === "delete_penalty") {
@@ -429,6 +433,8 @@ export function applyOp(code: string, user: User, op: Op): OpResult {
           bump(t, user, `감점 삭제: ${prefix(t, p.group_idx)}${p.team} ${p.points}점`);
         } else {
           if (!p.deleted_at) break;
+          if (p.round_no > t.planned_rounds || p.group_idx >= t.group_count) throw new OpError("지금 대회 설정의 라운드 수나 조 수를 벗어난 감점이라 되살릴 수 없습니다.");
+          if (livePenalties(t, p.group_idx) >= GROUP_ROWS) throw new OpError(`한 조에 감점은 ${GROUP_ROWS}건까지 둘 수 있습니다. 다른 감점을 지운 뒤 되살려주세요.`);
           conn.prepare("UPDATE penalties SET deleted_at = NULL WHERE id = ?").run(p.id);
           bump(t, user, `감점 되살림: ${prefix(t, p.group_idx)}${p.team} ${p.points}점`);
         }
@@ -483,6 +489,9 @@ export function applyOp(code: string, user: User, op: Op): OpResult {
           conn.prepare("DELETE FROM overrides WHERE tournament_id = ? AND group_idx = ? AND round_no = ? AND team = ?").run(t.id, g, round, key);
           bump(t, user, `체크포인트 자동 판정: ${prefix(t, g)}${team}`);
         } else {
+          const exists = conn.prepare("SELECT 1 FROM overrides WHERE tournament_id = ? AND group_idx = ? AND round_no = ? AND team = ?").get(t.id, g, round, key);
+          const n = (conn.prepare("SELECT COUNT(*) AS n FROM overrides WHERE tournament_id = ? AND group_idx = ?").get(t.id, g) as { n: number }).n;
+          if (!exists && n >= GROUP_ROWS) throw new OpError(`한 조에 체크포인트 수동 판정은 ${GROUP_ROWS}건까지 할 수 있습니다.`);
           conn
             .prepare("INSERT INTO overrides(tournament_id, group_idx, round_no, team, state) VALUES (?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET state = excluded.state")
             .run(t.id, g, round, key, op.state ? 1 : 0);
