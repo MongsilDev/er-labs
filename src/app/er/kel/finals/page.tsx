@@ -46,7 +46,6 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ f
       screen="finals"
       lead={lead}
       notes={[state.rows.some((r) => r.penalty > 0) && "감점 칸에는 bori.wiki 결과 표 점수와 경기 기록 점수의 차이를 넣었습니다.", NOTES[f.event]]}
-      source
     >
       <KelTabs screen="finals" param="f" label="결승" items={list.map((x) => [x.event, EVENT_NAME[x.event]] as const)} current={f.event} />
       <section className="panel p-5 max-[760px]:p-4" aria-labelledby="flow">

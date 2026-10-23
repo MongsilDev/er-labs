@@ -6,6 +6,7 @@ import { championshipTeams, KEL_TEAMS, seasonStandings } from "../../src/er/lib/
 import { finalState, standings, type Entry, type Round } from "../../src/er/lib/kel-calc";
 import { kelData, stageRounds } from "../../src/er/server/kel";
 import { kelOdds } from "../../src/er/server/kel-odds";
+import { records, wicklines } from "../../src/er/server/kel-stats";
 import { kelFixture } from "./helpers";
 
 process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "er-labs-kel-"));
@@ -84,6 +85,16 @@ describe("KEL 자료", () => {
     expect(final.teams).toHaveLength(8);
     expect(final.rounds[2]["new-rise-gangwon"].penalty).toBe(1);
   });
+
+  it("dak.gg 경기 상세는 게임, 팀 순위, 실험체가 같은 경기 기록에 붙이고, 위클라인 처치는 팀 게임 단위로 센다", () => {
+    kelFixture(process.env.DATA_DIR!);
+    const data = kelData()!;
+    expect(data.rows.filter((r) => !r.dak)).toEqual([]);
+    const rec = records(data);
+    expect([rec.cc!.dak.cc, rec.heal!.dak.heal, rec.camera!.dak.camera]).toEqual([41, 1700, 6]);
+    const seconds = [...Map.groupBy(data.games, (g) => g.team)].map(([team, list]) => [team, list.filter((g) => g.placement === 2).length]);
+    expect(Object.fromEntries(wicklines(data).map((w) => [w.team, w.count]))).toEqual(Object.fromEntries(seconds));
+  });
 });
 
 // 시점마다 10만 번 시뮬레이션해서 기본 5초 제한으로는 모자랄 수 있음
@@ -112,7 +123,7 @@ describe("KEL 진출 확률", { timeout: 30_000 }, () => {
     const odds = (await kelOdds(kelData()!))!;
     const lines = Object.fromEntries([...odds.cases].map(([t, l]) => [KEL_TEAMS[t].name, l]));
     expect(lines["경북 어센더스"]).toEqual(["서킷 4 결승에서 3위 안에 들면 결승 직행이 확정됩니다."]);
-    expect(lines["양주 웨일즈"]).toEqual(["서킷 4 결승에서 1위를 하지 못하면 결승에 바로 갈 수 없습니다.", "4위 안에 들면 챔피언십 진출이 확정됩니다.", "5위 안에 들지 못하면 탈락합니다."]);
+    expect(lines["양주 웨일즈"]).toEqual(["서킷 4 결승에서 1위를 하지 못하면 결승 직행이 불가능해집니다.", "4위 안에 들면 챔피언십 진출이 확정됩니다.", "5위 안에 들지 못하면 탈락합니다."]);
     expect(lines["경기 이네이트"]).toEqual(["FN 세종이 서킷 4 결승 6위 안에, 양주 웨일즈가 4위 안에 함께 들면 탈락합니다."]);
   });
 

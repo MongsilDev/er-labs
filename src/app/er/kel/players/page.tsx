@@ -102,7 +102,6 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ p
         "KPR은 경기 기록에 게임마다 적힌 선수 평점을 평균한 값이고, 한 게임의 평균은 약 1.0입니다.",
         "가한 피해 비중은 게임마다 팀 세 명이 가한 피해 합계에서 그 선수가 차지한 비율을 평균한 값입니다.",
       ]}
-      source
     >
       {picked && <Card p={picked} all={all} eligible={eligible} />}
       <section className="panel p-5 max-[760px]:p-4" aria-labelledby="player-list">

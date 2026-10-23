@@ -61,7 +61,6 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
         "서킷 1 결승을 빼면 모든 경기에서 한 팀은 같은 실험체를 매치마다 2번까지만 쓸 수 있습니다.",
         "평균 순위와 1위 비율은 그 실험체를 고른 선수의 팀 순위로 셉니다.",
       ]}
-      source
     >
       <KelTabs screen="characters" param="sort" label="정렬" items={SORTS} current={sort} />
       <section className="panel p-5 max-[760px]:p-4">

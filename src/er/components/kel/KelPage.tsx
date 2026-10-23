@@ -2,7 +2,7 @@ import Link from "next/link";
 import Lines from "@/components/Lines";
 import Footer from "@/components/SiteFooter";
 import Header from "@/er/components/Header";
-import { KEL_SCREENS, KEL_SECTIONS, kelVisible, type KelScreen } from "@/er/lib/kel";
+import { DAKGG, KEL_SCREENS, KEL_SECTIONS, kelVisible, type KelScreen } from "@/er/lib/kel";
 import type { User } from "@/er/server/auth";
 
 type Text = string | (string | false | null | undefined)[];
@@ -43,7 +43,6 @@ export default function KelPage({
   screen,
   lead,
   notes = [],
-  source = false,
   children,
 }: {
   user: User | null;
@@ -51,12 +50,11 @@ export default function KelPage({
   screen: KelScreen;
   lead?: Text;
   notes?: Text;
-  source?: boolean;
   children?: React.ReactNode;
 }) {
   const s = KEL_SCREENS[screen];
   const intro = join(lead);
-  const foot = [join(notes), source && "경기 기록은 님블뉴런 이스포츠 팀에게 받은 자료로 계산했습니다.", "팀 로고의 저작권은 각 구단에 있습니다."];
+  const note = join(notes);
   const section = KEL_SECTIONS.find((g) => g.items.some(([k]) => k === screen));
   const siblings = section?.items.filter(([k]) => k !== screen && kelVisible(k, owner)) ?? [];
   return (
@@ -85,7 +83,23 @@ export default function KelPage({
           </nav>
         )}
         <p className="text-[13px] leading-relaxed text-fg-3">
-          <Lines text={join(foot)} />
+          {note && (
+            <>
+              <Lines text={note} />
+              <br />
+            </>
+          )}
+          {screen === "home" && (
+            <>
+              경기 기록은 님블뉴런 이스포츠 팀에게 받은 자료와{" "}
+              <a className="decoration-line-strong underline-offset-[3px] hover:decoration-fg-3" href={DAKGG}>
+                dak.gg e스포츠 경기 기록
+              </a>
+              으로 계산했습니다.
+              <br />
+            </>
+          )}
+          팀 로고의 저작권은 각 구단에 있습니다.
         </p>
       </main>
       <Footer />

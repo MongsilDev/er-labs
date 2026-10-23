@@ -40,7 +40,6 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
       screen="teams"
       lead={lead}
       notes="점수는 모두 게임당 평균이고, 감점은 넣지 않았습니다."
-      source
     >
       <KelTabs screen="teams" param="s" label="범위" items={SCOPES} current={scope} />
       <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-5 max-[1080px]:grid-cols-1">

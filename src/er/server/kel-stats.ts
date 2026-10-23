@@ -3,6 +3,10 @@ import { byCharacter, byText } from "@/er/lib/format";
 import { EVENT_NAME, KEL_EVENTS, TEAM, type KelEvent } from "@/er/lib/kel";
 import { finalState, placementPoints, type FinalState, type Round } from "@/er/lib/kel-calc";
 import { stageRounds, type Kel, type KelRow } from "./kel";
+import type { KelDak } from "./kel-dakgg";
+
+type DakRow = KelRow & { dak: KelDak };
+const withDak = (rows: KelRow[]) => rows.filter((r): r is DakRow => Boolean(r.dak));
 
 // 선수끼리 견주는 순위는 30게임 이상 나온 선수만
 export const MIN_GAMES = 30;
@@ -136,7 +140,12 @@ export function comps(data: Kel, min: number): Comp[] {
 
 export function records(data: Kel) {
   const low = data.rows.filter((r) => r.placement >= 7);
+  const dak = withDak(data.rows);
+  const best = (value: (d: KelDak) => number) => (dak.length ? top(dak, (r) => value(r.dak)) : null);
   return {
+    cc: best((d) => d.cc),
+    heal: best((d) => d.heal),
+    camera: best((d) => d.camera),
     kills: top(
       data.rows,
       (r) => r.kills,
@@ -158,6 +167,15 @@ export function records(data: Kel) {
       }))
       .sort((a, b) => byCharacter(a.key, b.key)),
   };
+}
+
+// 팀 선수 가운데 누구라도 위클라인을 처치한 게임 수, 경기 상세가 없는 게임은 세지 않음
+export function wicklines(data: Kel): { team: string; count: number; games: number }[] {
+  const games = data.games.filter((g) => g.wickline !== undefined);
+  if (!games.some((g) => g.wickline)) return [];
+  return [...Map.groupBy(games, (g) => g.team)]
+    .map(([team, list]) => ({ team, games: list.length, count: list.filter((g) => g.wickline).length }))
+    .sort((a, b) => b.count - a.count || a.games - b.games);
 }
 
 // 오프닝 위크는 결승이 없어 빠짐

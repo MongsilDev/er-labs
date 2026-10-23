@@ -9,6 +9,7 @@ import { parseCsv } from "@/er/lib/csv";
 import { KEL_SCREENS, kelVisible, TEAM_BY_CSV, type KelEvent, type KelScreen } from "@/er/lib/kel";
 import type { Round } from "@/er/lib/kel-calc";
 import { currentUser, type User } from "./auth";
+import { dakFiles, readDak, type KelDak } from "./kel-dakgg";
 
 const viewer = cache(async (): Promise<{ user: User | null; owner: boolean }> => {
   const user = await currentUser();
@@ -46,6 +47,7 @@ export type KelRow = {
   killScore: number;
   total: number;
   kpr: number;
+  dak?: KelDak;
 };
 
 export type TeamGame = {
@@ -62,6 +64,8 @@ export type TeamGame = {
   damage: number;
   taken: number;
   characters: string[];
+  // dak.gg 경기 상세가 없는 게임은 비움
+  wickline?: boolean;
 };
 
 export type Kel = { rows: KelRow[]; games: TeamGame[] };
@@ -165,6 +169,7 @@ function teamGames(rows: KelRow[]): TeamGame[] {
     g.damage += r.damage;
     g.taken += r.taken;
     g.characters.push(r.character);
+    if (r.dak) g.wickline = g.wickline || r.dak.wickline;
   }
   return [...map.values()];
 }
@@ -172,20 +177,41 @@ function teamGames(rows: KelRow[]): TeamGame[] {
 const store = globalThis as unknown as { __kel?: { sig: string; data: Kel | null } };
 const dir = () => join(process.env.DATA_DIR || join(process.cwd(), "data"), "kel");
 
-// 공개 레포라 CSV는 서버 데이터 폴더에만 둠
+// characters.json에 아직 없는 실험체도 맞도록 소문자로 비교
+const dakKey = (gameId: number, rank: number, character: string) => `${gameId}:${rank}:${character.toLowerCase()}`;
+
+// 팀 접두어가 자료마다 달라 닉네임 대신 게임, 팀 순위, 실험체로 맞춤
+function attachDak(rows: KelRow[]) {
+  const dak = new Map(readDak(dir()).map((p) => [dakKey(p.gameId, p.rank, characterKey(p.character)), p.dak]));
+  const used = new Set<string>();
+  for (const r of rows) {
+    const key = dakKey(r.gameId, r.placement, r.character);
+    r.dak = dak.get(key);
+    if (r.dak) used.add(key);
+  }
+  if (dak.size > used.size) console.error(`[kel] dak.gg 선수 ${dak.size - used.size}명을 경기 기록과 맞추지 못함`);
+}
+
+// 공개 레포라 CSV와 dak.gg 경기 상세는 서버 데이터 폴더에만 둠
 export function kelData(): Kel | null {
   try {
     const files = readdirSync(dir())
       .filter((f) => f.endsWith(".csv"))
       .sort();
-    const sig = files
+    // 읽지 못하는 파일은 이름만 넣고, 오류는 파일을 읽을 때 남김
+    const sig = [...files, ...dakFiles(dir())]
       .map((f) => {
-        const s = statSync(join(dir(), f));
-        return `${f}:${s.size}:${s.mtimeMs}`;
+        try {
+          const s = statSync(join(dir(), f));
+          return `${f}:${s.size}:${s.mtimeMs}`;
+        } catch {
+          return f;
+        }
       })
       .join("|");
     if (store.__kel?.sig === sig) return store.__kel.data;
     const rows = files.flatMap((f) => parseFile(f, readFileSync(join(dir(), f), "utf8")));
+    attachDak(rows);
     const data = rows.length ? { rows, games: teamGames(rows) } : null;
     store.__kel = { sig, data };
     return data;

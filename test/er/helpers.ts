@@ -54,6 +54,8 @@ export type { Player };
 
 const KEL_HEADER = "매치,날짜,라운드,gameId,순위,팀,선수,실험체,킬,어시,데스,채집,가한피해,받은피해,rankScore,killScore,TS,크레딧,KPR";
 const KEL_CHARS = ["Nadine", "Alonso", "Debi & Marlene", "Li Dailin", "NiaH", "Yumin", "Jackie", "Aya", "Eleven"];
+// dak.gg 실험체 이름표의 key, 경기 기록의 영문 이름과 표기가 다름
+const DAK_KEYS = ["Nadine", "Alonso", "DebiMarlene", "LiDailin", "Niah", "YuMin", "Jackie", "Aya", "Eleven"];
 
 // 단계별 경기 날짜는 서킷 첫날부터 센 날수
 const DAYS = [0, 0, 1, 7, 7, 8];
@@ -90,23 +92,41 @@ export function kelFixture(dataDir: string) {
       bracket(i + 1).map(([stage, teams], k): [string, string[], number] => [`2026_KEL_CIRCUIT_${i + 1}_${stage}_${shift(start, DAYS[k])}.csv`, teams, stage === "Finals" ? (i === 2 ? 8 : 6) : 2]),
     ),
   ];
+  const dak = join(dir, "dakgg");
+  mkdirSync(join(dak, "games"), { recursive: true });
+  writeFileSync(join(dak, "d_characters.json"), JSON.stringify({ characters: DAK_KEYS.map((key, i) => ({ id: i + 1, key })) }));
   files.forEach(([name, teams, rounds], f) => {
     const date = name.slice(-14, -4);
     const lines = [KEL_HEADER];
     for (let r = 1; r <= rounds; r++) {
+      const gameId = 10_000 + f * 100 + r;
+      const players: object[] = [];
       teams.forEach((team, i) => {
         const g = all.indexOf(team);
         const place = ((i + r * 3) % teams.length) + 1;
         const ks = ((r + i) % 5) * 1.5;
         for (let p = 0; p < 3; p++) {
+          const c = (i * 3 + p + r) % KEL_CHARS.length;
           lines.push(
             [
-              name.slice(0, -15).replace(/_/g, " "), date, r, 10_000 + f * 100 + r, place, team, `T${g}_선수${g}-${p}`, KEL_CHARS[(i * 3 + p + r) % KEL_CHARS.length],
+              name.slice(0, -15).replace(/_/g, " "), date, r, gameId, place, team, `T${g}_선수${g}-${p}`, KEL_CHARS[c],
               (r + i + p) % 4, (i + p) % 6, p % 2, 30 + i, 9000 + i * 700 + p * 300 + r * 50, 7000 + p * 900 + i * 100, RS[place - 1], ks, RS[place - 1] + ks, 1500 + i, (1 + ((i + p) % 3) / 2).toFixed(3),
             ].join(","),
           );
+          // 위클라인은 2위 팀 세 명이 모두 처치 크레딧을 받음
+          players.push({
+            gameId,
+            gameRank: place,
+            characterNum: c + 1,
+            ccTimeToPlayer: 10 + i * 3 + p + r,
+            teamRecover: 500 * p + 100 * i,
+            protectAbsorb: 50 * r,
+            addTelephotoCamera: (i + p + r) % 7,
+            killWicklineGainVFCredit: place === 2 ? 10 : 0,
+          });
         }
       });
+      writeFileSync(join(dak, "games", `${gameId}.json`), JSON.stringify({ games: players }));
     }
     writeFileSync(join(dir, name), "\ufeff" + lines.join("\n") + "\n");
   });

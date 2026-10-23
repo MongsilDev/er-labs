@@ -1,24 +1,25 @@
 // 서킷 순위는 bori.wiki 대회 결과 표, 배점과 일정은 2026-10-12 시행 규정집 기준
 
-export type KelTeam = { key: string; name: string; csv: string; wiki: string; circuits: [number, number, number, number]; dark?: boolean };
+// short는 좁은 화면 열지도에 쓰는 연고지 두 글자
+export type KelTeam = { key: string; name: string; short: string; csv: string; wiki: string; circuits: [number, number, number, number]; dark?: boolean };
 
 export const KEL_TEAMS: KelTeam[] = [
-  { key: "gc-busan-stella", name: "GC 부산 스텔라", csv: "GC Busan Stella", wiki: "GC_BUSAN_Stella", circuits: [3, 3, 1, 11] },
-  { key: "daejeon-autoarms", name: "대전 오토암즈", csv: "DAEJEON AutoArms", wiki: "DAEJEON_AutoArms", circuits: [7, 1, 3, 3] },
-  { key: "incheon-wave", name: "인천 웨이브", csv: "INCHEON WAVE", wiki: "INCHEON_WAVE", circuits: [13, 7, 4, 1] },
-  { key: "gyeongbuk-ascenders", name: "경북 어센더스", csv: "Gyeongbuk Ascenders", wiki: "GyeongBuk_Ascenders", circuits: [1, 5, 9, 7] },
-  { key: "gyeongnam-sparkle", name: "경남 스파클", csv: "Gyeongnam Sparkle Esports", wiki: "Gyeongnam_Sparkle", circuits: [4, 6, 10, 2] },
-  { key: "seongnam-rox", name: "성남 락스", csv: "Seongnam ROX", wiki: "Seongnam_ROX", circuits: [10, 2, 6, 5] },
-  { key: "chungnam-cnj", name: "충남 CNJ", csv: "Chungnam CNJ Esports", wiki: "Chungnam_CNJ", circuits: [9, 10, 2, 9] },
-  { key: "new-rise-gangwon", name: "뉴 라이즈 강원", csv: "New Rise Gangwon", wiki: "New_Rise_Gangwon", circuits: [5, 14, 8, 4] },
-  { key: "jeonnam-esports", name: "전남 이스포츠", csv: "Jeonnam Esports", wiki: "JEONNAM_ESPORTS", circuits: [16, 4, 5, 12] },
-  { key: "daegu-guardians", name: "대구 가디언즈", csv: "Daegu Guardians", wiki: "Daegu_Guardians", circuits: [2, 9, 16, 13] },
-  { key: "fn-sejong", name: "FN 세종", csv: "FN SEJONG", wiki: "FN_SEJONG", circuits: [11, 12, 12, 6], dark: true },
-  { key: "gyeonggi-innate", name: "경기 이네이트", csv: "Gyeonggi Innate", wiki: "Gyeonggi_Innate", circuits: [8, 8, 7, 16] },
-  { key: "gj-slasher", name: "광주 슬래셔", csv: "GJ Slasher", wiki: "GJ_Slasher", circuits: [6, 15, 15, 10] },
-  { key: "yj-whales", name: "양주 웨일즈", csv: "YJ Whales", wiki: "Yangju_Whales", circuits: [14, 13, 14, 8] },
-  { key: "jeju-shadow", name: "제주 쉐도우", csv: "Jeju Shadow", wiki: "Jeju_Shadow", circuits: [15, 11, 11, 14] },
-  { key: "goyang-mir", name: "고양 미르", csv: "Goyang Mir", wiki: "Goyang_MIR", circuits: [12, 16, 13, 15] },
+  { key: "gc-busan-stella", name: "GC 부산 스텔라", short: "부산", csv: "GC Busan Stella", wiki: "GC_BUSAN_Stella", circuits: [3, 3, 1, 11] },
+  { key: "daejeon-autoarms", name: "대전 오토암즈", short: "대전", csv: "DAEJEON AutoArms", wiki: "DAEJEON_AutoArms", circuits: [7, 1, 3, 3] },
+  { key: "incheon-wave", name: "인천 웨이브", short: "인천", csv: "INCHEON WAVE", wiki: "INCHEON_WAVE", circuits: [13, 7, 4, 1] },
+  { key: "gyeongbuk-ascenders", name: "경북 어센더스", short: "경북", csv: "Gyeongbuk Ascenders", wiki: "GyeongBuk_Ascenders", circuits: [1, 5, 9, 7] },
+  { key: "gyeongnam-sparkle", name: "경남 스파클", short: "경남", csv: "Gyeongnam Sparkle Esports", wiki: "Gyeongnam_Sparkle", circuits: [4, 6, 10, 2] },
+  { key: "seongnam-rox", name: "성남 락스", short: "성남", csv: "Seongnam ROX", wiki: "Seongnam_ROX", circuits: [10, 2, 6, 5] },
+  { key: "chungnam-cnj", name: "충남 CNJ", short: "충남", csv: "Chungnam CNJ Esports", wiki: "Chungnam_CNJ", circuits: [9, 10, 2, 9] },
+  { key: "new-rise-gangwon", name: "뉴 라이즈 강원", short: "강원", csv: "New Rise Gangwon", wiki: "New_Rise_Gangwon", circuits: [5, 14, 8, 4] },
+  { key: "jeonnam-esports", name: "전남 이스포츠", short: "전남", csv: "Jeonnam Esports", wiki: "JEONNAM_ESPORTS", circuits: [16, 4, 5, 12] },
+  { key: "daegu-guardians", name: "대구 가디언즈", short: "대구", csv: "Daegu Guardians", wiki: "Daegu_Guardians", circuits: [2, 9, 16, 13] },
+  { key: "fn-sejong", name: "FN 세종", short: "세종", csv: "FN SEJONG", wiki: "FN_SEJONG", circuits: [11, 12, 12, 6], dark: true },
+  { key: "gyeonggi-innate", name: "경기 이네이트", short: "경기", csv: "Gyeonggi Innate", wiki: "Gyeonggi_Innate", circuits: [8, 8, 7, 16] },
+  { key: "gj-slasher", name: "광주 슬래셔", short: "광주", csv: "GJ Slasher", wiki: "GJ_Slasher", circuits: [6, 15, 15, 10] },
+  { key: "yj-whales", name: "양주 웨일즈", short: "양주", csv: "YJ Whales", wiki: "Yangju_Whales", circuits: [14, 13, 14, 8] },
+  { key: "jeju-shadow", name: "제주 쉐도우", short: "제주", csv: "Jeju Shadow", wiki: "Jeju_Shadow", circuits: [15, 11, 11, 14] },
+  { key: "goyang-mir", name: "고양 미르", short: "고양", csv: "Goyang Mir", wiki: "Goyang_MIR", circuits: [12, 16, 13, 15] },
 ];
 
 export const TEAM = new Map(KEL_TEAMS.map((t) => [t.key, t]));
@@ -26,6 +27,7 @@ export const TEAM_BY_CSV = new Map(KEL_TEAMS.map((t) => [t.csv, t]));
 
 export const WIKI = "https://bori.wiki";
 export const LOGO_CDN = "https://cdn.mongsil.dev/er-labs/teams";
+export const DAKGG = "https://dak.gg/er/esports/kel_2026";
 
 export const wikiUrl = (title: string) => `${WIKI}/${encodeURIComponent(title.replace(/ /g, "_"))}`;
 
@@ -89,7 +91,7 @@ export type KelScreen = "home" | "odds" | "rules" | "circuits" | "finals" | "tea
 // public이 false인 화면은 KEL_OWNER_ID 계정만 열 수 있음
 export const KEL_SCREENS: Record<KelScreen, { path: string; title: string; public: boolean }> = {
   home: { path: "/er/kel", title: "2026 KEL 기록", public: true },
-  odds: { path: "/er/kel/odds", title: "챔피언십 진출 확률", public: false },
+  odds: { path: "/er/kel/odds", title: "챔피언십 진출 확률", public: true },
   rules: { path: "/er/kel/rules", title: "포맷과 규칙", public: true },
   circuits: { path: "/er/kel/circuits", title: "서킷별 순위", public: true },
   finals: { path: "/er/kel/finals", title: "결승 점수 흐름", public: true },
@@ -113,11 +115,10 @@ export const KEL_SECTIONS: { title: string; items: [KelScreen, string][] }[] = [
     ],
   },
   {
-    title: "팀",
+    title: "경기",
     items: [
-      ["circuits", "16팀의 서킷 1~4 최종 순위"],
       ["finals", "서킷과 미드 시즌 컵 결승의 라운드별 누적 점수와 체크포인트"],
-      ["teams", "1위 횟수, 3위 이내 비율, 킬 점수 비중, 게임당 점수"],
+      ["records", "최다 킬, 가한 피해, 받은 피해와 실험체별 최고 기록"],
     ],
   },
   {
@@ -125,7 +126,13 @@ export const KEL_SECTIONS: { title: string; items: [KelScreen, string][] }[] = [
     items: [
       ["players", "KPR, 게임당 킬, 가한 피해, 많이 고른 실험체"],
       ["roles", "팀이 가한 피해와 받은 피해에서 선수가 차지한 비중"],
-      ["records", "최다 킬, 가한 피해, 받은 피해와 실험체별 최고 기록"],
+    ],
+  },
+  {
+    title: "팀",
+    items: [
+      ["circuits", "16팀의 서킷 1~4 최종 순위"],
+      ["teams", "1위 횟수, 3위 이내 비율, 킬 점수 비중, 게임당 점수"],
     ],
   },
   {

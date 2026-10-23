@@ -33,7 +33,6 @@ export default async function Page() {
         `표에는 ${MIN}번 이상 나온 ${rows.length}개 조합을 넣었습니다.`,
         "대회마다 게임 수가 다르고 실험체를 쓸 수 있는 횟수에 제한이 있어서, 한 팀이 자주 쓴 조합이 표 위쪽에 놓일 수 있습니다.",
       ]}
-      source
     >
       <section className="panel p-5 max-[760px]:p-4">
         <KelScroll label="자주 나온 3인 조합">

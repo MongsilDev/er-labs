@@ -71,7 +71,6 @@ export default async function Page() {
         `${MIN_GAMES}게임 이상 나온 선수 ${players.length}명만 넣었습니다.`,
         "비중은 게임마다 팀 세 명의 합계에서 그 선수가 차지한 비율을 평균한 값입니다.",
       ]}
-      source
     >
       <div className="grid grid-cols-[minmax(0,6fr)_minmax(0,5fr)] items-start gap-5 max-[1080px]:grid-cols-1">
         <section className="panel p-5 max-[760px]:p-4 min-[1081px]:sticky min-[1081px]:top-6" aria-label="팀이 가한 피해와 받은 피해에서 차지한 비중">

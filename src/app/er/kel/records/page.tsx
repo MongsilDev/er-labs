@@ -41,7 +41,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ v
   const lead = `팀 기록으로는 ${josa(TEAM.get(g.team)!.name, "이", "가")} ${gameLabel(g)}에서 기록한 ${g.kills}킬이 가장 많습니다.`;
 
   return (
-    <KelPage user={user} owner={owner} screen="records" lead={lead} source>
+    <KelPage user={user} owner={owner} screen="records" lead={lead}>
       <KelTabs screen="records" param="view" label="보기" items={VIEWS} current={view} />
       {view === "season" ? (
         <>

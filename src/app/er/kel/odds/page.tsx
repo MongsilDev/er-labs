@@ -2,7 +2,7 @@ import HeatCell from "@/er/components/kel/HeatCell";
 import KelPage, { KelScroll, KelTabs, NO_DATA } from "@/er/components/kel/KelPage";
 import { Logo, TeamName } from "@/er/components/kel/Team";
 import { byText } from "@/er/lib/format";
-import { EVENT_NAME, josa, KEL_SCREENS, KEL_TEAMS, seasonStandings, type KelEvent } from "@/er/lib/kel";
+import { EVENT_NAME, josa, KEL_SCREENS, KEL_TEAMS, QUALIFY, SEEDS, seasonStandings, type KelEvent } from "@/er/lib/kel";
 import { CIRCUIT_STAGES, kelData, kelGate, kelMetadata } from "@/er/server/kel";
 import { guaranteed, kelOdds, status, type TeamOdds } from "@/er/server/kel-odds";
 
@@ -60,12 +60,13 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ c
       user={user}
       owner={owner}
       screen="odds"
+      lead={["서킷 단계가 끝날 때마다 그때까지 나온 결과로 계산한 확률입니다.", `서킷 포인트 1~${SEEDS}위는 11월 8일 결승에 바로 오르고, ${SEEDS + 1}~${QUALIFY}위는 11월 7일 준결승을 치릅니다.`]}
       notes={[
         "확률은 남은 경기에서 모든 팀의 실력이 같다고 보고 계산했습니다.",
+        "표의 -는 남은 경기 결과와 관계없이 일어날 수 없는 경우입니다.",
         "포인트는 지금까지 확보한 서킷 포인트이고, 진행 중인 서킷은 그때까지 오른 단계에서 받을 수 있는 가장 낮은 포인트로 셌습니다.",
         "서킷 최종 순위는 bori.wiki 대회 문서의 결과 표에서 가져왔습니다.",
       ]}
-      source
     >
       <div className="grid gap-2">
         <KelTabs label="서킷" items={CIRCUITS.map((c) => [String(c), circuitName(c)] as const)} current={String(circuit)} href={(k) => href(Number(k), done)} />
@@ -110,7 +111,11 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ c
                   </td>
                   <td className="l pin max-w-[200px]">
                     <TeamName team={r.team} />
-                    <span className="narrow mt-0.5 text-[12px] text-fg-3">{r.points.toLocaleString("ko-KR")}포인트</span>
+                    <span className="narrow mt-0.5 text-[12px] text-fg-3">
+                      {r.points.toLocaleString("ko-KR")}포인트
+                      <br />
+                      {circuitName(circuit)} {status(input, view, r.t)}
+                    </span>
                   </td>
                   {shown.map((c) => (
                     <td key={c} className="wide text-fg-2">
@@ -184,6 +189,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ c
                     <span className="inline-flex min-w-0 items-center gap-2">
                       <Logo team={KEL_TEAMS[t]} />
                       <span className="truncate max-[760px]:sr-only">{KEL_TEAMS[t].name}</span>
+                      <span className="hidden max-[760px]:inline" aria-hidden>
+                        {KEL_TEAMS[t].short}
+                      </span>
                     </span>
                   </td>
                   {views.map((v) => (
