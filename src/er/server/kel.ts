@@ -67,6 +67,8 @@ export type TeamGame = {
   characters: string[];
   // dak.gg 경기 상세가 없는 게임은 비움
   wickline?: boolean;
+  cc?: number;
+  heal?: number;
 };
 
 export type Kel = { rows: KelRow[]; games: TeamGame[] };
@@ -172,7 +174,11 @@ function teamGames(rows: KelRow[]): TeamGame[] {
     g.damage += r.damage;
     g.taken += r.taken;
     g.characters.push(r.character);
-    if (r.dak) g.wickline = g.wickline || r.dak.wickline;
+    if (r.dak) {
+      g.wickline = g.wickline || r.dak.wickline;
+      g.cc = (g.cc ?? 0) + r.dak.cc;
+      g.heal = (g.heal ?? 0) + r.dak.heal;
+    }
   }
   return [...map.values()];
 }

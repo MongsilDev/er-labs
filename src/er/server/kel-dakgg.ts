@@ -15,6 +15,12 @@ export type KelDak = {
   deathPlaces: string[];
   escaped: boolean;
   weather: string;
+  cameraOff: number;
+  revive: number;
+  // 킬과 데스는 상대 실험체 번호별 횟수
+  num: number;
+  killed: Record<string, number>;
+  killedBy: Record<string, number>;
 };
 
 type Player = {
@@ -24,15 +30,19 @@ type Player = {
   ccTimeToPlayer?: number;
   teamRecover?: number;
   addTelephotoCamera?: number;
+  removeTelephotoCamera?: number;
   viewContribution?: number;
-  killWicklineGainVFCredit?: number;
+  creditRevivedOthersCount?: number;
   playTime?: number;
+  killWicklineGainVFCredit?: number;
   placeOfStart?: string;
   placeOfDeath?: string;
   placeOfDeath2?: string;
   placeOfDeath3?: string;
   escapeState?: number;
   mainWeather?: number;
+  killDetails?: string;
+  deathDetails?: string;
 };
 
 const GAMES = "dakgg/games";
@@ -65,19 +75,32 @@ function names(dir: string, file: string, list: string, id: string): Map<string,
   }
 }
 
+const counts = (json?: string): Record<string, number> => {
+  try {
+    return json ? JSON.parse(json) : {};
+  } catch {
+    return {};
+  }
+};
+
 // protectAbsorb는 자기 몸의 보호막이 막은 피해라 팀원 회복에 넣지 않음
 const pick = (p: Player, areas: Map<string, string>, weathers: Map<string, string>): KelDak => ({
   cc: p.ccTimeToPlayer ?? 0,
   heal: p.teamRecover ?? 0,
   camera: p.addTelephotoCamera ?? 0,
+  cameraOff: p.removeTelephotoCamera ?? 0,
   vision: p.viewContribution ?? 0,
-  wickline: (p.killWicklineGainVFCredit ?? 0) > 0,
+  revive: p.creditRevivedOthersCount ?? 0,
   time: p.playTime ?? 0,
+  wickline: (p.killWicklineGainVFCredit ?? 0) > 0,
   start: areas.get(String(p.placeOfStart)) ?? "",
   // 사망 장소는 선수마다 세 칸까지만 남음
   deathPlaces: [p.placeOfDeath, p.placeOfDeath2, p.placeOfDeath3].flatMap((c) => areas.get(String(c)) ?? []),
   escaped: p.escapeState === 3,
   weather: weathers.get(String(p.mainWeather)) ?? "",
+  num: p.characterNum,
+  killed: counts(p.killDetails),
+  killedBy: counts(p.deathDetails),
 });
 
 // character는 dak.gg 이름표의 영문 key
