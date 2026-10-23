@@ -7,6 +7,8 @@ import ThemeToggle from "@/er/components/ThemeToggle";
 import { int as rp, TIERS, tens } from "@/er/lib/cut";
 import { getCut } from "@/er/server/cut";
 import CutMini from "@/er/components/cut/CutMini";
+import { Logo } from "@/er/components/kel/Team";
+import { seasonStandings } from "@/er/lib/kel";
 import { date, int } from "@/tarkov/lib/format";
 import { PERSONAL } from "@/tarkov/lib/kord";
 import { baselineAccounts } from "@/tarkov/server/baseline";
@@ -77,6 +79,7 @@ export default async function Hub() {
   const minus = PERSONAL.filter((p) => (p.points ?? 0) > 0);
   // 포인트를 가장 많이 쓰는 긍정 특성과 가장 많이 얻는 부정 특성 둘씩
   const picks = [...[...plus].sort((a, b) => a.points! - b.points!).slice(0, 2), ...[...minus].sort((a, b) => b.points! - a.points!).slice(0, 2)];
+  const seeds = seasonStandings().slice(0, 4);
   return (
     <>
       <SiteHeader>
@@ -161,6 +164,29 @@ export default async function Hub() {
                 잠시 뒤 다시 열어주세요.
               </p>
             )}
+          </Tool>
+
+          <Tool
+            game="이터널 리턴"
+            icon="er"
+            href="/er/kel"
+            name="KEL 기록"
+            desc="2026 KEL 서킷 순위, 결승 점수 흐름, 선수와 실험체 기록"
+            stats={[
+              { label: "준결승", value: "11월 7일" },
+              { label: "결승", value: "11월 8일" },
+            ]}
+          >
+            <p className="mb-2 text-[13px] text-fg-3">챔피언십 결승 직행</p>
+            <ul className="grid">
+              {seeds.map((r) => (
+                <li key={r.team.key} className="flex items-center gap-3 border-t border-line-soft py-2 first:border-t-0 first:pt-0">
+                  <Logo team={r.team} size={22} />
+                  <span className="min-w-0 truncate text-[14px] font-bold">{r.team.name}</span>
+                  <span className="ml-auto text-[14px] font-extrabold tabular-nums text-fg-2">{r.total.toLocaleString("ko-KR")}포인트</span>
+                </li>
+              ))}
+            </ul>
           </Tool>
 
           <Tool
