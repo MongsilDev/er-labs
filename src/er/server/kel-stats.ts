@@ -80,7 +80,7 @@ export type PlayerStat = {
   bests: { kills: KelRow; damage: KelRow; cc: DakRow | null; heal: DakRow | null };
 };
 
-// 경기 상세 값은 상세가 있는 게임만 평균하고, 팀 합계가 0인 게임은 비중에서 뺌
+// 경기 상세 값은 상세가 있는 게임만 평균하고, 팀 합계가 0인 게임은 비중 0으로 셈
 export const playerStats = memo((data): PlayerStat[] => {
   const teamGame = new Map(data.games.map((g) => [`${g.gameId}:${g.team}`, g]));
   return [...Map.groupBy(data.rows, (r) => r.player)].map(([name, rows]) => {
@@ -91,8 +91,8 @@ export const playerStats = memo((data): PlayerStat[] => {
       return {
         damage: g?.damage ? r.damage / g.damage : 0,
         taken: g?.taken ? r.taken / g.taken : 0,
-        cc: r.dak && g?.cc ? r.dak.cc / g.cc : [],
-        heal: r.dak && g?.heal ? r.dak.heal / g.heal : [],
+        cc: r.dak ? (g?.cc ? r.dak.cc / g.cc : 0) : [],
+        heal: r.dak ? (g?.heal ? r.dak.heal / g.heal : 0) : [],
       };
     });
     return {

@@ -2,6 +2,7 @@ import KelPage, { KelScroll, NO_DATA } from "@/er/components/kel/KelPage";
 import Scatter from "@/er/components/kel/Scatter";
 import { PlayerName } from "@/er/components/kel/Team";
 import Char from "@/er/components/t/Char";
+import { int } from "@/er/lib/cut";
 import { pct } from "@/er/lib/format";
 import { seasonStandings, TEAM, TONES } from "@/er/lib/kel";
 import { kelData, kelGate, kelMetadata } from "@/er/server/kel";
@@ -12,7 +13,8 @@ export const generateMetadata = () => kelMetadata("roles");
 
 const TOP = 5;
 
-function Top({ id, title, rows, value }: { id: string; title: string; rows: PlayerStat[]; value: (p: PlayerStat) => number }) {
+// per는 비중 옆에 함께 보여 주는 게임당 값
+function Top({ id, title, rows, value, per }: { id: string; title: string; rows: PlayerStat[]; value: (p: PlayerStat) => number; per?: [string, (p: PlayerStat) => string] }) {
   return (
     <section className="panel p-5 max-[760px]:p-4" aria-labelledby={id}>
       <h2 id={id} className="text-[17px] font-extrabold">
@@ -25,6 +27,7 @@ function Top({ id, title, rows, value }: { id: string; title: string; rows: Play
               <th className="l">선수</th>
               <th className="l wide">많이 고른 실험체</th>
               <th>비중</th>
+              {per && <th className="wide">{per[0]}</th>}
               <th>게임</th>
             </tr>
           </thead>
@@ -38,6 +41,7 @@ function Top({ id, title, rows, value }: { id: string; title: string; rows: Play
                   <Char name={p.characters[0][0]} />
                 </td>
                 <td className="font-bold">{pct(value(p))}</td>
+                {per && <td className="wide">{per[1](p)}</td>}
                 <td className="text-fg-3">{p.games}</td>
               </tr>
             ))}
@@ -55,8 +59,13 @@ export default async function Page() {
   if (!players.length) return <KelPage user={user} owner={owner} screen="roles" lead={NO_DATA} />;
   const taken = [...players].sort((a, b) => b.takenShare - a.takenShare).slice(0, TOP);
   const damage = [...players].sort((a, b) => b.damageShare - a.damageShare).slice(0, TOP);
+  const cc = [...players].sort((a, b) => b.ccShare - a.ccShare).slice(0, TOP);
+  const heal = [...players].sort((a, b) => b.healShare - a.healShare).slice(0, TOP);
   const tone = (p: PlayerStat) => (damage.includes(p) ? 0 : taken.includes(p) ? 1 : undefined);
-  const lead = `받은 피해 비중은 ${taken[0].name} 선수가 ${pct(taken[0].takenShare)}로 1위이고, 가한 피해 비중은 ${damage[0].name} 선수가 ${pct(damage[0].damageShare)}로 1위입니다.`;
+  const lead = [
+    `받은 피해 비중은 ${taken[0].name} 선수가 ${pct(taken[0].takenShare)}로 1위이고, 가한 피해 비중은 ${damage[0].name} 선수가 ${pct(damage[0].damageShare)}로 1위입니다.`,
+    `군중제어 시간 비중은 ${cc[0].name} 선수가 ${pct(cc[0].ccShare)}로 1위이고, 팀원 회복 비중은 ${heal[0].name} 선수가 ${pct(heal[0].healShare)}로 1위입니다.`,
+  ];
   const order = seasonStandings().map((r) => r.team.key);
   const all = [...players].sort((a, b) => order.indexOf(a.team) - order.indexOf(b.team) || b.games - a.games);
 
@@ -70,6 +79,8 @@ export default async function Page() {
         "포지션이 고정되지 않아 같은 선수도 게임마다 맡은 역할이 바뀔 수 있습니다.",
         `${MIN_GAMES}게임 이상 나온 선수 ${players.length}명만 넣었습니다.`,
         "비중은 게임마다 팀 세 명의 합계에서 그 선수가 차지한 비율을 평균한 값입니다.",
+        "팀 합계가 0인 게임은 그 게임의 군중제어 시간과 팀원 회복 비중을 0으로 넣었습니다.",
+        "팀원 회복은 팀원에게 준 회복량이고, 자기 몸에 걸린 보호막이 막은 피해는 넣지 않았습니다.",
       ]}
     >
       <div className="grid grid-cols-[minmax(0,6fr)_minmax(0,5fr)] items-start gap-5 max-[1080px]:grid-cols-1">
@@ -107,13 +118,15 @@ export default async function Page() {
           </div>
           <details className="mt-3 text-[14px]">
             <summary className="cursor-pointer text-fg-2">선수 {players.length}명 표</summary>
-            <KelScroll label="선수별 가한 피해와 받은 피해 비중" className="mt-2">
+            <KelScroll label="선수별 비중" className="mt-2">
               <table className="kel-table">
                 <thead>
                   <tr>
                     <th className="l">선수</th>
                     <th>가한 피해 비중</th>
                     <th>받은 피해 비중</th>
+                    <th>군중제어 시간 비중</th>
+                    <th>팀원 회복 비중</th>
                     <th>게임</th>
                   </tr>
                 </thead>
@@ -125,6 +138,8 @@ export default async function Page() {
                       </td>
                       <td>{pct(p.damageShare)}</td>
                       <td>{pct(p.takenShare)}</td>
+                      <td>{pct(p.ccShare)}</td>
+                      <td>{pct(p.healShare)}</td>
                       <td className="text-fg-3">{p.games}</td>
                     </tr>
                   ))}
@@ -137,6 +152,10 @@ export default async function Page() {
           <Top id="top-taken" title={`받은 피해 비중 상위 ${TOP}명`} rows={taken} value={(p) => p.takenShare} />
           <Top id="top-damage" title={`가한 피해 비중 상위 ${TOP}명`} rows={damage} value={(p) => p.damageShare} />
         </div>
+      </div>
+      <div className="grid grid-cols-2 items-start gap-5 max-[1080px]:grid-cols-1">
+        <Top id="top-cc" title={`군중제어 시간 비중 상위 ${TOP}명`} rows={cc} value={(p) => p.ccShare} per={["게임당", (p) => `${p.cc.toFixed(1)}초`]} />
+        <Top id="top-heal" title={`팀원 회복 비중 상위 ${TOP}명`} rows={heal} value={(p) => p.healShare} per={["게임당", (p) => int(p.heal)]} />
       </div>
     </KelPage>
   );
