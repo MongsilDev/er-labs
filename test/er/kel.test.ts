@@ -221,35 +221,38 @@ describe("KEL 실험체 빌드", () => {
     expect(b.rate).toBe(new Set(nadine.map((r) => r.gameId)).size / new Set(data.rows.map((r) => r.gameId)).size);
   });
 
-  it("마지막 일격 기술은 사망 기록 첫 칸에서 그 실험체가 처치한 수를 분모로 세고, 공식 이름을 못 찾은 기술은 목록에서 뺀다", () => {
+  it("마지막 일격 기술은 사망 기록 첫 칸에서 그 실험체가 처치한 수를 분모로 세고, 공식 이름을 못 찾은 기술은 원문 이름으로 넣는다", () => {
     const data = kelData()!;
     const deaths = data.rows.filter((r) => r.dak!.death);
     const b = characterBuilds(data).find((x) => x.key === "Nadine")!;
     expect(b.deaths).toBe(deaths.length);
-    expect(b.lastHits.map((h) => h.name).sort()).toEqual(["강노", "기본 공격", "다람쥐 덫", "황소의 눈"]);
-    expect(b.unnamed).toBe(deaths.filter((r) => !r.dak!.death!.cause).length);
+    expect(b.lastHits.map((h) => h.name).sort()).toEqual(["기본 공격", "다람쥐 덫", "충전 - 섬광/철환", "황소의 눈"]);
+    expect(b.unnamed).toBe(deaths.filter((r) => !r.dak!.death!.official).length);
     expect(b.unnamed).toBeGreaterThan(0);
-    expect(b.lastHits.reduce((a, h) => a + h.count, 0) + b.unnamed).toBe(b.deaths);
+    expect(b.lastHits.reduce((a, h) => a + h.count, 0)).toBe(b.deaths);
     expect(characterBuilds(data).find((x) => x.key === "Alonso")!.lastHits).toEqual([]);
   });
 
-  it("마지막 일격 기술 원문을 공식 이름으로 바꾸고, 갈래가 다르거나 스킬 이름 둘이 섞인 원문은 비운다", () => {
+  it("마지막 일격 기술 원문을 공식 이름으로 바꾸고, 공식 이름을 못 찾거나 스킬 이름 둘이 섞인 원문은 원문 이름으로 둔다", () => {
     const labels: Parameters<typeof lastHit>[2] = {
       names: new Map([
         ["Karla", "칼라"],
         ["Tia", "띠아"],
         ["DebiMarlene", "데비&마를렌"],
+        ["Camilo", "카밀로"],
       ]),
       ids: new Map([
         ["Karla", 1],
         ["Tia", 2],
         ["DebiMarlene", 3],
+        ["Camilo", 4],
       ]),
       official: {
         own: new Map<number, [string, string][]>([
           [1, [["T", "작살 장전"], ["Q", "관통 작살"], ["W", "회수"]]],
           [2, [["T", "알록달록 컬러믹스"], ["Q", "브러쉬 스트로크 - 노란색"]]],
           [3, [["Q", "하드 슬래시"]]],
+          [4, [["E", "알 꼼빠스"]]],
         ]),
         weapon: new Map([["도끼", "피의 나선"]]),
         common: new Map(["피의 나선", "벽력", "블래스터 탄환"].map((n) => [n.replace(/\s+/g, ""), n])),
@@ -260,22 +263,24 @@ describe("KEL 실험체 빌드", () => {
       traits: new Map(),
       skills: new Map(),
     };
-    const cases: [string, string, string][] = [
-      ["Karla", "basicAttack", "기본 공격"],
-      ["Karla", "칼라 Q - 관통 작살", "관통 작살"],
-      ["Karla", "칼라 W1", "회수"],
-      ["Karla", "칼라 강화공격", "기본 공격"],
-      ["Karla", "도끼 - 피의나선", "피의 나선"],
-      ["Karla", "파괴 - 벽력", "벽력"],
-      ["Karla", "블래스터 탄환v3", "블래스터 탄환"],
-      ["Karla", "관통 작살 회수", ""],
-      ["Karla", "충전 - 섬광/철환", ""],
-      ["Tia", "P - 알록달록 컬러믹스", "알록달록 컬러믹스"],
-      ["Tia", "Q - 브러쉬 스트로크 (노란)", "브러쉬 스트로크 - 노란색"],
-      ["Tia", "Q - 브러쉬 스트로크 (파란)", ""],
-      ["DebiMarlene", "데비 Q - 하드 슬래시", "하드 슬래시"],
+    // 공식 이름을 못 찾은 원문은 처치 실험체 이름과 단계 번호만 뗌
+    const cases: [string, string, string, boolean][] = [
+      ["Karla", "basicAttack", "기본 공격", true],
+      ["Karla", "칼라 Q - 관통 작살", "관통 작살", true],
+      ["Karla", "칼라 W1", "회수", true],
+      ["Karla", "칼라 강화공격", "기본 공격", true],
+      ["Karla", "도끼 - 피의나선", "피의 나선", true],
+      ["Karla", "파괴 - 벽력", "벽력", true],
+      ["Karla", "블래스터 탄환v3", "블래스터 탄환", true],
+      ["Karla", "관통 작살 회수", "관통 작살 회수", false],
+      ["Karla", "칼라 구속 작살_2", "구속 작살", false],
+      ["Tia", "P - 알록달록 컬러믹스", "알록달록 컬러믹스", true],
+      ["Tia", "Q - 브러쉬 스트로크 (노란)", "브러쉬 스트로크 - 노란색", true],
+      ["Tia", "Q - 브러쉬 스트로크 (파란)", "브러쉬 스트로크 - 노란색", true],
+      ["DebiMarlene", "데비 Q - 하드 슬래시", "하드 슬래시", true],
+      ["Camilo", "알 콤빠스 (Al Compas)", "알 꼼빠스", true],
     ];
-    expect(cases.map(([killer, text]) => lastHit(text, killer, labels))).toEqual(cases.map((c) => c[2]));
+    expect(cases.map(([killer, text]) => lastHit(text, killer, labels))).toEqual(cases.map(([, , name, official]) => ({ name, official })));
   });
 
   it("전술 스킬과 핵심 특성 선택률은 선수 기록을, 대회별 칸은 그 대회의 선수 기록을 분모로 센다", () => {

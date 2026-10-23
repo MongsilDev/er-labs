@@ -419,7 +419,7 @@ export type CharacterBuild = {
   weapons: (Share & { avgPlace: number })[];
   tactical: Share[];
   traits: Share[];
-  // 사망 기록 첫 칸에서 이 실험체가 처치한 수와 그 가운데 기술 이름을 못 맞춘 수
+  // 사망 기록 첫 칸에서 이 실험체가 처치한 수와 그 가운데 기술을 원문 이름으로 적은 수
   deaths: number;
   unnamed: number;
   lastHits: Share[];
@@ -477,7 +477,7 @@ export const characterBuilds = memo((data) => {
         tactical: shares(rows, (r) => r.dak.tactical).slice(0, 3),
         traits: shares(rows, (r) => r.dak.trait).slice(0, 3),
         deaths: killed.length,
-        unnamed: killed.filter((d) => !d.cause).length,
+        unnamed: killed.filter((d) => !d.official).length,
         lastHits: shares(killed, (d) => d.cause).slice(0, 4),
         gear: gearOf(rows, weapons),
         order: shares(rows, (r) => r.dak.order)[0] ?? null,

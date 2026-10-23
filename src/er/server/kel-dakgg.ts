@@ -32,8 +32,8 @@ export type KelDak = {
   order: string;
   // 스킬 칸 이름, 같은 실험체 기록이 한 객체를 같이 씀
   skills: Partial<Record<SkillSlot, string>>;
-  // 사망 기록 첫 칸의 처치 실험체(dak.gg 영문 key)와 마지막 일격 기술의 공식 이름, 이름을 못 맞추면 빈 문자열
-  death: { character: string; cause: string } | null;
+  // 사망 기록 첫 칸의 처치 실험체(dak.gg 영문 key)와 마지막 일격 기술. 공식 이름을 못 찾으면 원문 이름이고 official이 false
+  death: { character: string; cause: string; official: boolean } | null;
 };
 
 export type SkillSlot = "Q" | "W" | "E" | "R" | "T";
@@ -209,12 +209,20 @@ const tail = (s: string) =>
 const SLOT = /^(?:강화\s*)?([QWERPTD])([QWER])?(?:_?\d)?(?=$|[\s\-[])/;
 const BASIC = /^(기본\s*공격|강화\s*공격|평타\s*강화|NormalAttack)/;
 
-// dak.gg 원문은 '아르다 Q - 샤마쉬의 두루마리', '도끼 - 피의나선', 'Q1' 같은 내부 이름이라 이름표에 있는 공식 이름으로 바꾸고, 못 바꾸면 빈 문자열
-export function lastHit(text: string, killer: string, l: Labels): string {
-  if (text === "basicAttack") return BASIC_ATTACK;
+// 이름표와 철자만 다르고 같은 기술이 확실한 원문
+const ALIASES = new Map([["알 콤빠스", "알 꼼빠스"]]);
+
+// dak.gg 원문은 '아르다 Q - 샤마쉬의 두루마리', '도끼 - 피의나선', 'Q1' 같은 내부 이름이라 이름표의 공식 이름으로 바꾸고, 못 바꾸면 처치 실험체 이름과 단계 번호만 뗀 원문을 씀
+export function lastHit(text: string, killer: string, l: Labels): { name: string; official: boolean } {
+  if (text === "basicAttack") return { name: BASIC_ATTACK, official: true };
   const name = l.names.get(killer) ?? "";
   const prefix = [name, ...name.split("&")].find((n) => n && text.startsWith(`${n} `));
   const t = (prefix ? text.slice(prefix.length + 1) : text).replace(/_\d+$/, "").trim();
+  const found = officialName(ALIASES.get(tail(t)) ?? t, killer, l);
+  return found ? { name: found, official: true } : { name: t, official: false };
+}
+
+function officialName(t: string, killer: string, l: Labels): string {
   const own = l.official.own.get(l.ids.get(killer) ?? -1) ?? [];
   const mine = new Map(own.map(([, n]) => [bare(n), n]));
   const find = (x: string) => mine.get(bare(tail(x))) ?? l.official.common.get(bare(tail(x)));
@@ -227,11 +235,9 @@ export function lastHit(text: string, killer: string, l: Labels): string {
     const after = t.slice(slot[0].length).replace(/^[\s\-[]+|[\s\]]+$/g, "");
     const named = after ? find(after) : undefined;
     if (named) return named;
+    // 띠아 Q처럼 이름표 한 항목이 색이나 형태 갈래를 모두 설명하는 스킬은 갈래가 달라도 그 이름을 씀
     const key = (slot[2] ?? slot[1]).replace("P", "T");
-    const first = own.find(([s]) => s === key)?.[1] ?? "";
-    // 원문 괄호 속 갈래가 공식 이름의 갈래와 다르면 맞추지 않음, 예: '(파란)'과 '브러쉬 스트로크 - 노란색'
-    const variant = /\(([^)]*)\)$/.exec(after)?.[1];
-    return variant && first.includes(" - ") && !first.split(" - ").at(-1)!.startsWith(variant) ? "" : first;
+    return own.find(([s]) => s === key)?.[1] ?? "";
   }
   if (head.startsWith("패시브")) return own.find(([s]) => s === "T")?.[1] ?? "";
   const named = l.official.weapon.get(head) ?? find(head);
@@ -242,6 +248,8 @@ export function lastHit(text: string, killer: string, l: Labels): string {
   const start = [...mine.keys()].sort((a, b) => b.length - a.length).find((n) => k.startsWith(n));
   return start && !mine.has(k.slice(start.length)) ? mine.get(start)! : "";
 }
+
+const deathOf = (character: string, hit: { name: string; official: boolean }) => ({ character, cause: hit.name, official: hit.official });
 
 // protectAbsorb는 자기 몸의 보호막이 막은 피해라 팀원 회복에 넣지 않음
 const pick = (p: Player, l: Labels, order: string[], areas: Map<string, string>, weathers: Map<string, string>): KelDak => {
@@ -271,7 +279,7 @@ const pick = (p: Player, l: Labels, order: string[], areas: Map<string, string>,
     gear: Array.from({ length: GEAR_SLOTS }, (_, i) => name(l.items, p.equipment?.[i])),
     order: order.slice(0, 6).join(" "),
     skills: l.skills.get(p.characterNum) ?? NO_SKILLS,
-    death: p.killer === "player" && p.killerCharacter && p.causeOfDeath ? { character: p.killerCharacter, cause: lastHit(p.causeOfDeath, p.killerCharacter, l) } : null,
+    death: p.killer === "player" && p.killerCharacter && p.causeOfDeath ? deathOf(p.killerCharacter, lastHit(p.causeOfDeath, p.killerCharacter, l)) : null,
   };
 };
 
