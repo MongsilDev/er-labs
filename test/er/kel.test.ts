@@ -6,8 +6,9 @@ import { characterName } from "../../src/er/lib/format";
 import { championshipTeams, KEL_TEAMS, seasonStandings } from "../../src/er/lib/kel";
 import { finalState, standings, type Entry, type Round } from "../../src/er/lib/kel-calc";
 import { kelData, stageRounds } from "../../src/er/server/kel";
+import { lastHit } from "../../src/er/server/kel-dakgg";
 import { kelOdds } from "../../src/er/server/kel-odds";
-import { finals, killStats, lows, MIN_GAMES, playerStats, rankOf, records, regions, teamOps, wicklines } from "../../src/er/server/kel-stats";
+import { characterBuilds, comps, finals, killStats, lows, MIN_GAMES, playerStats, rankOf, records, regions, seasonBuilds, teamOps, wicklines } from "../../src/er/server/kel-stats";
 import { kelFixture } from "./helpers";
 
 process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "er-labs-kel-"));
@@ -187,6 +188,134 @@ describe("KEL 선수 기록", () => {
 
   it("경기 기록에서 맞춘 실험체 key는 한국어 이름으로 쓴다", () => {
     expect([characterName("YuMin"), characterName("DebiMarlene"), characterName("LiDailin")]).toEqual(["유민", "데비&마를렌", "리 다이린"]);
+  });
+});
+
+describe("KEL 실험체 빌드", () => {
+  beforeAll(() => kelFixture(process.env.DATA_DIR!));
+
+  it("실험체 카드는 그 실험체를 고른 기록을 분모로 무기, 장비, 스킬 순서를 세고, 무기 칸 장비는 무기마다 따로 센다", () => {
+    const data = kelData()!;
+    const nadine = data.rows.filter((r) => r.character === "Nadine");
+    const bow = nadine.filter((r) => r.dak!.weapon === "활").length;
+    const b = characterBuilds(data).find((x) => x.key === "Nadine")!;
+    expect(b.picks).toBe(nadine.length);
+    expect(b.weapons.map((w) => [w.name, w.count])).toEqual([
+      ["석궁", nadine.length - bow],
+      ["활", bow],
+    ]);
+    expect(b.weapons[1].avgPlace).toBeCloseTo(nadine.filter((r) => r.dak!.weapon === "활").reduce((a, r) => a + r.placement, 0) / bow, 9);
+    expect(b.gear.map((g) => [g.slot, g.name, g.share])).toEqual([
+      ["석궁", "혈색반월", 1],
+      ["활", "아르기로톡소스", 1],
+      ["옷", "현자의 로브", 1],
+      ["머리", "빛의 증표", 1],
+      ["팔", "운명의 주사위", 1],
+      ["다리", "알렉산드로스", 1],
+    ]);
+    const odd = nadine.filter((r) => r.round % 2).length;
+    expect(b.order).toMatchObject(odd * 2 >= nadine.length ? { name: "E Q W E T R", count: odd } : { name: "Q W E Q T R", count: nadine.length - odd });
+    expect(b.skills).toEqual({ T: "야성", Q: "황소의 눈", W: "다람쥐 덫", E: "원숭이 와이어", R: "늑대 맹습" });
+    expect(b.players.length).toBeLessThanOrEqual(4);
+    expect(b.players.reduce((a, p) => a + p.count, 0)).toBeLessThanOrEqual(nadine.length);
+    expect(b.rate).toBe(new Set(nadine.map((r) => r.gameId)).size / new Set(data.rows.map((r) => r.gameId)).size);
+  });
+
+  it("마지막 일격 기술은 사망 기록 첫 칸에서 그 실험체가 처치한 수를 분모로 세고, 공식 이름을 못 찾은 기술은 목록에서 뺀다", () => {
+    const data = kelData()!;
+    const deaths = data.rows.filter((r) => r.dak!.death);
+    const b = characterBuilds(data).find((x) => x.key === "Nadine")!;
+    expect(b.deaths).toBe(deaths.length);
+    expect(b.lastHits.map((h) => h.name).sort()).toEqual(["강노", "기본 공격", "다람쥐 덫", "황소의 눈"]);
+    expect(b.unnamed).toBe(deaths.filter((r) => !r.dak!.death!.cause).length);
+    expect(b.unnamed).toBeGreaterThan(0);
+    expect(b.lastHits.reduce((a, h) => a + h.count, 0) + b.unnamed).toBe(b.deaths);
+    expect(characterBuilds(data).find((x) => x.key === "Alonso")!.lastHits).toEqual([]);
+  });
+
+  it("마지막 일격 기술 원문을 공식 이름으로 바꾸고, 갈래가 다르거나 스킬 이름 둘이 섞인 원문은 비운다", () => {
+    const labels: Parameters<typeof lastHit>[2] = {
+      names: new Map([
+        ["Karla", "칼라"],
+        ["Tia", "띠아"],
+        ["DebiMarlene", "데비&마를렌"],
+      ]),
+      ids: new Map([
+        ["Karla", 1],
+        ["Tia", 2],
+        ["DebiMarlene", 3],
+      ]),
+      official: {
+        own: new Map<number, [string, string][]>([
+          [1, [["T", "작살 장전"], ["Q", "관통 작살"], ["W", "회수"]]],
+          [2, [["T", "알록달록 컬러믹스"], ["Q", "브러쉬 스트로크 - 노란색"]]],
+          [3, [["Q", "하드 슬래시"]]],
+        ]),
+        weapon: new Map([["도끼", "피의 나선"]]),
+        common: new Map(["피의 나선", "벽력", "블래스터 탄환"].map((n) => [n.replace(/\s+/g, ""), n])),
+      },
+      weapons: new Map(),
+      items: new Map(),
+      tactical: new Map(),
+      traits: new Map(),
+      skills: new Map(),
+    };
+    const cases: [string, string, string][] = [
+      ["Karla", "basicAttack", "기본 공격"],
+      ["Karla", "칼라 Q - 관통 작살", "관통 작살"],
+      ["Karla", "칼라 W1", "회수"],
+      ["Karla", "칼라 강화공격", "기본 공격"],
+      ["Karla", "도끼 - 피의나선", "피의 나선"],
+      ["Karla", "파괴 - 벽력", "벽력"],
+      ["Karla", "블래스터 탄환v3", "블래스터 탄환"],
+      ["Karla", "관통 작살 회수", ""],
+      ["Karla", "충전 - 섬광/철환", ""],
+      ["Tia", "P - 알록달록 컬러믹스", "알록달록 컬러믹스"],
+      ["Tia", "Q - 브러쉬 스트로크 (노란)", "브러쉬 스트로크 - 노란색"],
+      ["Tia", "Q - 브러쉬 스트로크 (파란)", ""],
+      ["DebiMarlene", "데비 Q - 하드 슬래시", "하드 슬래시"],
+    ];
+    expect(cases.map(([killer, text]) => lastHit(text, killer, labels))).toEqual(cases.map((c) => c[2]));
+  });
+
+  it("전술 스킬과 핵심 특성 선택률은 선수 기록을, 대회별 칸은 그 대회의 선수 기록을 분모로 센다", () => {
+    const data = kelData()!;
+    const season = seasonBuilds(data);
+    expect(season.records).toBe(data.rows.length);
+    const bond = season.tactical.find((t) => t.name === "강한 결속")!;
+    expect(bond.byEvent).toEqual({ opening: 0, c1: 0, c2: 0, msc: 0, c3: 0, c4: 1 / 3 });
+    expect(bond.share).toBeCloseTo(data.rows.filter((r) => r.event === "c4").length / 3 / data.rows.length, 9);
+    expect(season.tactical[0]).toMatchObject({ name: "블링크", share: 1 - bond.share });
+    expect(season.traits.map((t) => [t.name, t.group, t.share])).toEqual([
+      ["아드레날린", "파괴", 2 / 3],
+      ["흡혈마", "파괴", 1 / 3],
+    ]);
+  });
+
+  it("빌드 이름표가 없으면 그 이름만 비고 다른 값은 남는다", () => {
+    rmSync(join(process.env.DATA_DIR!, "kel", "dakgg", "d_items.json"));
+    const data = kelData()!;
+    expect(data.rows.filter((r) => !r.dak)).toEqual([]);
+    expect(data.rows.every((r) => r.dak!.gear.every((g) => g === "") && r.dak!.weapon)).toBe(true);
+    expect(characterBuilds(data).find((x) => x.key === "Nadine")!.gear).toEqual([]);
+  });
+});
+
+describe("KEL 3인 조합", () => {
+  beforeAll(() => kelFixture(process.env.DATA_DIR!));
+
+  it("조합마다 횟수, 평균 순위, 1위 횟수, 많이 고른 팀을 세고 많이 나온 순서로 줄을 세운다", () => {
+    const data = kelData()!;
+    const all = comps(data, 1);
+    expect(all.reduce((a, c) => a + c.count, 0)).toBe(data.games.length);
+    for (const c of all) expect(c.teams.reduce((a, [, n]) => a + n, 0)).toBe(c.count);
+    expect(all.map((c) => c.count)).toEqual(all.map((c) => c.count).sort((a, b) => b - a));
+    const first = all[0];
+    const games = data.games.filter((g) => [...g.characters].sort().join() === [...first.characters].sort().join());
+    expect(first).toMatchObject({ count: games.length, wins: games.filter((g) => g.placement === 1).length });
+    expect(first.avgPlace).toBeCloseTo(games.reduce((a, g) => a + g.placement, 0) / games.length, 9);
+    expect(first.teams[0][1]).toBe(Math.max(...first.teams.map(([, n]) => n)));
+    expect(comps(data, first.count + 1)).toEqual([]);
   });
 });
 

@@ -127,13 +127,17 @@ const SCREENS: Screen[] = [
   { name: "KEL 결승 점수 흐름", path: () => "/er/kel/finals", login: true },
   { name: "KEL 팀 성향", path: () => "/er/kel/teams", login: true },
   { name: "KEL 팀 성향 결승 운영", path: () => "/er/kel/teams?s=finals&v=ops", login: true },
-  { name: "KEL 시작 지역과 탈락 지역", path: () => "/er/kel/regions", login: true },
+  { name: "KEL 시작 지역과 사망 지역", path: () => "/er/kel/regions", login: true },
   { name: "KEL 선수 카드", path: () => playerPath("선수4-0"), login: true },
   { name: "KEL 선수 카드 처음", path: () => "/er/kel/players", login: true },
   { name: "KEL 선수 카드 잡은 상대", path: () => playerPath("선수2-0"), login: true },
   { name: "KEL 역할", path: () => "/er/kel/roles", login: true },
   { name: "KEL 처치 관계", path: () => "/er/kel/kills", login: true },
-  { name: "KEL 실험체 등장률", path: () => "/er/kel/characters", login: true },
+  { name: "KEL 실험체", path: () => "/er/kel/characters", login: true },
+  { name: "KEL 실험체 평균 순위 순", path: () => "/er/kel/characters?sort=place", login: true },
+  { name: "KEL 실험체 빌드", path: () => "/er/kel/characters?view=build", login: true },
+  { name: "KEL 실험체 빌드 나딘", path: () => "/er/kel/characters?view=build&c=Nadine", login: true },
+  { name: "KEL 실험체 빌드 없는 실험체", path: () => "/er/kel/characters?view=build&c=nope", login: true },
   { name: "KEL 3인 조합", path: () => "/er/kel/comps", login: true },
   { name: "KEL 한 게임 기록", path: () => "/er/kel/records", login: true },
   { name: "KEL 한 게임 기록 실험체별", path: () => "/er/kel/records?view=characters", login: true },
@@ -255,6 +259,18 @@ describe("화면 점검", () => {
     }
     const calc = await fetch(`${base}/er/kel/calc`, { headers: { cookie: `er_session=${OWNER_SID}` } });
     expect(calc.status).toBe(404);
+  });
+
+  it("실험체 빌드 탭은 운영자에게만 보이고, 다른 사람이 주소로 열면 404가 나간다", async () => {
+    for (const sid of [null, OTHER_SID]) {
+      const headers: Record<string, string> = sid ? { cookie: `er_session=${sid}` } : {};
+      const html = await fetch(`${base}/er/kel/characters`, { headers }).then((r) => r.text());
+      expect([sid, html.includes("view=build")]).toEqual([sid, false]);
+      const build = await fetch(`${base}/er/kel/characters?view=build`, { headers });
+      expect([sid, build.status]).toEqual([sid, 404]);
+    }
+    const owner = await fetch(`${base}/er/kel/characters`, { headers: { cookie: `er_session=${OWNER_SID}` } }).then((r) => r.text());
+    expect(owner).toContain("view=build");
   });
 
   it("방송 화면은 1920x1080 안에 들어간다", async () => {

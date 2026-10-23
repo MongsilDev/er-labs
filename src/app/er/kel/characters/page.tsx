@@ -1,13 +1,24 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
 import HeatCell from "@/er/components/kel/HeatCell";
 import KelPage, { KelScroll, KelTabs, NO_DATA, pickTab } from "@/er/components/kel/KelPage";
+import { Logo } from "@/er/components/kel/Team";
 import Char from "@/er/components/t/Char";
 import { characterName, pct } from "@/er/lib/format";
-import { josa, KEL_EVENTS } from "@/er/lib/kel";
-import { kelData, kelGate, kelMetadata } from "@/er/server/kel";
-import { characterStats, top, type CharacterStat } from "@/er/server/kel-stats";
+import { josa, KEL_EVENTS, KEL_SCREENS, TEAM } from "@/er/lib/kel";
+import { kelData, kelGate, kelMetadata, type Kel } from "@/er/server/kel";
+import { SKILL_SLOTS } from "@/er/server/kel-dakgg";
+import { characterBuilds, characterStats, seasonBuilds, top, type CharacterBuild, type CharacterStat, type PickRate, type Share } from "@/er/server/kel-stats";
 
 export const dynamic = "force-dynamic";
 export const generateMetadata = () => kelMetadata("characters");
+
+type View = "rate" | "build";
+
+const VIEWS: [View, string][] = [
+  ["rate", "등장률"],
+  ["build", "빌드"],
+];
 
 type Sort = "picks" | "place" | "rise";
 
@@ -23,16 +34,249 @@ const SORT: Record<Sort, (a: CharacterStat, b: CharacterStat) => number> = {
   rise: (a, b) => b.byEvent.c4 - b.byEvent.c3 - (a.byEvent.c4 - a.byEvent.c3),
 };
 
-export default async function Page({ searchParams }: { searchParams: Promise<{ sort?: string }> }) {
-  const { user, owner } = await kelGate("characters");
-  const sort = pickTab(SORTS, (await searchParams).sort);
-  const data = kelData();
-  if (!data) return <KelPage user={user} owner={owner} screen="characters" lead={NO_DATA} />;
-  const { total, eventGames, rows } = characterStats(data);
-  const min = Math.ceil(total * 0.1);
-  const shown = rows.filter((r) => r.games >= min).sort(SORT[sort]);
-  const events = KEL_EVENTS.filter((e) => eventGames[e.key] > 0);
-  const swings = shown.map((r) => {
+const buildPath = (key: string) => `${KEL_SCREENS.characters.path}?view=build&c=${encodeURIComponent(key)}`;
+const place = (v: number) => `${v.toFixed(2)}위`;
+
+function Bar({ s, sub }: { s: Share; sub?: string }) {
+  return (
+    <li className="py-1">
+      <span className="flex justify-between gap-2 text-[14px]">
+        <span className="min-w-0 truncate">{s.name}</span>
+        <span className="text-fg-2 tabular-nums">{pct(s.share)}</span>
+      </span>
+      <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-field">
+        <span className="block h-full rounded-full" style={{ width: `${s.share * 100}%`, background: "var(--kel-1)" }} />
+      </span>
+      {sub && <span className="mt-0.5 block text-[12px] text-fg-3">{sub}</span>}
+    </li>
+  );
+}
+
+function Block({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="min-w-0">
+      <h3 className="mb-1.5 text-[13px] font-semibold text-fg-3">{title}</h3>
+      {children}
+    </div>
+  );
+}
+
+function Card({ b }: { b: CharacterBuild }) {
+  const order = b.order?.name.split(" ") ?? [];
+  return (
+    <section className="panel grid grid-cols-[minmax(0,4fr)_minmax(0,8fr)] gap-7 p-6 max-[1080px]:grid-cols-1 max-[760px]:p-4" aria-labelledby="character">
+      <div className="min-w-0">
+        <h2 id="character" className="flex items-center gap-4 text-[32px] leading-tight font-extrabold tracking-[-0.5px] max-[760px]:text-[28px]">
+          <Char name={b.key} label="" size={64} />
+          {characterName(b.key)}
+        </h2>
+        <p className="mt-4 text-fg-2">
+          2026 시즌에 선수들이 {b.picks}번 골랐고, 그중 {b.wins}번은 1위를 했습니다.
+        </p>
+        <dl className="mt-4 grid grid-cols-3 gap-2.5">
+          {[
+            ["등장률", pct(b.rate), `${b.games}게임`],
+            ["평균 순위", place(b.avgPlace)],
+            ["1위 비율", pct(b.winRate)],
+          ].map(([label, value, sub]) => (
+            <div key={label} className="min-w-0 rounded-lg bg-field px-4 py-3.5 max-[420px]:px-3">
+              <dt className="text-[13px] text-fg-3">{label}</dt>
+              <dd className="mt-1 text-[22px] leading-tight font-extrabold max-[420px]:text-[19px]">{value}</dd>
+              {sub && <dd className="mt-0.5 text-[13px] text-fg-3">{sub}</dd>}
+            </div>
+          ))}
+        </dl>
+        <h3 className="mt-5 text-[13px] font-semibold text-fg-3">많이 고른 선수</h3>
+        <ul className="mt-2 grid gap-2">
+          {b.players.map((p) => (
+            <li key={p.name} className="flex items-center justify-between gap-3 text-[15px]">
+              <span className="inline-flex min-w-0 items-center gap-2">
+                <Logo team={TEAM.get(p.team)!} size={22} label />
+                <span className="truncate">{p.name}</span>
+              </span>
+              <span className="text-fg-3">{p.count}번</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div className="grid grid-cols-3 content-start gap-x-7 gap-y-6 max-[1080px]:grid-cols-2 max-[560px]:grid-cols-1">
+        <Block title="무기">
+          <ul>
+            {b.weapons.map((w) => (
+              <Bar key={w.name} s={w} sub={`${w.count}번, 평균 ${place(w.avgPlace)}`} />
+            ))}
+          </ul>
+        </Block>
+        <Block title="전술 스킬">
+          <ul>
+            {b.tactical.map((s) => (
+              <Bar key={s.name} s={s} />
+            ))}
+          </ul>
+        </Block>
+        <Block title="핵심 특성">
+          <ul>
+            {b.traits.map((s) => (
+              <Bar key={s.name} s={s} />
+            ))}
+          </ul>
+        </Block>
+        <Block title="마지막 일격 기술">
+          {b.lastHits.length ? (
+            <ul>
+              {b.lastHits.map((s) => (
+                <Bar key={s.name} s={s} sub={`${s.count}번`} />
+              ))}
+            </ul>
+          ) : (
+            <p className="text-[14px] text-fg-3">기록 없음</p>
+          )}
+        </Block>
+        <Block title="많이 간 최종 장비">
+          <dl className="grid grid-cols-[auto_minmax(0,1fr)_auto] gap-x-3 gap-y-2 text-[14px]">
+            {b.gear.map((g) => (
+              <div key={g.slot} className="contents">
+                <dt className="text-fg-3">{g.slot}</dt>
+                <dd className="min-w-0 truncate">{g.name}</dd>
+                <dd className="text-right text-fg-2 tabular-nums">{pct(g.share)}</dd>
+              </div>
+            ))}
+          </dl>
+        </Block>
+        <Block title="1~6레벨 스킬 순서">
+          {b.order ? (
+            <>
+              <ol className="flex flex-wrap gap-1.5" aria-label={b.order.name}>
+                {order.map((s, i) => (
+                  <li key={i} className={`grid size-[34px] place-items-center rounded-lg font-extrabold ${s === "R" ? "bg-adv text-[#0a0d14]" : "bg-field"}`}>
+                    {s}
+                  </li>
+                ))}
+              </ol>
+              <ul className="mt-2.5 text-[13px] leading-relaxed text-fg-3">
+                {SKILL_SLOTS.filter((s) => b.skills[s] && order.includes(s)).map((s) => (
+                  <li key={s}>
+                    {s} {b.skills[s]}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-2 text-[13px] text-fg-3">고른 기록의 {pct(b.order.share)}</p>
+            </>
+          ) : (
+            <p className="text-[14px] text-fg-3">기록 없음</p>
+          )}
+        </Block>
+      </div>
+    </section>
+  );
+}
+
+function RateTable({ title, rows, events }: { title: string; rows: PickRate[]; events: readonly (typeof KEL_EVENTS)[number][] }) {
+  return (
+    <section className="panel min-w-0 p-5 max-[760px]:p-4" aria-labelledby="tactical">
+      <h2 id="tactical" className="text-[17px] font-extrabold">
+        {title}
+      </h2>
+      <KelScroll label={title} className="mt-3">
+        <table className="kel-table kel-heat">
+          <thead>
+            <tr>
+              <th className="l pin">전술 스킬</th>
+              <th className="narrow">시즌 전체</th>
+              {events.map((e) => (
+                <th key={e.key} className="text-center">
+                  {e.name}
+                </th>
+              ))}
+              <th className="wide">시즌 전체</th>
+              <th>평균 순위</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.name}>
+                <td className="l pin">{r.name}</td>
+                <td className="narrow font-bold">{pct(r.share)}</td>
+                {events.map((e) => (
+                  <HeatCell key={e.key} v={r.byEvent[e.key]}>
+                    {pct(r.byEvent[e.key] ?? 0)}
+                  </HeatCell>
+                ))}
+                <td className="wide font-bold">{pct(r.share)}</td>
+                <td>{place(r.avgPlace)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </KelScroll>
+    </section>
+  );
+}
+
+function Build({ data, b }: { data: Kel; b: CharacterBuild }) {
+  const builds = characterBuilds(data);
+  const season = seasonBuilds(data);
+  const events = KEL_EVENTS.filter((e) => season.tactical.some((t) => t.byEvent[e.key] !== null));
+  const traits = season.traits.slice(0, 10);
+  return (
+    <>
+      <Card b={b} />
+      <section className="panel p-5 max-[760px]:p-4" aria-labelledby="character-list">
+        <h2 id="character-list" className="text-[17px] font-extrabold">
+          실험체 {builds.length}종
+        </h2>
+        <ul className="mt-3 flex flex-wrap gap-1.5">
+          {builds.map((x) => (
+            <li key={x.key}>
+              <Link
+                href={buildPath(x.key)}
+                aria-current={x.key === b.key ? "page" : undefined}
+                aria-label={characterName(x.key)}
+                title={characterName(x.key)}
+                className="grid size-10 place-items-center rounded-full border-2 border-transparent hover:border-line-strong aria-[current=page]:border-accent"
+              >
+                <Char name={x.key} label="" size={32} />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+      <div className="grid grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)] gap-5 max-[1280px]:grid-cols-1">
+        <RateTable title="전술 스킬 대회별 선택률" rows={season.tactical} events={events} />
+        <section className="panel min-w-0 p-5 max-[760px]:p-4" aria-labelledby="traits">
+          <h2 id="traits" className="text-[17px] font-extrabold">
+            많이 고른 핵심 특성
+          </h2>
+          <KelScroll label="많이 고른 핵심 특성" className="mt-3">
+            <table className="kel-table w-full">
+              <thead>
+                <tr>
+                  <th className="l">특성</th>
+                  <th className="l">계열</th>
+                  <th>선택률</th>
+                  <th>평균 순위</th>
+                </tr>
+              </thead>
+              <tbody>
+                {traits.map((t) => (
+                  <tr key={t.name}>
+                    <td className="l">{t.name}</td>
+                    <td className="l text-fg-3">{t.group}</td>
+                    <td className="font-bold">{pct(t.share)}</td>
+                    <td>{place(t.avgPlace)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </KelScroll>
+        </section>
+      </div>
+    </>
+  );
+}
+
+function rateLead(rows: CharacterStat[], events: readonly (typeof KEL_EVENTS)[number][]) {
+  const swings = rows.map((r) => {
     const rates = events.map((e, i) => ({ e, i, v: r.byEvent[e.key] }));
     const lo = top(rates, (x) => -x.v);
     const hi = top(rates, (x) => x.v);
@@ -40,12 +284,59 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
   });
   const swing = swings.length ? top(swings, (x) => x.gap) : null;
   const seen = (v: number) => (v ? `${pct(v, 0)}의 게임에 나왔` : "한 번도 나오지 않았");
-  const lead = [
+  return (
     swing &&
-      swing.gap > 0 &&
-      `${josa(characterName(swing.r.key), "은", "는")} ${swing.from.e.name}에서 ${seen(swing.from.v)}고, ${swing.to.e.name}에서는 ${seen(swing.to.v)}습니다.`,
-    `2026 시즌에는 실험체 ${rows.length}종이 한 번 이상 나왔습니다.`,
-  ];
+    swing.gap > 0 &&
+    `${josa(characterName(swing.r.key), "은", "는")} ${swing.from.e.name}에서 ${seen(swing.from.v)}고, ${swing.to.e.name}에서는 ${seen(swing.to.v)}습니다.`
+  );
+}
+
+export default async function Page({ searchParams }: { searchParams: Promise<{ view?: string; sort?: string; c?: string }> }) {
+  const { user, owner } = await kelGate("characters");
+  const q = await searchParams;
+  // 빌드 탭은 공개 전이라 운영자만
+  const views = owner ? VIEWS : VIEWS.filter(([v]) => v !== "build");
+  if (q.view === "build" && !owner) notFound();
+  const view = pickTab(views, q.view);
+  const sort = pickTab(SORTS, q.sort);
+  const data = kelData();
+  if (!data) return <KelPage user={user} owner={owner} screen="characters" lead={NO_DATA} />;
+  const { total, eventGames, rows } = characterStats(data);
+  const tabs = views.length > 1 && <KelTabs screen="characters" param="view" label="보기" items={views} current={view} />;
+
+  if (view === "build") {
+    const builds = characterBuilds(data);
+    const b = builds.find((x) => x.key === q.c) ?? builds[0];
+    if (!b) return <KelPage user={user} owner={owner} screen="characters" lead="dak.gg 경기 상세를 찾지 못했습니다.">{tabs}</KelPage>;
+    const [w1, w2] = b.weapons;
+    const { records } = seasonBuilds(data);
+    return (
+      <KelPage
+        user={user}
+        owner={owner}
+        screen="characters"
+        lead={[
+          `${josa(characterName(b.key), "은", "는")} ${total}게임 가운데 ${b.games}게임에 나왔습니다.`,
+          w2 && `${josa(w1.name, "을", "를")} 든 기록이 ${w1.count}번, ${josa(w2.name, "을", "를")} 든 기록이 ${w2.count}번입니다.`,
+        ]}
+        notes={[
+          `무기, 전술 스킬, 핵심 특성, 최종 장비, 스킬 순서 비율은 그 실험체를 고른 기록 ${b.picks}개를 기준으로 셉니다.`,
+          "무기 칸 장비는 그 무기를 든 기록을 기준으로 셉니다.",
+          `마지막 일격 기술은 사망 기록 첫 칸에서 이 실험체가 처치한 ${b.deaths}번을 기준으로 셉니다.`,
+          b.unnamed > 0 && `공식 기술 이름을 찾지 못한 ${b.unnamed}번은 목록에 넣지 않았습니다.`,
+          `전술 스킬과 핵심 특성 선택률은 선수 기록 ${records.toLocaleString("ko-KR")}개, 대회별 칸은 그 대회의 선수 기록을 기준으로 셉니다.`,
+          "평균 순위는 고른 선수가 속한 팀의 순위입니다.",
+        ]}
+      >
+        {tabs}
+        <Build data={data} b={b} />
+      </KelPage>
+    );
+  }
+
+  const min = Math.ceil(total * 0.1);
+  const shown = rows.filter((r) => r.games >= min).sort(SORT[sort]);
+  const events = KEL_EVENTS.filter((e) => eventGames[e.key] > 0);
   const sizes = events.map((e) => eventGames[e.key]);
 
   return (
@@ -53,7 +344,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
       user={user}
       owner={owner}
       screen="characters"
-      lead={lead}
+      lead={[rateLead(shown, events), `2026 시즌에는 실험체 ${rows.length}종이 한 번 이상 나왔습니다.`]}
       notes={[
         "칸의 숫자는 그 대회 게임 가운데 한 팀이라도 그 실험체를 고른 게임이 차지하는 비율입니다.",
         `시즌 게임의 10%인 ${min}게임 이상 나온 ${shown.length}종만 넣었습니다.`,
@@ -62,7 +353,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
         "평균 순위와 1위 비율은 그 실험체를 고른 선수의 팀 순위로 셉니다.",
       ]}
     >
-      <KelTabs screen="characters" param="sort" label="정렬" items={SORTS} current={sort} />
+      <div className="grid gap-2">
+        {tabs}
+        <KelTabs screen="characters" param="sort" label="정렬" items={SORTS} current={sort} />
+      </div>
       <section className="panel p-5 max-[760px]:p-4">
         <KelScroll label="대회별 실험체 등장률">
           <table className="kel-table kel-heat">

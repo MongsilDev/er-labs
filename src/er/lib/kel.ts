@@ -96,11 +96,11 @@ export const KEL_SCREENS: Record<KelScreen, { path: string; title: string; publi
   circuits: { path: "/er/kel/circuits", title: "서킷별 순위", public: true },
   finals: { path: "/er/kel/finals", title: "결승 점수 흐름", public: true },
   teams: { path: "/er/kel/teams", title: "팀 성향", public: true },
-  regions: { path: "/er/kel/regions", title: "시작 지역과 탈락 지역", public: false },
+  regions: { path: "/er/kel/regions", title: "시작 지역과 사망 지역", public: false },
   players: { path: "/er/kel/players", title: "선수 카드", public: true },
   roles: { path: "/er/kel/roles", title: "팀 안에서 맡은 역할", public: true },
   kills: { path: "/er/kel/kills", title: "처치 관계", public: false },
-  characters: { path: "/er/kel/characters", title: "실험체 등장률", public: true },
+  characters: { path: "/er/kel/characters", title: "실험체", public: true },
   comps: { path: "/er/kel/comps", title: "자주 나온 3인 조합", public: true },
   records: { path: "/er/kel/records", title: "한 게임 기록", public: true },
 };
