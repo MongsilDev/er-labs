@@ -135,6 +135,7 @@ export function comps(data: Kel, min: number): Comp[] {
 }
 
 export function records(data: Kel) {
+  const low = data.rows.filter((r) => r.placement >= 7);
   return {
     kills: top(
       data.rows,
@@ -143,10 +144,7 @@ export function records(data: Kel) {
     ),
     damage: [...data.rows].sort((a, b) => b.damage - a.damage).slice(0, 5),
     taken: top(data.rows, (r) => r.taken),
-    lowTeamDamage: top(
-      data.rows.filter((r) => r.placement >= 7),
-      (r) => r.damage,
-    ),
+    lowTeamDamage: low.length ? top(low, (r) => r.damage) : null,
     teamKills: top(data.games, (g) => g.kills),
     characters: [...Map.groupBy(data.rows, (r) => r.character)]
       .map(([key, list]) => ({

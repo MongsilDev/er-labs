@@ -49,7 +49,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ v
             <Tile label="최다 킬" value={`${rec.kills.kills}킬`} r={rec.kills} detail={`가한 피해 ${int(rec.kills.damage)}`} />
             <Tile label="최다 가한 피해" value={int(rec.damage[0].damage)} r={rec.damage[0]} detail={`${rec.damage[0].kills}킬`} />
             <Tile label="최다 받은 피해" value={int(rec.taken.taken)} r={rec.taken} detail={`가한 피해 ${int(rec.taken.damage)}`} />
-            <Tile label="7위 이하 팀의 최다 가한 피해" value={int(rec.lowTeamDamage.damage)} r={rec.lowTeamDamage} detail={`${rec.lowTeamDamage.kills}킬`} />
+            {rec.lowTeamDamage && <Tile label="7위 이하 팀의 최다 가한 피해" value={int(rec.lowTeamDamage.damage)} r={rec.lowTeamDamage} detail={`${rec.lowTeamDamage.kills}킬`} />}
           </section>
           <section className="panel p-5 max-[760px]:p-4" aria-labelledby="top-damage">
             <h2 id="top-damage" className="text-[17px] font-extrabold">
@@ -95,9 +95,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ v
           </section>
         </>
       ) : (
-        <section className="panel p-5 max-[760px]:p-4">
+        <section className="panel max-w-[560px] p-5 max-[760px]:p-4">
           <KelScroll label="실험체별 한 게임 최고 기록">
-            <table className="kel-table max-w-[720px]">
+            <table className="kel-table">
               <thead>
                 <tr>
                   <th className="l">실험체</th>

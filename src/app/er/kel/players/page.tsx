@@ -100,7 +100,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ p
       notes={[
         `순위는 ${MIN_GAMES}게임 이상 나온 선수 ${eligible}명끼리 비교했고, ${SHOW_RANK}위 안에 든 지표에만 표시했습니다.`,
         "KPR은 경기 기록에 게임마다 적힌 선수 평점을 평균한 값이고, 한 게임의 평균은 약 1.0입니다.",
-        "가한 피해 비중은 게임마다 팀 세 명이 가한 피해 합계에서 차지한 비율을 평균한 값입니다.",
+        "가한 피해 비중은 게임마다 팀 세 명이 가한 피해 합계에서 그 선수가 차지한 비율을 평균한 값입니다.",
       ]}
       source
     >
