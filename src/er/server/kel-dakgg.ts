@@ -3,7 +3,20 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 // dak.gg 경기 상세에서 화면에 쓰는 값만 남김
-export type KelDak = { cc: number; heal: number; camera: number; vision: number; wickline: boolean };
+export type KelDak = {
+  cc: number;
+  heal: number;
+  camera: number;
+  cameraOff: number;
+  vision: number;
+  revive: number;
+  time: number;
+  wickline: boolean;
+  // 킬과 데스는 상대 실험체 번호별 횟수
+  num: number;
+  killed: Record<string, number>;
+  killedBy: Record<string, number>;
+};
 
 type Player = {
   gameId: number;
@@ -12,8 +25,13 @@ type Player = {
   ccTimeToPlayer?: number;
   teamRecover?: number;
   addTelephotoCamera?: number;
+  removeTelephotoCamera?: number;
   viewContribution?: number;
+  creditRevivedOthersCount?: number;
+  playTime?: number;
   killWicklineGainVFCredit?: number;
+  killDetails?: string;
+  deathDetails?: string;
 };
 
 const GAMES = "dakgg/games";
@@ -33,13 +51,27 @@ export function dakFiles(dir: string): string[] {
   }
 }
 
+const counts = (json?: string): Record<string, number> => {
+  try {
+    return json ? JSON.parse(json) : {};
+  } catch {
+    return {};
+  }
+};
+
 // protectAbsorb는 자기 몸의 보호막이 막은 피해라 팀원 회복에 넣지 않음
 const pick = (p: Player): KelDak => ({
   cc: p.ccTimeToPlayer ?? 0,
   heal: p.teamRecover ?? 0,
   camera: p.addTelephotoCamera ?? 0,
+  cameraOff: p.removeTelephotoCamera ?? 0,
   vision: p.viewContribution ?? 0,
+  revive: p.creditRevivedOthersCount ?? 0,
+  time: p.playTime ?? 0,
   wickline: (p.killWicklineGainVFCredit ?? 0) > 0,
+  num: p.characterNum,
+  killed: counts(p.killDetails),
+  killedBy: counts(p.deathDetails),
 });
 
 // character는 dak.gg 이름표의 영문 key
