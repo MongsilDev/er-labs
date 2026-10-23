@@ -10,8 +10,11 @@ export const duration = (seconds: number) => {
   return `${Math.floor(s / 60)}분 ${String(s % 60).padStart(2, "0")}초`;
 };
 
+// 실험체 이름표에 아직 없는 실험체
+const MISSING: Record<string, string> = { Yumin: "유민" };
+
 export function characterName(english: string): string {
-  return KO[english] ?? KO[english.replace(/\s+/g, "")] ?? english;
+  return KO[english] ?? KO[english.replace(/\s+/g, "")] ?? MISSING[english] ?? english;
 }
 
 export function remaining(expiresAt: number, at = Date.now()): string {
