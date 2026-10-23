@@ -419,7 +419,7 @@ export type CharacterBuild = {
   weapons: (Share & { avgPlace: number })[];
   tactical: Share[];
   traits: Share[];
-  // 사망 기록 첫 칸에서 이 실험체가 처치한 수와 그 가운데 기술을 원문 이름으로 적은 수
+  // 사망 기록 첫 칸에서 이 실험체가 처치한 수와, 목록에 든 기술 가운데 원문 이름으로 적은 처치 수
   deaths: number;
   unnamed: number;
   lastHits: Share[];
@@ -462,6 +462,8 @@ export const characterBuilds = memo((data) => {
     .map(([key, rows]): CharacterBuild => {
       const weapons = shares(rows, (r) => r.dak.weapon).map((w) => ({ ...w, avgPlace: mean(rows.filter((r) => r.dak.weapon === w.name).map((r) => r.placement)) }));
       const killed = hits.get(key) ?? [];
+      const lastHits = shares(killed, (d) => d.cause).slice(0, 4);
+      const raw = new Set(killed.filter((d) => !d.official).map((d) => d.cause));
       const every = picked.get(key) ?? rows;
       const wins = every.filter((r) => r.placement === 1).length;
       return {
@@ -477,8 +479,8 @@ export const characterBuilds = memo((data) => {
         tactical: shares(rows, (r) => r.dak.tactical).slice(0, 3),
         traits: shares(rows, (r) => r.dak.trait).slice(0, 3),
         deaths: killed.length,
-        unnamed: killed.filter((d) => !d.official).length,
-        lastHits: shares(killed, (d) => d.cause).slice(0, 4),
+        unnamed: lastHits.filter((h) => raw.has(h.name)).reduce((a, h) => a + h.count, 0),
+        lastHits,
         gear: gearOf(rows, weapons),
         order: shares(rows, (r) => r.dak.order)[0] ?? null,
         skills: rows[0].dak.skills,
