@@ -2,7 +2,7 @@ import "server-only";
 import { byCharacter, byText } from "@/er/lib/format";
 import { EVENT_NAME, KEL_EVENTS, TEAM, type KelEvent } from "@/er/lib/kel";
 import { finalState, placementPoints, type FinalState, type Round } from "@/er/lib/kel-calc";
-import { stageRounds, type Kel, type KelRow } from "./kel";
+import { CIRCUIT_STAGES, stageRounds, type Kel, type KelRow } from "./kel";
 import type { KelDak } from "./kel-dakgg";
 
 type DakRow = KelRow & { dak: KelDak };
@@ -138,24 +138,40 @@ export function comps(data: Kel, min: number): Comp[] {
     .sort((a, b) => b.count - a.count || a.avgPlace - b.avgPlace);
 }
 
-export function records(data: Kel) {
-  const low = data.rows.filter((r) => r.placement >= 7);
-  const dak = withDak(data.rows);
+// kelData가 같은 객체를 돌려주는 동안 계산 결과를 다시 씀
+function memo<T>(f: (data: Kel) => T): (data: Kel) => T {
+  const cache = new WeakMap<Kel, T>();
+  return (data) => {
+    if (!cache.has(data)) cache.set(data, f(data));
+    return cache.get(data)!;
+  };
+}
+
+const STAGE_ORDER: readonly string[] = CIRCUIT_STAGES;
+// 같은 값의 기록이 경기 순서대로 나오도록 날짜, 단계, 라운드 순으로 미리 정렬
+const inOrder = (rows: KelRow[]) =>
+  [...rows].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : STAGE_ORDER.indexOf(a.stage) - STAGE_ORDER.indexOf(b.stage) || a.round - b.round));
+
+export const records = memo((data) => {
+  const rows = inOrder(data.rows);
+  const low = rows.filter((r) => r.placement >= 7);
+  const dak = withDak(rows);
   const best = (value: (d: KelDak) => number) => (dak.length ? top(dak, (r) => value(r.dak)) : null);
   return {
     cc: best((d) => d.cc),
     heal: best((d) => d.heal),
     camera: best((d) => d.camera),
+    vision: best((d) => d.vision),
     kills: top(
-      data.rows,
+      rows,
       (r) => r.kills,
       (r) => r.damage,
     ),
-    damage: [...data.rows].sort((a, b) => b.damage - a.damage).slice(0, 5),
-    taken: top(data.rows, (r) => r.taken),
+    damage: ranked(rows, (r) => r.damage),
+    taken: top(rows, (r) => r.taken),
     lowTeamDamage: low.length ? top(low, (r) => r.damage) : null,
     teamKills: top(data.games, (g) => g.kills),
-    characters: [...Map.groupBy(data.rows, (r) => r.character)]
+    characters: [...Map.groupBy(rows, (r) => r.character)]
       .map(([key, list]) => ({
         key,
         kills: top(
@@ -167,7 +183,27 @@ export function records(data: Kel) {
       }))
       .sort((a, b) => byCharacter(a.key, b.key)),
   };
+});
+
+export type Records = ReturnType<typeof records>;
+
+// 5위 안의 기록을 같은 값은 같은 순위로 모두 넣음
+function ranked<T>(list: T[], value: (x: T) => number): { r: T; rank: number }[] {
+  const sorted = [...list].sort((a, b) => value(b) - value(a));
+  const out: { r: T; rank: number }[] = [];
+  for (const r of sorted) {
+    const prev = out.at(-1);
+    const rank = prev && value(prev.r) === value(r) ? prev.rank : out.length + 1;
+    if (rank > 5) break;
+    out.push({ r, rank });
+  }
+  return out;
 }
+
+export const lows = memo((data) => {
+  const rows = inOrder(data.rows);
+  return { damage: ranked(rows, (r) => -r.damage), deaths: ranked(rows, (r) => r.deaths) };
+});
 
 // 팀 선수 가운데 누구라도 위클라인을 처치한 게임 수, 경기 상세가 없는 게임은 세지 않음
 export function wicklines(data: Kel): { team: string; count: number; games: number }[] {

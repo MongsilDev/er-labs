@@ -3,7 +3,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 // dak.gg 경기 상세에서 화면에 쓰는 값만 남김
-export type KelDak = { cc: number; heal: number; camera: number; wickline: boolean };
+export type KelDak = { cc: number; heal: number; camera: number; vision: number; wickline: boolean };
 
 type Player = {
   gameId: number;
@@ -12,6 +12,7 @@ type Player = {
   ccTimeToPlayer?: number;
   teamRecover?: number;
   addTelephotoCamera?: number;
+  viewContribution?: number;
   killWicklineGainVFCredit?: number;
 };
 
@@ -37,6 +38,7 @@ const pick = (p: Player): KelDak => ({
   cc: p.ccTimeToPlayer ?? 0,
   heal: p.teamRecover ?? 0,
   camera: p.addTelephotoCamera ?? 0,
+  vision: p.viewContribution ?? 0,
   wickline: (p.killWicklineGainVFCredit ?? 0) > 0,
 });
 

@@ -57,6 +57,15 @@ const KEL_CHARS = ["Nadine", "Alonso", "Debi & Marlene", "Li Dailin", "NiaH", "Y
 // dak.gg 실험체 이름표의 key, 경기 기록의 영문 이름과 표기가 다름
 const DAK_KEYS = ["Nadine", "Alonso", "DebiMarlene", "LiDailin", "Niah", "YuMin", "Jackie", "Aya", "Eleven"];
 
+// 첫 게임의 팀 순서-선수 순서별 가한 피해
+const LOW_DAMAGE = new Map([
+  ["7-0", 281],
+  ["7-1", 590],
+  ["7-2", 830],
+  ["6-0", 892],
+  ["6-1", 1024],
+]);
+
 // 단계별 경기 날짜는 서킷 첫날부터 센 날수
 const DAYS = [0, 0, 1, 7, 7, 8];
 const shift = (date: string, days: number) => new Date(Date.parse(date) + days * 86_400_000).toISOString().slice(0, 10);
@@ -107,10 +116,14 @@ export function kelFixture(dataDir: string) {
         const ks = ((r + i) % 5) * 1.5;
         for (let p = 0; p < 3; p++) {
           const c = (i * 3 + p + r) % KEL_CHARS.length;
+          // 첫 게임에만 최다 데스와 최저 가한 피해를 따로 두어 낮은 기록 표가 다섯 줄 남짓 나옴
+          const first = f === 0 && r === 1;
+          const deaths = first && p === 0 && i < 7 ? (i ? 9 : 11) : p % 2;
+          const low = first ? LOW_DAMAGE.get(`${i}-${p}`) : undefined;
           lines.push(
             [
               name.slice(0, -15).replace(/_/g, " "), date, r, gameId, place, team, `T${g}_선수${g}-${p}`, KEL_CHARS[c],
-              (r + i + p) % 4, (i + p) % 6, p % 2, 30 + i, 9000 + i * 700 + p * 300 + r * 50, 7000 + p * 900 + i * 100, RS[place - 1], ks, RS[place - 1] + ks, 1500 + i, (1 + ((i + p) % 3) / 2).toFixed(3),
+              (r + i + p) % 4, (i + p) % 6, deaths, 30 + i, low ?? 9000 + i * 700 + p * 300 + r * 50, 7000 + p * 900 + i * 100, RS[place - 1], ks, RS[place - 1] + ks, 1500 + i, (1 + ((i + p) % 3) / 2).toFixed(3),
             ].join(","),
           );
           // 위클라인은 2위 팀 세 명이 모두 처치 크레딧을 받음
@@ -122,6 +135,7 @@ export function kelFixture(dataDir: string) {
             teamRecover: 500 * p + 100 * i,
             protectAbsorb: 50 * r,
             addTelephotoCamera: (i + p + r) % 7,
+            viewContribution: 20 + i * 4 + p + r,
             killWicklineGainVFCredit: place === 2 ? 10 : 0,
           });
         }

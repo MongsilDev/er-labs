@@ -6,7 +6,7 @@ import { championshipTeams, KEL_TEAMS, seasonStandings } from "../../src/er/lib/
 import { finalState, standings, type Entry, type Round } from "../../src/er/lib/kel-calc";
 import { kelData, stageRounds } from "../../src/er/server/kel";
 import { kelOdds } from "../../src/er/server/kel-odds";
-import { records, wicklines } from "../../src/er/server/kel-stats";
+import { lows, records, wicklines } from "../../src/er/server/kel-stats";
 import { kelFixture } from "./helpers";
 
 process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "er-labs-kel-"));
@@ -91,9 +91,22 @@ describe("KEL 자료", () => {
     const data = kelData()!;
     expect(data.rows.filter((r) => !r.dak)).toEqual([]);
     const rec = records(data);
-    expect([rec.cc!.dak.cc, rec.heal!.dak.heal, rec.camera!.dak.camera]).toEqual([41, 1700, 6]);
+    expect([rec.cc!.dak.cc, rec.heal!.dak.heal, rec.camera!.dak.camera, rec.vision!.dak.vision]).toEqual([41, 1700, 6, 58]);
     const seconds = [...Map.groupBy(data.games, (g) => g.team)].map(([team, list]) => [team, list.filter((g) => g.placement === 2).length]);
     expect(Object.fromEntries(wicklines(data).map((w) => [w.team, w.count]))).toEqual(Object.fromEntries(seconds));
+  });
+
+  it("낮은 기록은 5위 안의 기록을 넣고, 같은 값은 같은 순위로 모두 넣는다", () => {
+    kelFixture(process.env.DATA_DIR!);
+    const { damage, deaths } = lows(kelData()!);
+    expect(damage.map((x) => [x.rank, x.r.damage])).toEqual([
+      [1, 281],
+      [2, 590],
+      [3, 830],
+      [4, 892],
+      [5, 1024],
+    ]);
+    expect(deaths.map((x) => [x.rank, x.r.deaths])).toEqual([[1, 11], ...Array.from({ length: 6 }, () => [2, 9])]);
   });
 });
 

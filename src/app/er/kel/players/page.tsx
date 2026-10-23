@@ -4,7 +4,7 @@ import { Logo } from "@/er/components/kel/Team";
 import Char from "@/er/components/t/Char";
 import { int } from "@/er/lib/cut";
 import { pct } from "@/er/lib/format";
-import { KEL_SCREENS, seasonStandings, TEAM, wikiUrl } from "@/er/lib/kel";
+import { playerPath, seasonStandings, TEAM, wikiUrl } from "@/er/lib/kel";
 import { kelData, kelGate, kelMetadata } from "@/er/server/kel";
 import { gameLabel, MIN_GAMES, playerStats, rankOf, type Metric, type PlayerStat } from "@/er/server/kel-stats";
 
@@ -116,7 +116,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ p
                 {players.map((p) => (
                   <Link
                     key={p.name}
-                    href={`${KEL_SCREENS.players.path}?p=${encodeURIComponent(p.name)}`}
+                    href={playerPath(p.name)}
                     aria-current={p.name === picked?.name ? "page" : undefined}
                     className="chip h-7 no-underline hover:border-line-strong aria-[current=page]:border-accent aria-[current=page]:text-accent-text"
                   >

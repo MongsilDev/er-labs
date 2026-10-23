@@ -8,7 +8,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { type Browser, chromium, type Page } from "playwright";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { KEL_SCREENS } from "../../../src/er/lib/kel";
+import { KEL_SCREENS, playerPath } from "../../../src/er/lib/kel";
 import { csv, kelFixture } from "../helpers";
 
 const ROOT = fileURLToPath(new URL("../../..", import.meta.url));
@@ -126,13 +126,14 @@ const SCREENS: Screen[] = [
   { name: "KEL 서킷별 순위", path: () => "/er/kel/circuits", login: true },
   { name: "KEL 결승 점수 흐름", path: () => "/er/kel/finals", login: true },
   { name: "KEL 팀 성향", path: () => "/er/kel/teams", login: true },
-  { name: "KEL 선수 카드", path: () => `/er/kel/players?p=${encodeURIComponent("선수4-0")}`, login: true },
+  { name: "KEL 선수 카드", path: () => playerPath("선수4-0"), login: true },
   { name: "KEL 선수 카드 처음", path: () => "/er/kel/players", login: true },
   { name: "KEL 역할", path: () => "/er/kel/roles", login: true },
   { name: "KEL 실험체 등장률", path: () => "/er/kel/characters", login: true },
   { name: "KEL 3인 조합", path: () => "/er/kel/comps", login: true },
   { name: "KEL 한 게임 기록", path: () => "/er/kel/records", login: true },
   { name: "KEL 한 게임 기록 실험체별", path: () => "/er/kel/records?view=characters", login: true },
+  { name: "KEL 한 게임 기록 낮은 기록", path: () => "/er/kel/records?view=low", login: true },
   { name: "KEL 기록 로그아웃", path: () => "/er/kel" },
   { name: "없는 KEL 화면 다른 계정", path: () => "/er/kel/calc", login: "other", status: 404 },
 ];

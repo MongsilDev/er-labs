@@ -1,12 +1,11 @@
 import Link from "next/link";
 import Lines from "@/components/Lines";
+import { Best, Bests } from "@/er/components/kel/Best";
 import KelPage from "@/er/components/kel/KelPage";
 import { Logo, TeamName } from "@/er/components/kel/Team";
-import Char from "@/er/components/t/Char";
-import { int } from "@/er/lib/cut";
 import { championshipTeams, KEL_SCREENS, KEL_SECTIONS, kelVisible, TEAM, type KelTeam } from "@/er/lib/kel";
-import { kelData, kelGate, kelMetadata, kelSummary, type KelRow } from "@/er/server/kel";
-import { gameLabel, records, wicklines } from "@/er/server/kel-stats";
+import { kelData, kelGate, kelMetadata, kelSummary } from "@/er/server/kel";
+import { records, wicklines } from "@/er/server/kel-stats";
 
 export const dynamic = "force-dynamic";
 export const generateMetadata = () => kelMetadata("home");
@@ -38,42 +37,6 @@ function Event({ date, name, teams, slot, text }: { date: string; name: string; 
   );
 }
 
-function Best({ label, value, unit, href, children }: { label: string; value: React.ReactNode; unit?: string; href?: string; children: React.ReactNode }) {
-  const body = (
-    <>
-      <p className="text-[13px] text-fg-3">{label}</p>
-      <p className="text-[28px] leading-none font-extrabold tabular-nums max-[760px]:text-[24px]">
-        {value}
-        {unit && <span className="ml-0.5 text-[16px]">{unit}</span>}
-      </p>
-      {children}
-    </>
-  );
-  const box = "panel grid content-start gap-2 p-5 max-[760px]:p-4";
-  return href ? (
-    <Link className={`${box} no-underline hover:border-line-strong`} href={href}>
-      {body}
-    </Link>
-  ) : (
-    <div className={box}>{body}</div>
-  );
-}
-
-function Who({ r }: { r: KelRow }) {
-  return (
-    <div className="mt-1 grid gap-1">
-      <p className="text-[15px] font-bold">
-        <Char name={r.character} label={r.player} />
-      </p>
-      <p className="text-[13px] leading-relaxed text-fg-3">
-        {TEAM.get(r.team)!.name}
-        <br />
-        {gameLabel(r)}
-      </p>
-    </div>
-  );
-}
-
 export default async function Page() {
   const { user, owner } = await kelGate("home");
   const data = kelData();
@@ -102,27 +65,7 @@ export default async function Page() {
             시즌 최고 기록
           </h2>
           <div className="mt-3 grid grid-cols-3 gap-3 max-[760px]:grid-cols-2">
-            <Best label="한 게임 최다 킬" value={rec.kills.kills} unit="킬" href={KEL_SCREENS.records.path}>
-              <Who r={rec.kills} />
-            </Best>
-            <Best label="한 게임 최다 가한 피해" value={int(rec.damage[0].damage)} href={KEL_SCREENS.records.path}>
-              <Who r={rec.damage[0]} />
-            </Best>
-            {rec.cc && (
-              <Best label="한 게임 최다 군중제어 시간" value={rec.cc.dak.cc.toFixed(1)} unit="초">
-                <Who r={rec.cc} />
-              </Best>
-            )}
-            {rec.heal && (
-              <Best label="한 게임 최다 팀원 회복" value={int(rec.heal.dak.heal)}>
-                <Who r={rec.heal} />
-              </Best>
-            )}
-            {rec.camera && (
-              <Best label="한 게임 최다 카메라 설치" value={rec.camera.dak.camera} unit="개">
-                <Who r={rec.camera} />
-              </Best>
-            )}
+            <Bests rec={rec} keys={["kills", "damage", "cc", "heal", "camera"]} prefix="한 게임 " href={() => KEL_SCREENS.records.path} />
             {wick && wickTeam && (
               <Best label="위클라인 최다 처치" value={wick.count} unit="번">
                 <div className="mt-1 grid gap-1">

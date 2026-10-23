@@ -47,6 +47,7 @@ export type KelRow = {
   killScore: number;
   total: number;
   kpr: number;
+  deaths: number;
   dak?: KelDak;
 };
 
@@ -103,6 +104,7 @@ const COLUMNS = {
   killScore: "killScore",
   total: "TS",
   kpr: "KPR",
+  deaths: "데스",
 } as const;
 
 function parseFile(file: string, text: string): KelRow[] {
@@ -137,6 +139,7 @@ function parseFile(file: string, text: string): KelRow[] {
       killScore: num("killScore"),
       total: num("total"),
       kpr: num("kpr"),
+      deaths: num("deaths"),
     });
   }
   return rows;

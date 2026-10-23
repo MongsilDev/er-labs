@@ -81,7 +81,7 @@ export default async function Hub() {
   const picks = [...[...plus].sort((a, b) => a.points! - b.points!).slice(0, 2), ...[...minus].sort((a, b) => b.points! - a.points!).slice(0, 2)];
   const kel = kelData();
   const rec = kel && records(kel);
-  const best = rec && ([["킬", rec.kills, "kills"], ["가한 피해", rec.damage[0], "damage"], ["받은 피해", rec.taken, "taken"]] as const);
+  const best = rec && ([["킬", rec.kills, "kills"], ["가한 피해", rec.damage[0]?.r, "damage"], ["받은 피해", rec.taken, "taken"]] as const);
   return (
     <>
       <SiteHeader>

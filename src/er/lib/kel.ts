@@ -105,6 +105,8 @@ export const KEL_SCREENS: Record<KelScreen, { path: string; title: string; publi
 
 export const kelVisible = (screen: KelScreen, owner: boolean) => owner || KEL_SCREENS[screen].public;
 
+export const playerPath = (name: string) => `${KEL_SCREENS.players.path}?p=${encodeURIComponent(name)}`;
+
 // 첫 화면의 묶음. 하위 화면 아래에는 같은 묶음의 다른 화면 링크를 둠
 export const KEL_SECTIONS: { title: string; items: [KelScreen, string][] }[] = [
   {
@@ -118,7 +120,7 @@ export const KEL_SECTIONS: { title: string; items: [KelScreen, string][] }[] = [
     title: "경기",
     items: [
       ["finals", "서킷과 미드 시즌 컵 결승의 라운드별 누적 점수와 체크포인트"],
-      ["records", "최다 킬, 가한 피해, 받은 피해와 실험체별 최고 기록"],
+      ["records", "최다 킬, 가한 피해, 군중제어 시간, 팀원 회복, 실험체별 최고 기록, 낮은 기록"],
     ],
   },
   {
