@@ -6,7 +6,7 @@ import { championshipTeams, KEL_TEAMS, seasonStandings } from "../../src/er/lib/
 import { finalState, standings, type Entry, type Round } from "../../src/er/lib/kel-calc";
 import { kelData, stageRounds } from "../../src/er/server/kel";
 import { kelOdds } from "../../src/er/server/kel-odds";
-import { characterBuilds, lows, records, seasonBuilds, wicklines } from "../../src/er/server/kel-stats";
+import { characterBuilds, comps, lows, records, seasonBuilds, wicklines } from "../../src/er/server/kel-stats";
 import { kelFixture } from "./helpers";
 
 process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "er-labs-kel-"));
@@ -170,6 +170,24 @@ describe("KEL 실험체 빌드", () => {
     expect(data.rows.filter((r) => !r.dak)).toEqual([]);
     expect(data.rows.every((r) => r.dak!.gear.every((g) => g === "") && r.dak!.weapon)).toBe(true);
     expect(characterBuilds(data).find((x) => x.key === "Nadine")!.gear).toEqual([]);
+  });
+});
+
+describe("KEL 3인 조합", () => {
+  beforeAll(() => kelFixture(process.env.DATA_DIR!));
+
+  it("조합마다 횟수, 평균 순위, 1위 횟수, 많이 고른 팀을 세고 많이 나온 순서로 줄을 세운다", () => {
+    const data = kelData()!;
+    const all = comps(data, 1);
+    expect(all.reduce((a, c) => a + c.count, 0)).toBe(data.games.length);
+    for (const c of all) expect(c.teams.reduce((a, [, n]) => a + n, 0)).toBe(c.count);
+    expect(all.map((c) => c.count)).toEqual(all.map((c) => c.count).sort((a, b) => b - a));
+    const first = all[0];
+    const games = data.games.filter((g) => [...g.characters].sort().join() === [...first.characters].sort().join());
+    expect(first).toMatchObject({ count: games.length, wins: games.filter((g) => g.placement === 1).length });
+    expect(first.avgPlace).toBeCloseTo(games.reduce((a, g) => a + g.placement, 0) / games.length, 9);
+    expect(first.teams[0][1]).toBe(Math.max(...first.teams.map(([, n]) => n)));
+    expect(comps(data, first.count + 1)).toEqual([]);
   });
 });
 
