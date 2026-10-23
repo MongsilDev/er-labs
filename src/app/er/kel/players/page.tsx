@@ -3,7 +3,7 @@ import KelPage, { NO_DATA } from "@/er/components/kel/KelPage";
 import { Logo } from "@/er/components/kel/Team";
 import Char from "@/er/components/t/Char";
 import { int } from "@/er/lib/cut";
-import { byText, pct } from "@/er/lib/format";
+import { byText, duration, pct } from "@/er/lib/format";
 import { playerPath, seasonStandings, TEAM, wikiUrl } from "@/er/lib/kel";
 import { kelData, kelGate, kelMetadata, type KelRow } from "@/er/server/kel";
 import { gameLabel, killStats, MIN_GAMES, playerStats, rankOf, type KillPair, type Metric, type PlayerStat } from "@/er/server/kel-stats";
@@ -12,11 +12,6 @@ export const dynamic = "force-dynamic";
 export const generateMetadata = () => kelMetadata("players");
 
 type Tile = [Metric, string, (p: PlayerStat) => string, ((p: PlayerStat) => string)?];
-
-const duration = (seconds: number) => {
-  const s = Math.round(seconds);
-  return `${Math.floor(s / 60)}분 ${s % 60}초`;
-};
 
 const GROUPS: [string, Tile[]][] = [
   [

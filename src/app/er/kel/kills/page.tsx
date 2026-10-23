@@ -24,6 +24,7 @@ export default async function Page() {
     .filter((t) => [...stats.together.keys()].some((k) => k.startsWith(`${t.key}|`)));
   const kills = (a: string, b: string) => stats.teams.get(`${a}|${b}`) ?? 0;
   const max = Math.max(...stats.teams.values());
+  const unmet = teams.some((a) => teams.some((b) => a !== b && !stats.together.get(`${a.key}|${b.key}`)));
   const [first] = pairs;
   const [tk, tv] = [...stats.teams].reduce((a, x) => (x[1] > a[1] ? x : a))[0].split("|");
   const lead = [
@@ -37,7 +38,7 @@ export default async function Page() {
       owner={owner}
       screen="kills"
       lead={lead}
-      notes={["두 팀이 같은 게임에 나온 횟수가 짝마다 달라서, 칸마다 그 횟수를 함께 적었습니다.", "같은 게임에 나온 적 없는 두 팀은 -로 적었습니다."]}
+      notes={unmet ? ["같은 게임에 나온 적 없는 두 팀은 -로 적었습니다."] : []}
     >
       <section className="panel p-5 max-[760px]:p-4" aria-labelledby="top-pairs">
         <h2 id="top-pairs" className="text-[17px] font-extrabold">
@@ -138,7 +139,8 @@ export default async function Page() {
           </table>
         </KelScroll>
         <p className="mt-3 text-[13px] text-fg-3">
-          킬 기록에는 잡힌 실험체만 남아서, 같은 게임에 같은 실험체를 고른 상대가 둘 이상이라 가릴 수 없는 킬은 빼고 {int(stats.total)}킬 중 {int(stats.counted)}킬로 셌습니다.
+          킬 기록에는 잡힌 실험체만 남습니다.
+          <br />같은 게임에 같은 실험체를 고른 상대가 둘 이상이면 데스 기록으로 가리고, 그래도 가릴 수 없는 킬은 빼서 {int(stats.total)}킬 중 {int(stats.counted)}킬로 셌습니다.
         </p>
       </section>
     </KelPage>
