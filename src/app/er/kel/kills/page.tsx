@@ -38,7 +38,11 @@ export default async function Page() {
       owner={owner}
       screen="kills"
       lead={lead}
-      notes={unmet ? ["같은 게임에 나온 적 없는 두 팀은 -로 적었습니다."] : []}
+      notes={[
+        "킬 기록에는 잡힌 실험체만 남아, 같은 게임에 같은 실험체를 고른 상대가 둘 이상이면 데스 기록으로 누구인지 가렸습니다.",
+        `상대 선수를 특정할 수 없는 킬은 빼서, ${int(stats.total)}킬 가운데 ${int(stats.counted)}킬만 셌습니다.`,
+        unmet && "같은 게임에 나온 적 없는 두 팀은 -로 적었습니다.",
+      ]}
     >
       <section className="panel p-5 max-[760px]:p-4" aria-labelledby="top-pairs">
         <h2 id="top-pairs" className="text-[17px] font-extrabold">
@@ -90,8 +94,8 @@ export default async function Page() {
           팀끼리 잡은 횟수
         </h2>
         <p className="mt-1 text-[14px] text-fg-2">
-          줄은 잡은 팀, 칸은 잡힌 팀입니다.
-          <br />칸의 위 숫자는 잡은 횟수, 아래 숫자는 두 팀이 같은 게임에 나온 횟수입니다.
+          가로줄은 잡은 팀이고, 세로줄은 잡힌 팀입니다.
+          <br />칸 위쪽 숫자는 잡은 횟수이고, 아래쪽 숫자는 두 팀이 같은 게임에 나온 횟수입니다.
         </p>
         <KelScroll label="팀끼리 잡은 횟수" className="mt-3">
           <table className="kel-table kel-heat">
@@ -138,10 +142,6 @@ export default async function Page() {
             </tbody>
           </table>
         </KelScroll>
-        <p className="mt-3 text-[13px] text-fg-3">
-          킬 기록에는 잡힌 실험체만 남습니다.
-          <br />같은 게임에 같은 실험체를 고른 상대가 둘 이상이면 데스 기록으로 가리고, 상대를 한 명으로 정할 수 없는 킬은 빼서 {int(stats.total)}킬 중 {int(stats.counted)}킬로 셌습니다.
-        </p>
       </section>
     </KelPage>
   );
