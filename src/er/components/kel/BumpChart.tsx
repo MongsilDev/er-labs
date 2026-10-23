@@ -20,13 +20,15 @@ export default function BumpChart({ rows, labels, initial }: { rows: Row[]; labe
   const [picked, setPicked] = useState(() => initial.slice(0, TONES.length).map((key, tone) => ({ key, tone })));
   const narrow = w < 560;
   const step = 26;
-  const pad = { l: narrow ? 32 : 40, r: narrow ? 132 : 176, t: 12, b: 30 };
+  const pad = { l: narrow ? 32 : 40, r: narrow ? 144 : 176, t: 12, b: 30 };
   const h = pad.t + step * (rows.length - 1) + pad.b;
   const x = (i: number) => pad.l + 8 + (i * (w - pad.l - pad.r - 16)) / (labels.length - 1);
   const y = (rank: number) => pad.t + (rank - 1) * step;
   const toneOf = (key: string) => picked.find((p) => p.key === key)?.tone ?? -1;
   const points = (r: Row) => r.ranks.map((k, i) => `${x(i)},${y(k)}`).join(" ");
   const last = labels.length - 1;
+  // 세로선 간격이 '서킷 1' 글자 폭보다 좁으면 번호만 씀
+  const tight = (w - pad.l - pad.r - 16) / last < 44;
   const ticksY = [1, 4, 8, 12, 16].filter((r) => r <= rows.length);
 
   return (
@@ -36,7 +38,7 @@ export default function BumpChart({ rows, labels, initial }: { rows: Row[]; labe
           <g key={l}>
             <line x1={x(i)} x2={x(i)} y1={pad.t - 8} y2={h - pad.b + 6} stroke="var(--line-soft)" />
             <text x={x(i)} y={h - 8} textAnchor="middle" fontSize={12} fill="var(--text-3)">
-              {l}
+              {tight ? l.split(" ").at(-1) : l}
             </text>
           </g>
         ))}

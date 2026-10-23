@@ -12,7 +12,7 @@ const TIE: Record<string, string> = {
 };
 
 export function Delta({ d }: { d: number }) {
-  if (d > 0) return <span className="text-[12px] font-bold whitespace-nowrap text-accent" role="img" aria-label={`${d}계단 상승`}>▲{d}</span>;
+  if (d > 0) return <span className="text-[12px] font-bold whitespace-nowrap text-accent-text" role="img" aria-label={`${d}계단 상승`}>▲{d}</span>;
   if (d < 0) return <span className="text-[12px] font-bold whitespace-nowrap text-minus" role="img" aria-label={`${-d}계단 하락`}>▼{-d}</span>;
   return null;
 }

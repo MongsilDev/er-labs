@@ -91,10 +91,40 @@ export const KEL_SCREENS: Record<KelScreen, { path: string; title: string; publi
   teams: { path: "/er/kel/teams", title: "팀 성향", public: false },
   players: { path: "/er/kel/players", title: "선수 카드", public: false },
   roles: { path: "/er/kel/roles", title: "팀 안에서 맡은 역할", public: false },
-  characters: { path: "/er/kel/characters", title: "실험체 선택률", public: false },
+  characters: { path: "/er/kel/characters", title: "실험체 등장률", public: false },
   comps: { path: "/er/kel/comps", title: "자주 나온 3인 조합", public: false },
   records: { path: "/er/kel/records", title: "한 게임 기록", public: false },
 };
+
+export const kelVisible = (screen: KelScreen, owner: boolean) => owner || KEL_SCREENS[screen].public;
+
+// 첫 화면의 묶음. 하위 화면 아래에는 같은 묶음의 다른 화면 링크를 둠
+export const KEL_SECTIONS: { title: string; items: [KelScreen, string][] }[] = [
+  { title: "챔피언십", items: [["rules", "결승 직행 조건, 순차 체크포인트, 감점, 동점 처리"]] },
+  {
+    title: "팀",
+    items: [
+      ["circuits", "16팀의 서킷 1~4 최종 순위"],
+      ["finals", "서킷과 미드 시즌 컵 결승의 라운드별 누적 점수와 체크포인트"],
+      ["teams", "1위 횟수, 3위 이내 비율, 킬 점수 비중, 게임당 점수"],
+    ],
+  },
+  {
+    title: "선수",
+    items: [
+      ["players", "KPR, 게임당 킬, 가한 피해, 많이 고른 실험체"],
+      ["roles", "팀이 가한 피해와 받은 피해에서 선수가 차지한 비중"],
+      ["records", "최다 킬, 가한 피해, 받은 피해와 실험체별 최고 기록"],
+    ],
+  },
+  {
+    title: "실험체",
+    items: [
+      ["characters", "대회별 등장률, 평균 순위, 1위 비율"],
+      ["comps", "조합별 횟수, 평균 순위, 1위 횟수"],
+    ],
+  },
+];
 
 // 팀별 조합처럼 결승 뒤에 공개하기로 한 항목
 export const AFTER_FINAL = Date.parse("2026-11-09T00:00:00+09:00");

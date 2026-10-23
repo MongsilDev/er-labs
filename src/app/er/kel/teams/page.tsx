@@ -1,4 +1,4 @@
-import KelPage, { KelTabs, NO_DATA, pickTab } from "@/er/components/kel/KelPage";
+import KelPage, { KelScroll, KelTabs, NO_DATA, pickTab } from "@/er/components/kel/KelPage";
 import Scatter from "@/er/components/kel/Scatter";
 import { TeamName } from "@/er/components/kel/Team";
 import { pct } from "@/er/lib/format";
@@ -39,7 +39,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
       owner={owner}
       screen="teams"
       lead={lead}
-      notes={["점수는 모두 게임당 평균이고, 감점은 넣지 않았습니다.", "킬 비중은 얻은 점수 가운데 킬 점수가 차지하는 비율입니다."]}
+      notes="점수는 모두 게임당 평균이고, 감점은 넣지 않았습니다."
       source
     >
       <KelTabs screen="teams" param="s" label="범위" items={SCOPES} current={scope} />
@@ -60,16 +60,16 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
             format="num"
           />
         </section>
-        <section className="panel p-5 max-[760px]:p-4" aria-label="팀별 기록">
-          <div className="overflow-x-auto">
+        <section className="panel p-5 max-[760px]:p-4">
+          <KelScroll label="팀별 기록">
             <table className="kel-table">
               <thead>
                 <tr>
-                  <th className="l">팀</th>
-                  <th className="wide">게임</th>
+                  <th className="l pin">팀</th>
+                  <th>게임</th>
                   <th>1위</th>
                   <th className="wide">3위 이내</th>
-                  <th>킬 비중</th>
+                  <th>킬 점수 비중</th>
                   <th className="wide">순위 점수</th>
                   <th className="wide">킬 점수</th>
                   <th>합계</th>
@@ -78,10 +78,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
               <tbody>
                 {rows.map((r) => (
                   <tr key={r.team}>
-                    <td className="l max-w-[180px]">
+                    <td className="l pin max-w-[180px]">
                       <TeamName team={TEAM.get(r.team)!} />
                     </td>
-                    <td className="wide">{r.games}</td>
+                    <td>{r.games}</td>
                     <td>{r.wins}</td>
                     <td className="wide">{pct(r.top3)}</td>
                     <td>{pct(r.killShare)}</td>
@@ -92,7 +92,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
                 ))}
               </tbody>
             </table>
-          </div>
+          </KelScroll>
         </section>
       </div>
     </KelPage>

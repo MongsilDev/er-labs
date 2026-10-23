@@ -6,6 +6,7 @@ import { josa, TEAM, TONES } from "@/er/lib/kel";
 import { ticks } from "@/er/lib/ticks";
 import { useWidth } from "@/er/lib/useWidth";
 import { logoUrl, plate } from "./Team";
+import { tipSide } from "./tip";
 
 type Point = { key: string; x: number; y: number; name: string; team?: string; tone?: number; info: string[] };
 
@@ -14,6 +15,19 @@ type Box = { x: number; y: number; w: number; h: number };
 const label = (v: number, format: "pct" | "num") => (format === "pct" ? pct(v, 0) : fmt(v));
 const area = (a: Box, b: Box) => Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)) * Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
 const textWidth = (s: string, size: number) => [...s].reduce((n, c) => n + (c.charCodeAt(0) > 0x2e80 ? size : size * 0.62), 0);
+
+// 이름표 후보 자리: 점에서 글자 기준점까지 거리와 정렬 방향
+const SPOTS = [
+  [8, 0, "start"],
+  [-8, 0, "end"],
+  [0, -15, "middle"],
+  [0, 15, "middle"],
+  [6, -13, "start"],
+  [-6, -13, "end"],
+  [6, 13, "start"],
+  [-6, 13, "end"],
+] as const;
+const SHIFT = { start: 0, middle: 0.5, end: 1 } as const;
 
 function domain(values: number[], extra?: number): [number, number] {
   const all = extra === undefined ? values : [...values, extra];
@@ -59,7 +73,7 @@ export default function Scatter({
   const shown = points.find((p) => p.key === hover);
   const ordered = [...points].sort((a, b) => (a.tone ?? -1) - (b.tone ?? -1));
 
-  // 강조한 점의 이름표는 오른쪽, 왼쪽, 위, 아래 가운데 겹침이 가장 적은 자리에 둠
+  // 강조한 점의 이름표는 오른쪽, 왼쪽, 위, 아래, 대각선 네 곳 가운데 겹침이 가장 적은 자리에 둠
   const named = points.filter((p) => p.tone !== undefined);
   const dots = named.length ? points.map((p) => ({ box: { x: x(p.x) - 6, y: y(p.y) - 6, w: 12, h: 12 }, weight: p.tone === undefined ? 1 : 3 })) : [];
   const frame: Box = { x: pad.l, y: pad.t, w: w - pad.l - pad.r, h: h - pad.t - pad.b };
@@ -68,12 +82,7 @@ export default function Scatter({
     const cx = x(p.x);
     const cy = y(p.y);
     const tw = textWidth(p.name, 11);
-    const options = [
-      { box: { x: cx + 8, y: cy - 7, w: tw, h: 14 }, tx: cx + 8, ty: cy, anchor: "start" },
-      { box: { x: cx - 8 - tw, y: cy - 7, w: tw, h: 14 }, tx: cx - 8, ty: cy, anchor: "end" },
-      { box: { x: cx - tw / 2, y: cy - 22, w: tw, h: 14 }, tx: cx, ty: cy - 15, anchor: "middle" },
-      { box: { x: cx - tw / 2, y: cy + 8, w: tw, h: 14 }, tx: cx, ty: cy + 15, anchor: "middle" },
-    ] as const;
+    const options = SPOTS.map(([dx, dy, anchor]) => ({ box: { x: cx + dx - tw * SHIFT[anchor], y: cy + dy - 7, w: tw, h: 14 }, tx: cx + dx, ty: cy + dy, anchor }));
     const cost = (b: Box) => placed.reduce((n, o) => n + area(b, o) * 3, 0) + dots.reduce((n, d) => n + area(b, d.box) * d.weight, 0) + (b.w * b.h - area(b, frame)) * 4;
     const best = options.map((o) => ({ ...o, cost: cost(o.box) })).reduce((a, o) => (o.cost < a.cost ? o : a));
     placed.push(best.box);
@@ -114,11 +123,6 @@ export default function Scatter({
         <text x={w - pad.r} y={h - 4} textAnchor="end" fontSize={12} fill="var(--text-3)">
           {xLabel}
         </text>
-        {tags.map((t) => (
-          <text key={t.key} x={t.tx} y={t.ty} dy="0.32em" textAnchor={t.anchor} fontSize={11} fill="var(--text-2)">
-            {t.name}
-          </text>
-        ))}
         {ordered.map((p) => {
           const cx = x(p.x);
           const cy = y(p.y);
@@ -137,9 +141,27 @@ export default function Scatter({
             </g>
           );
         })}
+        {/* 이름표가 다른 점 위에 놓여도 읽히게 바탕색 테두리를 두르고 점보다 나중에 그림 */}
+        {tags.map((t) => (
+          <text
+            key={t.key}
+            x={t.tx}
+            y={t.ty}
+            dy="0.32em"
+            textAnchor={t.anchor}
+            fontSize={11}
+            fill="var(--text-2)"
+            stroke="var(--surface)"
+            strokeWidth={3}
+            paintOrder="stroke"
+            pointerEvents="none"
+          >
+            {t.name}
+          </text>
+        ))}
       </svg>
       {shown && (
-        <div className="kel-tip" style={{ left: Math.max(0, Math.min(x(shown.x) + 16, w - 180)), top: Math.max(0, y(shown.y) - 12) }} role="status">
+        <div className="kel-tip" style={{ ...tipSide(x(shown.x), w, 16), top: Math.max(0, y(shown.y) - 12) }} role="status">
           <b className="block text-[13px]">{shown.name}</b>
           {shown.info.map((t) => (
             <span key={t} className="block text-fg-2">

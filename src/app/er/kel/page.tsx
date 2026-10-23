@@ -2,38 +2,11 @@ import Link from "next/link";
 import Lines from "@/components/Lines";
 import KelPage from "@/er/components/kel/KelPage";
 import { TeamName } from "@/er/components/kel/Team";
-import { championshipTeams, KEL_SCREENS, type KelScreen, type KelTeam } from "@/er/lib/kel";
+import { championshipTeams, KEL_SCREENS, KEL_SECTIONS, kelVisible, type KelTeam } from "@/er/lib/kel";
 import { kelData, kelGate, kelMetadata, kelSummary } from "@/er/server/kel";
 
 export const dynamic = "force-dynamic";
 export const generateMetadata = () => kelMetadata("home");
-
-const SECTIONS: { title: string; items: [KelScreen, string][] }[] = [
-  { title: "챔피언십", items: [["rules", "결승 직행 조건, 순차 체크포인트, 감점, 동점 처리"]] },
-  {
-    title: "팀",
-    items: [
-      ["circuits", "16팀의 서킷 1~4 최종 순위"],
-      ["finals", "서킷과 미드 시즌 컵 결승의 라운드별 누적 점수와 체크포인트"],
-      ["teams", "1위 횟수, 3위 이내 비율, 킬 점수 비중, 게임당 점수"],
-    ],
-  },
-  {
-    title: "선수",
-    items: [
-      ["players", "KPR, 게임당 킬, 딜량, 많이 고른 실험체"],
-      ["roles", "팀 딜량과 받은 피해에서 선수가 차지한 비중"],
-      ["records", "최다 킬, 딜량, 받은 피해와 실험체별 최고 기록"],
-    ],
-  },
-  {
-    title: "실험체",
-    items: [
-      ["characters", "대회별 등장 비율, 평균 순위, 1위 비율"],
-      ["comps", "조합별 횟수, 평균 순위, 1위 횟수"],
-    ],
-  },
-];
 
 const day = (date: string) => {
   const [, m, d] = date.split("-").map(Number);
@@ -81,8 +54,8 @@ export default async function Page() {
           text="정규 시즌 1~4위는 결승에 바로 올라갔습니다. 순차 체크포인트 방식으로 최대 9라운드를 치릅니다."
         />
       </div>
-      {SECTIONS.map((s) => {
-        const items = s.items.filter(([key]) => owner || KEL_SCREENS[key].public);
+      {KEL_SECTIONS.map((s) => {
+        const items = s.items.filter(([key]) => kelVisible(key, owner));
         if (!items.length) return null;
         return (
           <section key={s.title} className="panel grid grid-cols-[160px_1fr] gap-5 p-5 max-[760px]:grid-cols-1 max-[760px]:gap-2 max-[760px]:p-4" aria-label={s.title}>

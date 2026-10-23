@@ -6,7 +6,7 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 import characters from "@/er/data/characters.json";
 import { parseCsv } from "@/er/lib/csv";
-import { KEL_SCREENS, TEAM_BY_CSV, type KelEvent, type KelScreen } from "@/er/lib/kel";
+import { KEL_SCREENS, kelVisible, TEAM_BY_CSV, type KelEvent, type KelScreen } from "@/er/lib/kel";
 import type { Round } from "@/er/lib/kel-calc";
 import { currentUser, type User } from "./auth";
 
@@ -19,13 +19,13 @@ const viewer = cache(async (): Promise<{ user: User | null; owner: boolean }> =>
 // 스트리밍이 시작되기 전에 불러야 404 상태 코드가 나감
 export async function kelGate(screen: KelScreen) {
   const v = await viewer();
-  if (!v.owner && !KEL_SCREENS[screen].public) notFound();
+  if (!kelVisible(screen, v.owner)) notFound();
   return v;
 }
 
 export async function kelMetadata(screen: KelScreen): Promise<Metadata> {
   const { owner } = await viewer();
-  if (!owner && !KEL_SCREENS[screen].public) return {};
+  if (!kelVisible(screen, owner)) return {};
   return { title: KEL_SCREENS[screen].title, robots: { index: false, follow: false } };
 }
 

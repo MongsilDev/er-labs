@@ -19,8 +19,8 @@ const TILES: [Metric, string, (p: PlayerStat) => string][] = [
   ["kills", "게임당 킬", (p) => p.kills.toFixed(2)],
   ["top3", "3위 이내 비율", (p) => pct(p.top3)],
   ["avgPlace", "평균 순위", (p) => `${p.avgPlace.toFixed(2)}위`],
-  ["damage", "게임당 딜량", (p) => int(p.damage)],
-  ["damageShare", "팀 딜량 중 비중", (p) => pct(p.damageShare)],
+  ["damage", "게임당 가한 피해", (p) => int(p.damage)],
+  ["damageShare", "가한 피해 비중", (p) => pct(p.damageShare)],
 ];
 
 function Card({ p, all, eligible }: { p: PlayerStat; all: PlayerStat[]; eligible: number }) {
@@ -31,7 +31,7 @@ function Card({ p, all, eligible }: { p: PlayerStat; all: PlayerStat[]; eligible
         <div className="flex items-center gap-4">
           <Logo team={team} size={56} />
           <div className="min-w-0">
-            <a className="text-[14px] text-fg-2 decoration-line-strong underline-offset-[3px] hover:decoration-fg-3" href={wikiUrl(team.wiki)}>
+            <a className="inline-block py-1 text-[14px] text-fg-2 decoration-line-strong underline-offset-[3px] hover:decoration-fg-3" href={wikiUrl(team.wiki)}>
               {team.name}
             </a>
             <h2 id="player" className="truncate text-[34px] leading-tight font-extrabold tracking-[-0.5px] max-[760px]:text-[28px]">
@@ -68,7 +68,7 @@ function Card({ p, all, eligible }: { p: PlayerStat; all: PlayerStat[]; eligible
               <dt className="text-[13px] text-fg-3">{label}</dt>
               <dd className="mt-1 text-[26px] leading-tight font-extrabold max-[420px]:text-[22px]">{value(p)}</dd>
               {rank !== null && rank <= SHOW_RANK && (
-                <dd className="mt-0.5 text-[13px] font-semibold text-accent">
+                <dd className="mt-0.5 text-[13px] font-semibold text-accent-text">
                   {eligible}명 중 {rank}위
                 </dd>
               )}
@@ -87,10 +87,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ p
   const all = data ? playerStats(data) : [];
   if (!all.length) return <KelPage user={user} owner={owner} screen="players" lead={NO_DATA} />;
   const eligible = all.filter((p) => p.games >= MIN_GAMES).length;
-  const picked = all.find((p) => p.name === q.p);
   const byTeam = seasonStandings()
     .map((r) => ({ team: r.team, players: all.filter((p) => p.team === r.team.key).sort((a, b) => b.games - a.games) }))
     .filter((t) => t.players.length);
+  const picked = q.p === undefined ? byTeam[0].players[0] : all.find((p) => p.name === q.p);
 
   return (
     <KelPage
@@ -99,7 +99,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ p
       screen="players"
       notes={[
         `순위는 ${MIN_GAMES}게임 이상 나온 선수 ${eligible}명끼리 비교했고, ${SHOW_RANK}위 안에 든 지표에만 표시했습니다.`,
-        "KPR은 경기 기록에 게임마다 적힌 값을 평균했습니다.",
+        "KPR은 경기 기록에 게임마다 적힌 선수 평점을 평균한 값이고, 한 게임의 평균은 약 1.0입니다.",
+        "가한 피해 비중은 게임마다 팀 세 명이 가한 피해 합계에서 차지한 비율을 평균한 값입니다.",
       ]}
       source
     >
@@ -118,7 +119,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ p
                     key={p.name}
                     href={`${KEL_SCREENS.players.path}?p=${encodeURIComponent(p.name)}`}
                     aria-current={p.name === picked?.name ? "page" : undefined}
-                    className="chip h-7 no-underline hover:border-line-strong aria-[current=page]:border-accent aria-[current=page]:text-accent"
+                    className="chip h-7 no-underline hover:border-line-strong aria-[current=page]:border-accent aria-[current=page]:text-accent-text"
                   >
                     {p.name}
                   </Link>

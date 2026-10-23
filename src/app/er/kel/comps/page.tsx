@@ -1,4 +1,4 @@
-import KelPage, { NO_DATA } from "@/er/components/kel/KelPage";
+import KelPage, { KelScroll, NO_DATA } from "@/er/components/kel/KelPage";
 import { Logo } from "@/er/components/kel/Team";
 import Char from "@/er/components/t/Char";
 import { characterName } from "@/er/lib/format";
@@ -36,8 +36,8 @@ export default async function Page() {
       ]}
       source
     >
-      <section className="panel p-5 max-[760px]:p-4" aria-label="자주 나온 3인 조합">
-        <div className="overflow-x-auto">
+      <section className="panel p-5 max-[760px]:p-4">
+        <KelScroll label="자주 나온 3인 조합">
           <table className="kel-table">
             <thead>
               <tr>
@@ -81,7 +81,7 @@ export default async function Page() {
               ))}
             </tbody>
           </table>
-        </div>
+        </KelScroll>
       </section>
     </KelPage>
   );

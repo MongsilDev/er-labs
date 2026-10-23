@@ -12,6 +12,7 @@
   --color-fg-2: var(--text-2);
   --color-fg-3: var(--text-3);
   --color-accent: var(--accent);
+  --color-accent-text: var(--accent-text);
   --color-gold: var(--gold);
   --color-gold-text: var(--gold-text);
   --color-minus: var(--minus);
@@ -33,6 +34,7 @@
     --text-2: #a3acbd;
     --text-3: #808a9d;
     --accent: #26f1f6;
+    --accent-text: #26f1f6;
     --gold: #ffd621;
     --gold-text: #ffd621;
     --minus: #ff6b6b;
@@ -60,6 +62,7 @@
     --text-2: #3a4252;
     --text-3: #5f6878;
     --accent: #0b9aa3;
+    --accent-text: #077880;
     --gold: #ffd621;
     --gold-text: #8a6d00;
     --minus: #d93a3a;
@@ -420,6 +423,14 @@
   .legend i.ramp {
     width: 48px;
     margin: 0 5px;
+  }
+  /* 차트 기준선의 strokeDasharray 4 4와 같은 점선 */
+  .legend i.dash {
+    width: 16px;
+    height: 1px;
+    border-radius: 0;
+    vertical-align: middle;
+    background: repeating-linear-gradient(90deg, var(--line-strong) 0 4px, transparent 0 8px);
   }
 
   .tabs {
@@ -1016,9 +1027,11 @@
     font-weight: 800;
   }
 
-  /* KEL 기록 표. wide 칸은 좁은 화면에서 숨김 */
+  /* KEL 기록 표. wide 칸은 좁은 화면에서 숨김. 접힌 테두리는 고정 칸과 함께 움직이지 않아 칸마다 따로 그림 */
   .kel-table {
     font-size: 14px;
+    border-collapse: separate;
+    border-spacing: 0;
   }
   .kel-table th,
   .kel-table td {
@@ -1039,6 +1052,10 @@
   .kel-table tbody tr:last-child td {
     border-bottom: 0;
   }
+  /* 좁은 화면에서 wide 대신 보이는 칸. max-[760px]은 760px을 넣지 않아 wide와 경계가 같은 이 블록에 둠 */
+  .kel-table .narrow {
+    display: none;
+  }
   @media (max-width: 760px) {
     .kel-table th,
     .kel-table td {
@@ -1047,16 +1064,33 @@
     .kel-table .wide {
       display: none;
     }
+    .kel-table th.narrow,
+    .kel-table td.narrow {
+      display: table-cell;
+    }
+    .kel-table span.narrow {
+      display: block;
+    }
+    /* 가로로 넘겨도 남는 칸. 둘째 칸 위치는 순위 칸 최소 폭 min-w-[40px]과 같음 */
+    .kel-table .pin {
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      background: var(--surface);
+      box-shadow: inset -1px 0 var(--line);
+    }
+    .kel-table .pin + .pin {
+      left: 40px;
+    }
+    .kel-table .pin:has(+ .pin) {
+      box-shadow: none;
+    }
   }
   .kel-heat td.h {
     color: #fff;
     font-weight: 600;
-    border: 2px solid var(--surface);
+    border: 1px solid var(--surface);
     text-align: center;
-  }
-  /* border-collapse는 겹친 테두리 가운데 두꺼운 쪽을 그려서 머리글 구분선이 안 보임 */
-  .kel-heat tbody tr:first-child td.h {
-    border-top: 1px solid var(--line);
   }
   .kel-tip {
     position: absolute;
@@ -1208,6 +1242,10 @@
 .scroll-fade:focus-visible {
   mask-image: none;
   outline-offset: -2px;
+}
+/* KEL 표는 고정 칸이 안쪽 테두리 위에 그려져서 바깥에 그림 */
+.kel-scroll:focus-visible {
+  outline-offset: 2px;
 }
 @supports (animation-timeline: scroll()) {
   .scroll-fade {

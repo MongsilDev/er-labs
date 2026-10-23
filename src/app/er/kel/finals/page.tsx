@@ -1,5 +1,5 @@
 import FlowChart from "@/er/components/kel/FlowChart";
-import KelPage, { KelTabs, NO_DATA } from "@/er/components/kel/KelPage";
+import KelPage, { KelScroll, KelTabs, NO_DATA } from "@/er/components/kel/KelPage";
 import { TeamName } from "@/er/components/kel/Team";
 import { fmt } from "@/er/lib/format";
 import { EVENT_NAME, josa, TEAM, TONES, type KelEvent } from "@/er/lib/kel";
@@ -74,31 +74,33 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ f
           라운드별 점수
         </h2>
         <p className="mt-1 text-[13px] text-fg-3">굵은 숫자는 그 라운드에서 1위를 한 팀의 점수입니다.</p>
-        <div className="mt-3 overflow-x-auto">
+        <KelScroll label="라운드별 점수" className="mt-3">
           <table className="kel-table">
             <thead>
               <tr>
-                <th className="l w-10">
+                <th className="l pin w-10 min-w-[40px]">
                   <span className="sr-only">순위</span>
                 </th>
-                <th className="l">팀</th>
+                <th className="l pin">팀</th>
+                <th className="narrow">합계</th>
                 {Array.from({ length: played }, (_, r) => (
                   <th key={r}>{r + 1}R</th>
                 ))}
                 <th>킬 점수</th>
                 <th>감점</th>
-                <th>합계</th>
+                <th className="wide">합계</th>
               </tr>
             </thead>
             <tbody>
               {state.rows.map((row, i) => (
                 <tr key={row.key}>
-                  <td className="l">
+                  <td className="l pin">
                     <span className={champ?.key === row.key ? "rk first" : "rk"}>{i + 1}</span>
                   </td>
-                  <td className="l max-w-[200px]">
+                  <td className="l pin max-w-[200px] max-[760px]:max-w-[132px]">
                     <TeamName team={TEAM.get(row.key)!} />
                   </td>
+                  <td className="narrow font-bold">{fmt(row.total)}</td>
                   {Array.from({ length: played }, (_, r) => (
                     <td key={r} className={rounds[r]?.[row.key]?.placement === 1 ? "font-bold" : "text-fg-2"}>
                       <span className="inline-flex items-center justify-end gap-1">
@@ -109,12 +111,12 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ f
                   ))}
                   <td className="text-fg-2">{fmt(row.killScore)}</td>
                   <td>{row.penalty ? <span className="text-minus">-{fmt(row.penalty)}</span> : ""}</td>
-                  <td className="font-bold">{fmt(row.total)}</td>
+                  <td className="wide font-bold">{fmt(row.total)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
+        </KelScroll>
       </section>
     </KelPage>
   );

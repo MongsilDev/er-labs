@@ -1,5 +1,5 @@
 import BumpChart from "@/er/components/kel/BumpChart";
-import KelPage from "@/er/components/kel/KelPage";
+import KelPage, { KelScroll } from "@/er/components/kel/KelPage";
 import { TeamName } from "@/er/components/kel/Team";
 import { josa, KEL_EVENTS, KEL_TEAMS, seasonStandings } from "@/er/lib/kel";
 import { kelGate, kelMetadata } from "@/er/server/kel";
@@ -22,19 +22,30 @@ export default async function Page() {
       <section className="panel p-5 max-[760px]:p-4" aria-label="서킷별 순위 변화">
         <BumpChart rows={season.map((r) => ({ key: r.team.key, ranks: [...r.team.circuits] }))} labels={CIRCUITS} initial={[riser.key]} />
       </section>
-      <section className="panel p-5 max-[760px]:p-4" aria-label="서킷별 최종 순위">
-        <div className="overflow-x-auto">
+      <section className="panel p-5 max-[760px]:p-4">
+        <KelScroll label="서킷별 최종 순위">
           <table className="kel-table">
             <thead>
               <tr>
-                <th className="l w-10">
+                <th rowSpan={2} className="l w-10">
                   <span className="sr-only">시즌 순위</span>
                 </th>
-                <th className="l">팀</th>
-                {CIRCUITS.map((c) => (
-                  <th key={c}>{c}</th>
+                <th rowSpan={2} className="l">
+                  팀
+                </th>
+                <th colSpan={CIRCUITS.length} className="text-center">
+                  서킷
+                </th>
+                <th rowSpan={2} className="max-[760px]:w-12 max-[760px]:whitespace-normal">
+                  시즌 포인트
+                </th>
+              </tr>
+              <tr>
+                {CIRCUITS.map((c, i) => (
+                  <th key={c} aria-label={c}>
+                    {i + 1}
+                  </th>
                 ))}
-                <th className="wide">시즌 포인트</th>
               </tr>
             </thead>
             <tbody>
@@ -48,15 +59,16 @@ export default async function Page() {
                   </td>
                   {r.team.circuits.map((c, i) => (
                     <td key={i} className={c === 1 ? "font-bold" : undefined}>
-                      {c}위
+                      {c}
+                      <span className="wide">위</span>
                     </td>
                   ))}
-                  <td className="wide font-semibold">{r.total.toLocaleString("ko-KR")}</td>
+                  <td className="font-semibold">{r.total.toLocaleString("ko-KR")}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
+        </KelScroll>
       </section>
     </KelPage>
   );

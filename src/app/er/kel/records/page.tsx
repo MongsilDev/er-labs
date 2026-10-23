@@ -1,4 +1,4 @@
-import KelPage, { KelTabs, NO_DATA, pickTab } from "@/er/components/kel/KelPage";
+import KelPage, { KelScroll, KelTabs, NO_DATA, pickTab } from "@/er/components/kel/KelPage";
 import { PlayerName, TeamName } from "@/er/components/kel/Team";
 import Char from "@/er/components/t/Char";
 import { int } from "@/er/lib/cut";
@@ -46,16 +46,16 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ v
       {view === "season" ? (
         <>
           <section className="grid grid-cols-4 gap-3 max-[1080px]:grid-cols-2 max-[560px]:grid-cols-1" aria-label="한 게임 최고 기록">
-            <Tile label="한 게임 최다 킬" value={`${rec.kills.kills}킬`} r={rec.kills} detail={`딜량 ${int(rec.kills.damage)}`} />
-            <Tile label="한 게임 최다 딜량" value={int(rec.damage[0].damage)} r={rec.damage[0]} detail={`${rec.damage[0].kills}킬`} />
-            <Tile label="한 게임 최다 받은 피해" value={int(rec.taken.taken)} r={rec.taken} detail={`딜량 ${int(rec.taken.damage)}`} />
-            <Tile label="7위 이하 팀에서 나온 최다 딜량" value={int(rec.lowTeamDamage.damage)} r={rec.lowTeamDamage} detail={`${rec.lowTeamDamage.kills}킬`} />
+            <Tile label="최다 킬" value={`${rec.kills.kills}킬`} r={rec.kills} detail={`가한 피해 ${int(rec.kills.damage)}`} />
+            <Tile label="최다 가한 피해" value={int(rec.damage[0].damage)} r={rec.damage[0]} detail={`${rec.damage[0].kills}킬`} />
+            <Tile label="최다 받은 피해" value={int(rec.taken.taken)} r={rec.taken} detail={`가한 피해 ${int(rec.taken.damage)}`} />
+            <Tile label="7위 이하 팀의 최다 가한 피해" value={int(rec.lowTeamDamage.damage)} r={rec.lowTeamDamage} detail={`${rec.lowTeamDamage.kills}킬`} />
           </section>
           <section className="panel p-5 max-[760px]:p-4" aria-labelledby="top-damage">
             <h2 id="top-damage" className="text-[17px] font-extrabold">
-              한 게임 딜량 상위 {rec.damage.length}개 기록
+              가한 피해 상위 {rec.damage.length}개 기록
             </h2>
-            <div className="mt-3 overflow-x-auto">
+            <KelScroll label={`가한 피해 상위 ${rec.damage.length}개 기록`} className="mt-3">
               <table className="kel-table">
                 <thead>
                   <tr>
@@ -67,7 +67,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ v
                     <th className="l wide">경기</th>
                     <th>팀 순위</th>
                     <th className="wide">킬</th>
-                    <th>딜량</th>
+                    <th>가한 피해</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -78,6 +78,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ v
                       </td>
                       <td className="l">
                         <PlayerName name={r.player} team={TEAM.get(r.team)} />
+                        <span className="narrow mt-0.5 text-[12px] text-fg-3">{gameLabel(r)}</span>
                       </td>
                       <td className="l wide">
                         <Char name={r.character} />
@@ -90,18 +91,18 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ v
                   ))}
                 </tbody>
               </table>
-            </div>
+            </KelScroll>
           </section>
         </>
       ) : (
-        <section className="panel p-5 max-[760px]:p-4" aria-label="실험체별 한 게임 최고 기록">
-          <div className="overflow-x-auto">
-            <table className="kel-table">
+        <section className="panel p-5 max-[760px]:p-4">
+          <KelScroll label="실험체별 한 게임 최고 기록">
+            <table className="kel-table max-w-[720px]">
               <thead>
                 <tr>
                   <th className="l">실험체</th>
                   <th>최다 킬</th>
-                  <th>최다 딜량</th>
+                  <th>최다 가한 피해</th>
                 </tr>
               </thead>
               <tbody>
@@ -111,13 +112,13 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ v
                       <Char name={c.key} />
                     </td>
                     <td>
-                      <span className="flex flex-wrap items-baseline justify-end gap-x-2">
+                      <span className="grid justify-items-end">
                         <b>{c.kills.kills}킬</b>
                         <PlayerName name={c.kills.player} />
                       </span>
                     </td>
                     <td>
-                      <span className="flex flex-wrap items-baseline justify-end gap-x-2">
+                      <span className="grid justify-items-end">
                         <b>{int(c.damage.damage)}</b>
                         <PlayerName name={c.damage.player} />
                       </span>
@@ -126,7 +127,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ v
                 ))}
               </tbody>
             </table>
-          </div>
+          </KelScroll>
         </section>
       )}
     </KelPage>

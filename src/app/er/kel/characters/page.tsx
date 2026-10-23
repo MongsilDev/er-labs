@@ -1,4 +1,4 @@
-import KelPage, { KelTabs, NO_DATA, pickTab } from "@/er/components/kel/KelPage";
+import KelPage, { KelScroll, KelTabs, NO_DATA, pickTab } from "@/er/components/kel/KelPage";
 import Char from "@/er/components/t/Char";
 import { characterName, pct, rampColor, rampTextClass } from "@/er/lib/format";
 import { josa, KEL_EVENTS } from "@/er/lib/kel";
@@ -68,25 +68,26 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
         "칸의 숫자는 그 대회 게임 가운데 한 팀이라도 그 실험체를 고른 게임이 차지하는 비율입니다.",
         `시즌 게임의 10%인 ${min}게임 이상 나온 ${shown.length}종만 넣었습니다.`,
         `대회마다 게임 수가 ${Math.min(...sizes)}~${Math.max(...sizes)}게임이라, 한 팀의 선택이 비율을 크게 바꿀 수 있습니다.`,
-        "오프닝 위크와 본선에서는 한 팀이 같은 실험체를 매치마다 2번까지만 쓸 수 있고, 결승에도 서킷 2부터 같은 제한이 적용됐습니다.",
+        "서킷 1 결승을 빼면 모든 경기에서 한 팀은 같은 실험체를 매치마다 2번까지만 쓸 수 있습니다.",
         "평균 순위와 1위 비율은 그 실험체를 고른 선수의 팀 순위로 셉니다.",
       ]}
       source
     >
       <KelTabs screen="characters" param="sort" label="정렬" items={SORTS} current={sort} />
-      <section className="panel p-5 max-[760px]:p-4" aria-label="대회별 실험체 등장 비율">
-        <div className="overflow-x-auto">
+      <section className="panel p-5 max-[760px]:p-4">
+        <KelScroll label="대회별 실험체 등장률">
           <table className="kel-table kel-heat">
             <thead>
               <tr>
-                <th className="l">실험체</th>
+                <th className="l pin">실험체</th>
+                <th className="narrow">시즌 전체</th>
                 {events.map((e) => (
                   <th key={e.key} className="text-center">
                     {e.name}
                     <span className="block font-normal">{eventGames[e.key]}게임</span>
                   </th>
                 ))}
-                <th>시즌 전체</th>
+                <th className="wide">시즌 전체</th>
                 <th>평균 순위</th>
                 <th>1위 비율</th>
               </tr>
@@ -94,20 +95,21 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
             <tbody>
               {shown.map((r) => (
                 <tr key={r.key}>
-                  <td className="l">
+                  <td className="l pin">
                     <Char name={r.key} />
                   </td>
+                  <td className="narrow font-bold">{pct(r.rate, 0)}</td>
                   {events.map((e) => (
                     <Heat key={e.key} v={r.byEvent[e.key]} />
                   ))}
-                  <td className="font-bold">{pct(r.rate, 0)}</td>
+                  <td className="wide font-bold">{pct(r.rate, 0)}</td>
                   <td>{r.avgPlace.toFixed(2)}위</td>
-                  <td>{pct(r.winRate)}</td>
+                  <td>{pct(r.winRate, 0)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
+        </KelScroll>
       </section>
     </KelPage>
   );

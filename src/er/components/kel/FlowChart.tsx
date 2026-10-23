@@ -5,6 +5,7 @@ import { fmt } from "@/er/lib/format";
 import { TEAM, TONES } from "@/er/lib/kel";
 import { ticks } from "@/er/lib/ticks";
 import { useWidth } from "@/er/lib/useWidth";
+import { tipSide } from "./tip";
 
 // cum[팀][r]은 r라운드까지의 누적 점수, order[r]는 그때 순위대로 놓은 팀, 0번은 시작
 export default function FlowChart({ cum, order, focus, holders }: { cum: Record<string, number[]>; order: string[][]; focus: string[]; holders: string[][] }) {
@@ -49,7 +50,7 @@ export default function FlowChart({ cum, order, focus, holders }: { cum: Record<
         role="img"
         aria-label="라운드별 누적 점수"
         tabIndex={0}
-        className="outline-none"
+        className="[&:not(:focus-visible)]:outline-none"
         style={{ touchAction: "pan-y" }}
         onPointerDown={(e) => move(e.clientX, e.currentTarget)}
         onPointerMove={(e) => move(e.clientX, e.currentTarget)}
@@ -96,7 +97,7 @@ export default function FlowChart({ cum, order, focus, holders }: { cum: Record<
           </span>
         ))}
       {at !== null && (
-        <div className="kel-tip" style={{ left: Math.max(0, Math.min(x(at) + 12, w - 170)), top: pad.t }} role="status">
+        <div className="kel-tip" style={{ ...tipSide(x(at), w, 12), top: pad.t }} role="status">
           <b className="block text-[12px] text-fg-3">{at}라운드까지</b>
           {order[at].map((k) => (
             <span key={k} className="flex items-center gap-2">
