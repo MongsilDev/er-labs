@@ -6,8 +6,11 @@ export const fmt = (v: number) => (Number.isInteger(v) ? String(v) : (Math.round
 export const fmt1 = (v: number) => (Math.round(v * 10) / 10).toFixed(1);
 export const pct = (v: number, digits = 1) => `${(v * 100).toFixed(digits)}%`;
 
+// 실험체 이름표에 아직 없는 실험체
+const MISSING: Record<string, string> = { Yumin: "유민" };
+
 export function characterName(english: string): string {
-  return KO[english] ?? KO[english.replace(/\s+/g, "")] ?? english;
+  return KO[english] ?? KO[english.replace(/\s+/g, "")] ?? MISSING[english] ?? english;
 }
 
 export function remaining(expiresAt: number, at = Date.now()): string {
