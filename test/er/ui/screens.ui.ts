@@ -131,12 +131,12 @@ const SCREENS: Screen[] = [
   { name: "KEL 3인 조합", path: () => "/er/kel/comps", login: true },
   { name: "KEL 한 게임 기록", path: () => "/er/kel/records", login: true },
   { name: "KEL 한 게임 기록 실험체별", path: () => "/er/kel/records?view=characters", login: true },
-  { name: "KEL 로그아웃", path: () => "/er/kel", status: 404 },
-  { name: "KEL 다른 계정", path: () => "/er/kel/rules", login: "other", status: 404 },
+  { name: "KEL 기록 로그아웃", path: () => "/er/kel" },
+  { name: "KEL 포맷과 규칙 다른 계정", path: () => "/er/kel/rules", login: "other" },
 ];
 
-const KEL_PATHS = Object.values(KEL_SCREENS).map((s) => s.path);
-const KEL_TITLES = new RegExp(["KEL", ...Object.values(KEL_SCREENS).map((s) => s.title)].join("|"));
+const KEL_LIST = Object.values(KEL_SCREENS);
+const KEL_TITLES = new RegExp(["KEL", ...KEL_LIST.map((s) => s.title)].join("|"));
 
 type Problems = { overflow: number; undefinedClass: string[]; unstyled: string[] };
 
@@ -230,22 +230,23 @@ describe("화면 점검", () => {
     expect(res.headers.get("content-type")).toBe("image/png");
   });
 
-  it("KEL 화면은 운영자에게만 열리고, 다른 사람에게는 제목 없이 404가 나간다", async () => {
-    for (const path of KEL_PATHS) {
+  it("공개한 KEL 화면은 누구나 열리고 sitemap에 있으며, 공개하지 않은 화면은 운영자 말고는 제목 없이 404가 나간다", async () => {
+    const sitemap = await fetch(`${base}/sitemap.xml`).then((r) => r.text());
+    for (const { path, public: open } of KEL_LIST) {
       for (const sid of [null, OTHER_SID]) {
         const res = await fetch(base + path, { headers: sid ? { cookie: `er_session=${sid}` } : {} });
         const html = await res.text();
-        expect([path, sid, res.status]).toEqual([path, sid, 404]);
-        expect(html).not.toMatch(KEL_TITLES);
+        expect([path, sid, res.status]).toEqual([path, sid, open ? 200 : 404]);
+        if (open) expect(html).not.toMatch(/<meta name="robots"/);
+        else expect(html).not.toMatch(KEL_TITLES);
       }
       const res = await fetch(base + path, { headers: { cookie: `er_session=${OWNER_SID}` } });
       expect([path, res.status]).toEqual([path, 200]);
-      expect(await res.text()).toMatch(/<meta name="robots" content="noindex, nofollow"/);
+      if (!open) expect(await res.text()).toMatch(/<meta name="robots" content="noindex, nofollow"/);
+      expect([path, sitemap.includes(`${base}${path}<`)]).toEqual([path, open]);
     }
     const calc = await fetch(`${base}/er/kel/calc`, { headers: { cookie: `er_session=${OWNER_SID}` } });
     expect(calc.status).toBe(404);
-    const sitemap = await fetch(`${base}/sitemap.xml`).then((r) => r.text());
-    expect(sitemap).not.toContain("/er/kel");
   });
 
   it("방송 화면은 1920x1080 안에 들어간다", async () => {

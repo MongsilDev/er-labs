@@ -84,16 +84,16 @@ export type KelScreen = "home" | "rules" | "circuits" | "finals" | "teams" | "pl
 
 // public이 false인 화면은 KEL_OWNER_ID 계정만 열 수 있음
 export const KEL_SCREENS: Record<KelScreen, { path: string; title: string; public: boolean }> = {
-  home: { path: "/er/kel", title: "2026 KEL 기록", public: false },
-  rules: { path: "/er/kel/rules", title: "포맷과 규칙", public: false },
-  circuits: { path: "/er/kel/circuits", title: "서킷별 순위", public: false },
-  finals: { path: "/er/kel/finals", title: "결승 점수 흐름", public: false },
-  teams: { path: "/er/kel/teams", title: "팀 성향", public: false },
-  players: { path: "/er/kel/players", title: "선수 카드", public: false },
-  roles: { path: "/er/kel/roles", title: "팀 안에서 맡은 역할", public: false },
-  characters: { path: "/er/kel/characters", title: "실험체 등장률", public: false },
-  comps: { path: "/er/kel/comps", title: "자주 나온 3인 조합", public: false },
-  records: { path: "/er/kel/records", title: "한 게임 기록", public: false },
+  home: { path: "/er/kel", title: "2026 KEL 기록", public: true },
+  rules: { path: "/er/kel/rules", title: "포맷과 규칙", public: true },
+  circuits: { path: "/er/kel/circuits", title: "서킷별 순위", public: true },
+  finals: { path: "/er/kel/finals", title: "결승 점수 흐름", public: true },
+  teams: { path: "/er/kel/teams", title: "팀 성향", public: true },
+  players: { path: "/er/kel/players", title: "선수 카드", public: true },
+  roles: { path: "/er/kel/roles", title: "팀 안에서 맡은 역할", public: true },
+  characters: { path: "/er/kel/characters", title: "실험체 등장률", public: true },
+  comps: { path: "/er/kel/comps", title: "자주 나온 3인 조합", public: true },
+  records: { path: "/er/kel/records", title: "한 게임 기록", public: true },
 };
 
 export const kelVisible = (screen: KelScreen, owner: boolean) => owner || KEL_SCREENS[screen].public;

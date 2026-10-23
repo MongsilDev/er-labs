@@ -26,7 +26,8 @@ export async function kelGate(screen: KelScreen) {
 export async function kelMetadata(screen: KelScreen): Promise<Metadata> {
   const { owner } = await viewer();
   if (!kelVisible(screen, owner)) return {};
-  return { title: KEL_SCREENS[screen].title, robots: { index: false, follow: false } };
+  const { title, public: open } = KEL_SCREENS[screen];
+  return open ? { title } : { title, robots: { index: false, follow: false } };
 }
 
 export type KelRow = {
