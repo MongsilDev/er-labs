@@ -1,13 +1,17 @@
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import RaceBoard from "../../src/er/components/kel/RaceBoard";
 import { characterName } from "../../src/er/lib/format";
 import { championshipTeams, KEL_TEAMS, seasonStandings } from "../../src/er/lib/kel";
 import { finalState, standings, type Entry, type Round } from "../../src/er/lib/kel-calc";
 import { kelData, stageRounds } from "../../src/er/server/kel";
 import { lastHit } from "../../src/er/server/kel-dakgg";
 import { kelOdds } from "../../src/er/server/kel-odds";
+import { daysUntil, dday, FINAL_DAY, race, raceDays, SEMI_DAY } from "../../src/er/server/kel-race";
 import { characterBuilds, comps, finals, killStats, lows, MIN_GAMES, playerStats, rankOf, records, regions, seasonBuilds, teamOps, wicklines } from "../../src/er/server/kel-stats";
 import { kelFixture } from "./helpers";
 
@@ -379,5 +383,50 @@ describe("KEL 진출 확률", { timeout: 30_000 }, () => {
   it("서킷 단계별 경기 기록이 빠지면 계산하지 않는다", async () => {
     rmSync(join(process.env.DATA_DIR!, "kel", "2026_KEL_CIRCUIT_2_Lower_Finals_2026-07-11.csv"));
     expect(await kelOdds(kelData()!)).toBeNull();
+  });
+});
+
+describe("KEL 첫 화면 카드", { timeout: 30_000 }, () => {
+  beforeAll(() => kelFixture(process.env.DATA_DIR!));
+
+  it("시즌 1~4위는 결승 직행, 5~12위는 준결승으로 나누고 서킷 4가 끝난 시점의 확률로 확정을 붙인다", async () => {
+    const [seeds, semi] = race(await kelOdds(kelData()!));
+    expect(seeds.rows.map((r) => r.team.name)).toEqual(championshipTeams().seeds.map((t) => t.name));
+    expect(semi.rows.map((r) => r.team.name)).toEqual(championshipTeams().semi.map((t) => t.name));
+    expect(seeds.rows.map((r) => r.total)).toEqual([1900, 1880, 1680, 1240]);
+    expect(semi.rows.map((r) => r.total)).toEqual([1180, 1060, 860, 680, 600, 520, 380, 340]);
+    expect([...seeds.rows, ...semi.rows].every((r) => r.sure && r.p === 1)).toBe(true);
+    expect([seeds.day, semi.day]).toEqual([FINAL_DAY, SEMI_DAY]);
+  });
+
+  it("진출 확률 계산이 없으면 확정과 확률 없이 순위만 그린다", () => {
+    const groups = race(null);
+    expect(groups.flatMap((g) => g.rows).every((r) => !r.sure && r.p === null)).toBe(true);
+    const html = renderToStaticMarkup(createElement(RaceBoard, { groups, days: [null, null] }));
+    expect(html).toContain("GC 부산 스텔라");
+    expect(html).not.toContain("확정");
+    expect(html).not.toMatch(/\d%</);
+    const open = groups.map((g) => ({ ...g, rows: g.rows.map((r) => ({ ...r, p: 0.42 })) }));
+    expect(renderToStaticMarkup(createElement(RaceBoard, { groups: open, days: ["D-1", "오늘"] }))).toContain(">42%<");
+  });
+
+  it("남은 날은 서울 날짜로 세고, 지난 경기는 남은 날을 쓰지 않는다", () => {
+    expect(daysUntil(SEMI_DAY, Date.parse("2026-10-23T03:00:00Z"))).toBe(15);
+    expect(dday(SEMI_DAY, Date.parse("2026-11-06T14:30:00Z"))).toBe("D-1");
+    expect(dday(SEMI_DAY, Date.parse("2026-11-06T15:30:00Z"))).toBe("오늘");
+    expect(dday(FINAL_DAY, Date.parse("2026-11-06T15:30:00Z"))).toBe("D-1");
+    expect(dday(SEMI_DAY, Date.parse("2026-11-07T15:00:00Z"))).toBeNull();
+    expect(dday(FINAL_DAY, Date.parse("2026-11-08T15:00:00Z"))).toBeNull();
+    expect(raceDays(Date.parse("2026-10-23T15:00:00Z"))).toEqual(["D-15", "D-14"]);
+  });
+
+  it("자료 폴더가 없으면 카드에 그릴 자료가 없다", () => {
+    const keep = process.env.DATA_DIR;
+    process.env.DATA_DIR = join(keep!, "nope");
+    try {
+      expect(kelData()).toBeNull();
+    } finally {
+      process.env.DATA_DIR = keep;
+    }
   });
 });
