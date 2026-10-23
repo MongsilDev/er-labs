@@ -132,11 +132,12 @@ const SCREENS: Screen[] = [
   { name: "KEL 한 게임 기록", path: () => "/er/kel/records", login: true },
   { name: "KEL 한 게임 기록 실험체별", path: () => "/er/kel/records?view=characters", login: true },
   { name: "KEL 기록 로그아웃", path: () => "/er/kel" },
-  { name: "KEL 포맷과 규칙 다른 계정", path: () => "/er/kel/rules", login: "other" },
+  { name: "없는 KEL 화면 다른 계정", path: () => "/er/kel/calc", login: "other", status: 404 },
 ];
 
 const KEL_LIST = Object.values(KEL_SCREENS);
-const KEL_TITLES = new RegExp(["KEL", ...KEL_LIST.map((s) => s.title)].join("|"));
+// 404 화면에도 er 레이아웃 설명의 "2026 KEL 기록"이 나와 공개하지 않은 화면 제목만 찾음
+const HIDDEN_TITLES = new RegExp(KEL_LIST.filter((s) => !s.public).map((s) => s.title).join("|") || "(?!)");
 
 type Problems = { overflow: number; undefinedClass: string[]; unstyled: string[] };
 
@@ -237,8 +238,8 @@ describe("화면 점검", () => {
         const res = await fetch(base + path, { headers: sid ? { cookie: `er_session=${sid}` } : {} });
         const html = await res.text();
         expect([path, sid, res.status]).toEqual([path, sid, open ? 200 : 404]);
-        if (open) expect(html).not.toMatch(/<meta name="robots"/);
-        else expect(html).not.toMatch(KEL_TITLES);
+        if (open) expect(html).not.toMatch(/<meta name="robots" content="noindex/);
+        else expect(html).not.toMatch(HIDDEN_TITLES);
       }
       const res = await fetch(base + path, { headers: { cookie: `er_session=${OWNER_SID}` } });
       expect([path, res.status]).toEqual([path, 200]);

@@ -62,7 +62,7 @@ export default async function Page() {
                   <td>{r.wins}</td>
                   <td className="l wide">
                     <span className="flex gap-3">
-                      {r.teams.slice(0, 3).map(([k, n]) => (
+                      {r.teams.filter(([, n], i) => i < 3 || n === r.teams[2][1]).map(([k, n]) => (
                         <span key={k} className="inline-flex items-center gap-1.5 text-fg-2">
                           <Logo team={TEAM.get(k)!} size={22} label />
                           {n}번

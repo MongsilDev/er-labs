@@ -7,7 +7,6 @@ import ThemeToggle from "@/er/components/ThemeToggle";
 import { int as rp, TIERS, tens } from "@/er/lib/cut";
 import { getCut } from "@/er/server/cut";
 import CutMini from "@/er/components/cut/CutMini";
-import { Logo } from "@/er/components/kel/Team";
 import { seasonStandings } from "@/er/lib/kel";
 import { date, int } from "@/tarkov/lib/format";
 import { PERSONAL } from "@/tarkov/lib/kord";
@@ -172,18 +171,18 @@ export default async function Hub() {
             href="/er/kel"
             name="KEL 기록"
             desc="2026 KEL 서킷 순위, 결승 점수 흐름, 선수와 실험체 기록"
+            className="col-span-2 max-[760px]:col-span-1"
             stats={[
               { label: "준결승", value: "11월 7일" },
               { label: "결승", value: "11월 8일" },
             ]}
           >
             <p className="mb-2 text-[13px] text-fg-3">챔피언십 결승 직행</p>
-            <ul className="grid">
+            <ul className="grid grid-cols-4 gap-x-6 gap-y-3 max-[760px]:grid-cols-2">
               {seeds.map((r) => (
-                <li key={r.team.key} className="flex items-center gap-3 border-t border-line-soft py-2 first:border-t-0 first:pt-0">
-                  <Logo team={r.team} size={22} />
-                  <span className="min-w-0 truncate text-[14px] font-bold">{r.team.name}</span>
-                  <span className="ml-auto text-[14px] font-extrabold tabular-nums text-fg-2">{r.total.toLocaleString("ko-KR")}포인트</span>
+                <li key={r.team.key} className="min-w-0">
+                  <span className="block truncate text-[14px] font-bold">{r.team.name}</span>
+                  <span className="text-[14px] font-extrabold tabular-nums text-fg-2">{r.total.toLocaleString("ko-KR")}포인트</span>
                 </li>
               ))}
             </ul>
