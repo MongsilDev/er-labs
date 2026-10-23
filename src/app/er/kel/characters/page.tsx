@@ -4,10 +4,10 @@ import KelPage, { KelScroll, KelTabs, NO_DATA, pickTab } from "@/er/components/k
 import { Logo } from "@/er/components/kel/Team";
 import Char from "@/er/components/t/Char";
 import { characterName, pct } from "@/er/lib/format";
-import { josa, KEL_EVENTS, KEL_SCREENS, TEAM } from "@/er/lib/kel";
+import { KEL_EVENTS, KEL_SCREENS, TEAM } from "@/er/lib/kel";
 import { kelData, kelGate, kelMetadata, type Kel } from "@/er/server/kel";
 import { SKILL_SLOTS } from "@/er/server/kel-dakgg";
-import { characterBuilds, characterStats, seasonBuilds, top, type CharacterBuild, type CharacterStat, type PickRate, type Share } from "@/er/server/kel-stats";
+import { characterBuilds, characterStats, seasonBuilds, type CharacterBuild, type CharacterStat, type PickRate, type Share } from "@/er/server/kel-stats";
 
 export const dynamic = "force-dynamic";
 export const generateMetadata = () => kelMetadata("characters");
@@ -22,9 +22,9 @@ const VIEWS: [View, string][] = [
 type Sort = "picks" | "place" | "rise";
 
 const SORTS: [Sort, string][] = [
-  ["picks", "많이 나온 순"],
+  ["picks", "등장률 순"],
   ["place", "평균 순위 순"],
-  ["rise", "서킷 4에서 오른 순"],
+  ["rise", "서킷 4 등장률 증가 순"],
 ];
 
 const SORT: Record<Sort, (a: CharacterStat, b: CharacterStat) => number> = {
@@ -69,14 +69,11 @@ function Card({ b }: { b: CharacterBuild }) {
           <Char name={b.key} label="" size={64} />
           {characterName(b.key)}
         </h2>
-        <p className="mt-4 text-fg-2">
-          2026 시즌에 선수들이 {b.picks}번 골랐고, {b.wins > 0 ? `그중 ${b.wins}번은 1위를 했습니다.` : "1위를 한 적은 없습니다."}
-        </p>
-        <dl className="mt-4 grid grid-cols-3 gap-2.5">
+        <dl className="mt-5 grid grid-cols-3 gap-2.5">
           {[
             ["등장률", pct(b.rate), `${b.games}게임`],
             ["평균 순위", place(b.avgPlace)],
-            ["1위 비율", pct(b.winRate)],
+            ["1위 비율", pct(b.winRate), `${b.picks}번 중 ${b.wins}번`],
           ].map(([label, value, sub]) => (
             <div key={label} className="min-w-0 rounded-lg bg-field px-4 py-3.5 max-[420px]:px-3">
               <dt className="text-[13px] text-fg-3">{label}</dt>
@@ -102,7 +99,7 @@ function Card({ b }: { b: CharacterBuild }) {
         <Block title="무기" empty={!b.weapons.length}>
           <ul>
             {b.weapons.map((w) => (
-              <Bar key={w.name} s={w} sub={`${w.count}번, 평균 ${place(w.avgPlace)}`} />
+              <Bar key={w.name} s={w} sub={b.weapons.length > 1 ? `${w.count}번, 평균 ${place(w.avgPlace)}` : undefined} />
             ))}
           </ul>
         </Block>
@@ -268,22 +265,6 @@ function Build({ data, b }: { data: Kel; b: CharacterBuild }) {
   );
 }
 
-function rateLead(rows: CharacterStat[], events: readonly (typeof KEL_EVENTS)[number][]) {
-  const swings = rows.map((r) => {
-    const rates = events.map((e, i) => ({ e, i, v: r.byEvent[e.key] }));
-    const lo = top(rates, (x) => -x.v);
-    const hi = top(rates, (x) => x.v);
-    return { r, from: lo.i < hi.i ? lo : hi, to: lo.i < hi.i ? hi : lo, gap: hi.v - lo.v };
-  });
-  const swing = swings.length ? top(swings, (x) => x.gap) : null;
-  const seen = (v: number) => (v ? `${pct(v, 0)}의 게임에 나왔` : "한 번도 나오지 않았");
-  return (
-    swing &&
-    swing.gap > 0 &&
-    `${josa(characterName(swing.r.key), "은", "는")} ${swing.from.e.name}에서 ${seen(swing.from.v)}고, ${swing.to.e.name}에서는 ${seen(swing.to.v)}습니다.`
-  );
-}
-
 export default async function Page({ searchParams }: { searchParams: Promise<{ view?: string; sort?: string; c?: string }> }) {
   const { user, owner } = await kelGate("characters");
   const q = await searchParams;
@@ -298,20 +279,14 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ v
     const builds = characterBuilds(data);
     const b = builds.find((x) => x.key === q.c) ?? builds[0];
     if (!b) return <KelPage user={user} owner={owner} screen="characters" lead="dak.gg 경기 상세를 찾지 못했습니다.">{tabs}</KelPage>;
-    const [w1, w2] = b.weapons;
     const { records } = seasonBuilds(data);
     return (
       <KelPage
         user={user}
         owner={owner}
         screen="characters"
-        lead={[
-          `${josa(characterName(b.key), "은", "는")} ${total}게임 가운데 ${b.games}게임에 나왔습니다.`,
-          w2 && `${josa(w1.name, "을", "를")} 든 기록이 ${w1.count}번, ${josa(w2.name, "을", "를")} 든 기록이 ${w2.count}번입니다.`,
-        ]}
         notes={[
-          `무기, 전술 스킬, 핵심 특성, 최종 장비, 스킬 순서 비율은 그 실험체를 고른 기록 가운데 경기 상세가 있는 ${b.records}개를 기준으로 셉니다.`,
-          "무기 칸 장비는 그 무기를 든 기록을 기준으로 셉니다.",
+          `카드의 비율은 그 실험체를 고른 기록 가운데 경기 상세가 있는 ${b.records}개, 무기 칸 장비는 그 무기를 든 기록을 기준으로 셉니다.`,
           `마지막 일격 스킬은 한 게임에서 선수마다 세 번까지 남는 사망 기록 가운데 첫 번째만 보고, 이 실험체가 처치한 ${b.deaths}번을 기준으로 셉니다.`,
           b.unnamed > 0 && `공식 이름을 찾지 못한 스킬로 처치한 ${b.unnamed}번은 스킬 이름을 dak.gg 원문 그대로 적었습니다.`,
           `전술 스킬과 핵심 특성 선택률은 선수 기록 ${records.toLocaleString("ko-KR")}개, 대회별 칸은 그 대회의 선수 기록을 기준으로 셉니다.`,
@@ -327,19 +302,15 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ v
   const min = Math.ceil(total * 0.1);
   const shown = rows.filter((r) => r.games >= min).sort(SORT[sort]);
   const events = KEL_EVENTS.filter((e) => eventGames[e.key] > 0);
-  const sizes = events.map((e) => eventGames[e.key]);
 
   return (
     <KelPage
       user={user}
       owner={owner}
       screen="characters"
-      lead={[rateLead(shown, events), `2026 시즌에는 실험체 ${rows.length}종이 한 번 이상 나왔습니다.`]}
       notes={[
         "칸의 숫자는 그 대회 게임 가운데 한 팀이라도 그 실험체를 고른 게임이 차지하는 비율입니다.",
-        `시즌 게임의 10%인 ${min}게임 이상 나온 ${shown.length}종만 넣었습니다.`,
-        `대회마다 게임 수가 ${Math.min(...sizes)}~${Math.max(...sizes)}게임이라, 한 팀의 선택이 비율을 크게 바꿀 수 있습니다.`,
-        "서킷 1 결승을 빼면 모든 경기에서 한 팀은 같은 실험체를 매치마다 2번까지만 쓸 수 있습니다.",
+        `2026 시즌에 등장한 ${rows.length}종 가운데 시즌 게임의 10%인 ${min}게임 이상 등장한 ${shown.length}종만 넣었습니다.`,
         "평균 순위와 1위 비율은 그 실험체를 고른 선수의 팀 순위로 셉니다.",
       ]}
     >

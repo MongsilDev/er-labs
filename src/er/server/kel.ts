@@ -28,7 +28,9 @@ export async function kelMetadata(screen: KelScreen): Promise<Metadata> {
   const { owner } = await viewer();
   if (!kelVisible(screen, owner)) return {};
   const { title, public: open } = KEL_SCREENS[screen];
-  return open ? { title } : { title, robots: { index: false, follow: false } };
+  const data = kelData();
+  const description = `2026 KEL ${data ? `${kelSummary(data).games}게임의 ` : ""}팀, 선수, 실험체 기록입니다.`;
+  return open ? { title, description } : { title, description, robots: { index: false, follow: false } };
 }
 
 export type KelRow = {

@@ -35,7 +35,7 @@ function Who({ r }: { r: KelRow }) {
 }
 
 // 칸 전체가 링크일 수 있어 안쪽에는 링크를 두지 않음
-export function Best({ label, value, unit, href, r, children }: { label: string; value: React.ReactNode; unit?: string; href?: string; r?: KelRow; children?: React.ReactNode }) {
+export function Best({ label, value, unit, href, r, className = "", children }: { label: string; value: React.ReactNode; unit?: string; href?: string; r?: KelRow; className?: string; children?: React.ReactNode }) {
   const body = (
     <>
       <p className="text-[13px] text-fg-3">{label}</p>
@@ -47,7 +47,7 @@ export function Best({ label, value, unit, href, r, children }: { label: string;
       {children}
     </>
   );
-  const box = "panel grid content-start gap-2 p-5 max-[760px]:p-4";
+  const box = `panel grid content-start gap-2 p-5 max-[760px]:p-4 ${className}`;
   return href ? (
     <Link className={`${box} no-underline hover:border-line-strong`} href={href}>
       {body}

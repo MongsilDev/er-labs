@@ -1,9 +1,9 @@
-import { Bests } from "@/er/components/kel/Best";
+import { Best, Bests } from "@/er/components/kel/Best";
 import KelPage, { KelScroll, KelTabs, NO_DATA, pickTab } from "@/er/components/kel/KelPage";
-import { PlayerName } from "@/er/components/kel/Team";
+import { Logo, PlayerName } from "@/er/components/kel/Team";
 import Char from "@/er/components/t/Char";
 import { int } from "@/er/lib/cut";
-import { josa, playerPath, TEAM } from "@/er/lib/kel";
+import { playerPath, TEAM } from "@/er/lib/kel";
 import { kelData, kelGate, kelMetadata, type KelRow } from "@/er/server/kel";
 import { gameLabel, lows, records } from "@/er/server/kel-stats";
 
@@ -71,15 +71,24 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ v
   const rec = records(data);
   const low = view === "low" ? lows(data) : null;
   const g = rec.teamKills;
-  const lead = `팀 기록으로는 ${josa(TEAM.get(g.team)!.name, "이", "가")} ${gameLabel(g)}에서 기록한 ${g.kills}킬이 가장 많습니다.`;
+  const team = TEAM.get(g.team)!;
 
   return (
-    <KelPage user={user} owner={owner} screen="records" lead={lead}>
+    <KelPage user={user} owner={owner} screen="records">
       <KelTabs screen="records" param="view" label="보기" items={VIEWS} current={view} />
       {view === "season" && (
         <>
-          <section className="grid grid-cols-4 gap-3 max-[1080px]:grid-cols-2" aria-label="한 게임 최고 기록">
+          <section className="grid grid-cols-3 gap-3 max-[1080px]:grid-cols-2" aria-label="한 게임 최고 기록">
             <Bests rec={rec} keys={["kills", "damage", "taken", "lowTeamDamage", "cc", "heal", "camera", "vision"]} href={(r) => playerPath(r.player)} />
+            <Best label="팀 최다 킬" value={g.kills} unit="킬" className="max-[1080px]:col-span-2">
+              <div className="mt-1 grid gap-1">
+                <p className="flex items-center gap-1.5 text-[15px] font-bold">
+                  <Logo team={team} size={22} />
+                  {team.name}
+                </p>
+                <p className="text-[13px] leading-relaxed text-fg-3">{gameLabel(g)}</p>
+              </div>
+            </Best>
           </section>
           <Ranking id="top-damage" title={`가한 피해 상위 ${rec.damage.length}개 기록`} rows={rec.damage} label="가한 피해" value={(r) => int(r.damage)} />
         </>

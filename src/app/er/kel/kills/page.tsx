@@ -25,40 +25,32 @@ export default async function Page() {
   const kills = (a: string, b: string) => stats.teams.get(`${a}|${b}`) ?? 0;
   const max = Math.max(...stats.teams.values());
   const unmet = teams.some((a) => teams.some((b) => a !== b && !stats.together.get(`${a.key}|${b.key}`)));
-  const [first] = pairs;
-  const [tk, tv] = [...stats.teams].reduce((a, x) => (x[1] > a[1] ? x : a))[0].split("|");
-  const lead = [
-    `${TEAM.get(first.r.killer.team)!.name}의 ${first.r.killer.player} 선수가 ${TEAM.get(first.r.victim.team)!.name}의 ${first.r.victim.player} 선수를 ${first.r.count}번 잡아 같은 상대를 가장 많이 잡았습니다.`,
-    `팀끼리는 ${josa(TEAM.get(tk)!.name, "이", "가")} ${josa(TEAM.get(tv)!.name, "을", "를")} ${kills(tk, tv)}번 잡아 가장 많았고, 두 팀이 같은 게임에 나온 횟수는 ${stats.together.get(`${tk}|${tv}`) ?? 0}번입니다.`,
-  ];
 
   return (
     <KelPage
       user={user}
       owner={owner}
       screen="kills"
-      lead={lead}
       notes={[
-        "킬 기록에는 잡힌 실험체만 남아 있어, 같은 게임에 같은 실험체를 고른 상대가 둘 이상이면 데스 기록으로 누구인지 구분했습니다.",
-        `상대 선수를 특정할 수 없는 킬은 빼서, ${int(stats.total)}킬 가운데 ${int(stats.counted)}킬만 셌습니다.`,
-        unmet && "같은 게임에 나온 적 없는 두 팀은 -로 적었습니다.",
+        `상대 선수는 킬 기록의 실험체와 데스 기록으로 찾았고, 찾지 못한 킬을 빼서 ${int(stats.total)}킬 가운데 ${int(stats.counted)}킬을 셌습니다.`,
+        unmet && "같은 게임에 출전한 적이 없는 두 팀은 -로 적었습니다.",
       ]}
     >
       <section className="panel p-5 max-[760px]:p-4" aria-labelledby="top-pairs">
         <h2 id="top-pairs" className="text-[17px] font-extrabold">
-          같은 상대를 많이 잡은 기록 상위 {pairs.length}쌍
+          같은 상대를 많이 처치한 기록 상위 {pairs.length}쌍
         </h2>
-        <KelScroll label={`같은 상대를 많이 잡은 기록 상위 ${pairs.length}쌍`} className="mt-3">
+        <KelScroll label={`같은 상대를 많이 처치한 기록 상위 ${pairs.length}쌍`} className="mt-3">
           <table className="kel-table">
             <thead>
               <tr>
                 <th className="l w-10">
                   <span className="sr-only">순위</span>
                 </th>
-                <th className="l">잡은 선수</th>
-                <th className="l wide">잡은 팀</th>
-                <th className="l">잡힌 선수</th>
-                <th className="l wide">잡힌 팀</th>
+                <th className="l">처치한 선수</th>
+                <th className="l wide">처치한 팀</th>
+                <th className="l">처치당한 선수</th>
+                <th className="l wide">처치당한 팀</th>
                 <th>횟수</th>
               </tr>
             </thead>
@@ -92,17 +84,17 @@ export default async function Page() {
       </section>
       <section className="panel p-5 max-[760px]:p-4" aria-labelledby="team-kills">
         <h2 id="team-kills" className="text-[17px] font-extrabold">
-          팀끼리 잡은 횟수
+          팀끼리 처치한 횟수
         </h2>
         <p className="mt-1 text-[14px] text-fg-2">
-          가로줄은 잡은 팀이고, 세로줄은 잡힌 팀입니다.
-          <br />칸 위쪽 숫자는 잡은 횟수이고, 아래쪽 숫자는 두 팀이 같은 게임에 나온 횟수입니다.
+          가로줄은 처치한 팀이고, 세로줄은 처치당한 팀입니다.
+          <br />칸 위쪽 숫자는 처치한 횟수이고, 아래쪽 숫자는 두 팀이 같은 게임에 출전한 횟수입니다.
         </p>
-        <KelScroll label="팀끼리 잡은 횟수" className="mt-3">
+        <KelScroll label="팀끼리 처치한 횟수" className="mt-3">
           <table className="kel-table kel-heat">
             <thead>
               <tr>
-                <th className="l pin">잡은 팀</th>
+                <th className="l pin">처치한 팀</th>
                 {teams.map((t) => (
                   <th key={t.key} className="text-center">
                     <span className="grid justify-items-center gap-1">

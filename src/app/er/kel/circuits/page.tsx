@@ -1,7 +1,7 @@
 import BumpChart from "@/er/components/kel/BumpChart";
 import KelPage, { KelScroll } from "@/er/components/kel/KelPage";
 import { TeamName } from "@/er/components/kel/Team";
-import { josa, KEL_EVENTS, KEL_TEAMS, SEEDS, seasonStandings } from "@/er/lib/kel";
+import { KEL_EVENTS, KEL_TEAMS, SEEDS, seasonStandings } from "@/er/lib/kel";
 import { kelGate, kelMetadata } from "@/er/server/kel";
 import { top } from "@/er/server/kel-stats";
 
@@ -14,11 +14,9 @@ export default async function Page() {
   const { user, owner } = await kelGate("circuits");
   const season = seasonStandings();
   const riser = top(KEL_TEAMS, (t) => t.circuits[0] - t.circuits[3]);
-  const [first, , , end] = riser.circuits;
-  const lead = `${josa(riser.name, "은", "는")} 서킷 1에서 ${first}위였지만 서킷 4에서 ${end === 1 ? "우승했습니다" : `${end}위까지 올랐습니다`}.`;
 
   return (
-    <KelPage user={user} owner={owner} screen="circuits" lead={lead} notes={["순위는 bori.wiki 대회 문서의 결과 표에서 가져왔습니다."]}>
+    <KelPage user={user} owner={owner} screen="circuits">
       <section className="panel p-5 max-[760px]:p-4" aria-label="서킷별 순위 변화">
         <BumpChart rows={season.map((r) => ({ key: r.team.key, ranks: [...r.team.circuits] }))} labels={CIRCUITS} initial={[riser.key]} />
       </section>

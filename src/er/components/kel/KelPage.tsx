@@ -56,8 +56,8 @@ export default function KelPage({
   const s = KEL_SCREENS[screen];
   const intro = join(lead);
   const note = join(notes);
-  const section = KEL_SECTIONS.find((g) => g.items.some(([k]) => k === screen));
-  const siblings = section?.items.filter(([k]) => k !== screen && kelVisible(k, owner)) ?? [];
+  const section = KEL_SECTIONS.find((g) => g.items.includes(screen));
+  const siblings = section?.items.filter((k) => k !== screen && kelVisible(k, owner)) ?? [];
   return (
     <>
       <Header user={user} crumb="KEL 기록" crumbHref={KEL_SCREENS.home.path} next={s.path} />
@@ -74,34 +74,34 @@ export default function KelPage({
           )}
         </div>
         {children}
+        {note && (
+          <p className="text-[13px] leading-relaxed text-fg-3">
+            <Lines text={note} />
+          </p>
+        )}
+        {screen === "home" && (
+          <p className="text-[13px] leading-relaxed text-fg-3">
+            출처: 님블뉴런 이스포츠 팀 제공 경기 기록,{" "}
+            <a className="decoration-line-strong underline-offset-[3px] hover:decoration-fg-3" href={DAKGG}>
+              dak.gg e스포츠 경기 기록
+            </a>
+            , bori.wiki 대회 결과, 2026 KEL 경기 규정 10월 12일 시행판
+            <br />
+            팀 로고의 저작권은 각 구단에 있습니다.
+          </p>
+        )}
         {section && siblings.length > 0 && (
-          <nav className="flex flex-wrap gap-x-5 gap-y-2" aria-label={section.title}>
-            {siblings.map(([k]) => (
-              <Link key={k} className="font-bold decoration-line-strong underline-offset-[3px] hover:decoration-fg-3" href={KEL_SCREENS[k].path}>
+          <nav className="flex flex-wrap gap-x-6 gap-y-2" aria-label={section.title}>
+            {siblings.map((k) => (
+              <Link key={k} className="group font-bold no-underline" href={KEL_SCREENS[k].path}>
                 {KEL_SCREENS[k].title}
+                <svg className="ml-0.5 inline-block size-4 align-[-2px] text-fg-3 group-hover:text-fg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                  <path d="M9 6l6 6-6 6" />
+                </svg>
               </Link>
             ))}
           </nav>
         )}
-        <p className="text-[13px] leading-relaxed text-fg-3">
-          {note && (
-            <>
-              <Lines text={note} />
-              <br />
-            </>
-          )}
-          {screen === "home" && (
-            <>
-              경기 기록은 님블뉴런 이스포츠 팀에게 받은 자료와{" "}
-              <a className="decoration-line-strong underline-offset-[3px] hover:decoration-fg-3" href={DAKGG}>
-                dak.gg e스포츠 경기 기록
-              </a>
-              으로 계산했습니다.
-              <br />
-            </>
-          )}
-          팀 로고의 저작권은 각 구단에 있습니다.
-        </p>
       </main>
       <Footer />
     </>

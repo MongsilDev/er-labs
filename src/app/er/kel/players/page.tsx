@@ -96,7 +96,7 @@ function Card({ p, all, pairs }: { p: PlayerStat; all: PlayerStat[]; pairs: Kill
           </div>
         </div>
         <p className="mt-4 text-fg-2">
-          2026 시즌 {p.games}게임에 나와 1위를 {p.wins}번 했습니다.
+          2026 시즌 {p.games}게임에 출전해 1위를 {p.wins}번 했습니다.
         </p>
         <h3 className="mt-5 text-[13px] font-semibold text-fg-3">많이 고른 실험체</h3>
         <ul className="mt-2 grid gap-2">
@@ -125,8 +125,8 @@ function Card({ p, all, pairs }: { p: PlayerStat; all: PlayerStat[]; pairs: Kill
         </ul>
         {(victims.length > 0 || killers.length > 0) && (
           <div className="mt-5 grid grid-cols-2 gap-x-6 gap-y-4 border-t border-line-soft pt-4 max-[420px]:grid-cols-1">
-            <Opponents title="많이 잡은 상대" list={victims} side="victim" />
-            <Opponents title="많이 잡힌 상대" list={killers} side="killer" />
+            <Opponents title="많이 처치한 상대" list={victims} side="victim" />
+            <Opponents title="이 선수를 많이 처치한 상대" list={killers} side="killer" />
           </div>
         )}
       </div>
@@ -177,10 +177,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ p
       owner={owner}
       screen="players"
       notes={[
-        `순위는 ${MIN_GAMES}게임 이상 나온 선수끼리 비교했고, 평균 순위와 게임당 데스는 작을수록 높은 순위입니다.`,
-        "KPR은 경기 기록에 게임마다 적힌 선수 평점을 평균한 값이고, 한 게임의 평균은 약 1.0입니다.",
-        "가한 피해 비중은 게임마다 팀 세 명이 가한 피해 합계에서 그 선수가 차지한 비율을 평균한 값입니다.",
-        "잡은 상대와 잡힌 상대는 상대 선수를 특정할 수 없는 킬을 빼고 셌고, 횟수가 같으면 이름 순으로 세 명까지 보여 줍니다.",
+        `순위는 ${MIN_GAMES}게임 이상 출전한 선수끼리 비교했고, 평균 순위와 게임당 데스는 작을수록 높은 순위입니다.`,
+        "KPR은 경기 기록에 적힌 선수 평점의 평균이고, 한 게임 평균은 약 1.0입니다.",
+        "가한 피해 비중은 팀 세 명이 가한 피해에서 그 선수가 차지한 비율을 게임마다 구해 평균한 값입니다.",
+        "처치한 상대와 이 선수를 처치한 상대에서는 상대 선수를 알 수 없는 킬을 뺐습니다.",
       ]}
     >
       {picked && <Card p={picked} all={all} pairs={killStats(data).pairs} />}

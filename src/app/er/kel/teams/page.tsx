@@ -2,9 +2,9 @@ import KelPage, { KelScroll, KelTabs, NO_DAK, NO_DATA, pickTab } from "@/er/comp
 import Scatter from "@/er/components/kel/Scatter";
 import { TeamName } from "@/er/components/kel/Team";
 import { duration, pct } from "@/er/lib/format";
-import { josa, KEL_SCREENS, seasonStandings, TEAM, TONES } from "@/er/lib/kel";
+import { KEL_SCREENS, seasonStandings, TEAM, TONES } from "@/er/lib/kel";
 import { kelData, kelGate, kelMetadata } from "@/er/server/kel";
-import { teamOps, teamStyles, top, type StyleScope, type TeamOps, type TeamStyle } from "@/er/server/kel-stats";
+import { teamOps, teamStyles, type StyleScope, type TeamOps, type TeamStyle } from "@/er/server/kel-stats";
 
 export const dynamic = "force-dynamic";
 export const generateMetadata = () => kelMetadata("teams");
@@ -104,6 +104,7 @@ function Ops({ rows, ranks }: { rows: TeamOps[]; ranks: number[] }) {
   const order = seasonStandings().map((r) => r.team.key);
   const list = [...rows].sort((a, b) => order.indexOf(a.team) - order.indexOf(b.team));
   const max = Math.max(1, ...ranks);
+  const games = ranks.reduce((a, n) => a + n, 0);
   return (
     <>
       <section className="panel p-5 max-[760px]:p-4" aria-labelledby="ops">
@@ -164,8 +165,9 @@ function Ops({ rows, ranks }: { rows: TeamOps[]; ranks: number[] }) {
         </KelScroll>
       </section>
       <section className="panel p-5 max-[760px]:p-4" aria-labelledby="wick-ranks">
-        <h2 id="wick-ranks" className="text-[17px] font-extrabold">
-          위클라인을 잡은 팀의 순위
+        <h2 id="wick-ranks" className="flex flex-wrap items-baseline gap-x-3 text-[17px] font-extrabold">
+          위클라인을 처치한 팀의 순위
+          {games > 0 && <span className="text-[14px] font-semibold text-fg-3">평균 {(ranks.reduce((a, n, i) => a + n * (i + 1), 0) / games).toFixed(2)}위</span>}
         </h2>
         <ol className="mt-4 grid grid-cols-8 items-end gap-3 max-[760px]:gap-1.5">
           {ranks.map((n, i) => (
@@ -205,36 +207,16 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
         </KelPage>
       );
     }
-    const games = ranks.reduce((a, n) => a + n, 0);
-    const most = top(
-      ops,
-      (r) => r.wickline,
-      (r) => -r.games,
-    );
-    const lead = [
-      games > 0 && `위클라인을 잡은 팀은 ${games}게임에서 평균 ${(ranks.reduce((a, n, i) => a + n * (i + 1), 0) / games).toFixed(2)}위였고, 그 가운데 ${ranks[0]}게임에서 1위를 했습니다.`,
-      most.wickline > 0 && `${josa(name(most.team), "이", "가")} ${most.games}게임에서 ${most.wickline}번으로 위클라인을 가장 많이 잡았습니다.`,
-    ];
     return (
-      <KelPage user={user} owner={owner} screen="teams" lead={lead} notes={[...OPS_NOTES, ops.some((r) => r.wicklinePlace === null) && "위클라인을 처치한 게임이 없는 팀은 평균 순위를 -로 적었습니다."]}>
+      <KelPage user={user} owner={owner} screen="teams" notes={[...OPS_NOTES, ops.some((r) => r.wicklinePlace === null) && "위클라인을 처치한 게임이 없는 팀은 평균 순위를 -로 적었습니다."]}>
         {tabs}
         <Ops rows={ops} ranks={ranks} />
       </KelPage>
     );
   }
 
-  const wins = top(
-    rows,
-    (r) => r.wins,
-    (r) => r.perGame,
-  );
-  const kills = top(rows, (r) => r.killShare);
-  const lead = [
-    `${josa(name(wins.team), "은", "는")} ${wins.games}게임 가운데 ${wins.wins}게임에서 1위를 해 가장 많이 이겼습니다.`,
-    kills.team !== wins.team && `킬 점수 비중은 ${josa(name(kills.team), "이", "가")} ${pct(kills.killShare)}로 가장 높았습니다.`,
-  ];
   return (
-    <KelPage user={user} owner={owner} screen="teams" lead={lead} notes="점수는 모두 게임당 평균이고, 감점은 넣지 않았습니다.">
+    <KelPage user={user} owner={owner} screen="teams" notes="점수는 모두 게임당 평균이고, 감점은 넣지 않았습니다.">
       {tabs}
       <Score rows={rows} scope={scope} />
     </KelPage>

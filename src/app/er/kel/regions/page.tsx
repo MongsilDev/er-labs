@@ -2,7 +2,7 @@ import KelPage, { KelScroll, NO_DAK, NO_DATA } from "@/er/components/kel/KelPage
 import { PlayerName, TeamName } from "@/er/components/kel/Team";
 import { int } from "@/er/lib/cut";
 import { pct } from "@/er/lib/format";
-import { josa, seasonStandings, TEAM, TONES } from "@/er/lib/kel";
+import { seasonStandings, TEAM, TONES } from "@/er/lib/kel";
 import { kelData, kelGate, kelMetadata } from "@/er/server/kel";
 import { MIN_GAMES, MIN_STARTS, regions } from "@/er/server/kel-stats";
 
@@ -30,11 +30,7 @@ export default async function Page() {
   const reg = regions(data);
   if (!reg.starts.length) return <KelPage user={user} owner={owner} screen="regions" lead={NO_DAK} />;
   const starts = reg.starts.filter((s) => s.count > MIN_STARTS);
-  const [best, worst, most] = [starts[0], starts.at(-1), reg.deaths[0]];
-  const lead = [
-    best && worst && best !== worst && `${best.area}에서 시작한 선수의 팀은 평균 ${best.avgPlace.toFixed(2)}위였고, ${worst.area}에서 시작한 선수의 팀은 평균 ${worst.avgPlace.toFixed(2)}위였습니다.`,
-    most && `사망 기록은 ${josa(most.area, "이", "가")} ${int(most.count)}번으로 가장 많았고, ${most.area}에서 시작한 기록은 ${most.starts}번입니다.`,
-  ];
+  const most = reg.deaths[0];
   const deaths = data.rows.reduce((a, r) => a + (r.dak ? r.deaths : 0), 0);
   const counted = reg.deaths.reduce((a, x) => a + x.count, 0);
   const maxDeath = Math.max(1, most?.count ?? 0);
@@ -47,12 +43,10 @@ export default async function Page() {
       user={user}
       owner={owner}
       screen="regions"
-      lead={lead}
       notes={[
-        "시작 지역은 선수 한 명이 한 게임에서 시작한 기록 하나로 셉니다.",
         `시작 지역별 팀 순위에는 ${MIN_STARTS}번 넘게 시작한 지역만 넣었습니다.`,
         `사망 장소는 선수마다 세 번까지만 기록돼 있어, 사망 ${int(deaths)}번 가운데 ${int(counted)}번만 셌습니다.`,
-        `선수별 표에는 ${MIN_GAMES}게임 이상 나온 선수만 넣었습니다.`,
+        `선수별 표에는 ${MIN_GAMES}게임 이상 출전한 선수만 넣었습니다.`,
       ]}
     >
       <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-5 max-[1080px]:grid-cols-1">

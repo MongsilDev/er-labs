@@ -94,7 +94,7 @@ export const KEL_SCREENS: Record<KelScreen, { path: string; title: string; publi
   odds: { path: "/er/kel/odds", title: "챔피언십 진출 확률", public: true },
   rules: { path: "/er/kel/rules", title: "포맷과 규칙", public: true },
   circuits: { path: "/er/kel/circuits", title: "서킷별 순위", public: true },
-  finals: { path: "/er/kel/finals", title: "결승 점수 흐름", public: true },
+  finals: { path: "/er/kel/finals", title: "결승 라운드별 점수", public: true },
   teams: { path: "/er/kel/teams", title: "팀 성향", public: true },
   regions: { path: "/er/kel/regions", title: "시작 지역과 사망 지역", public: true },
   players: { path: "/er/kel/players", title: "선수 카드", public: true },
@@ -110,42 +110,10 @@ export const kelVisible = (screen: KelScreen, owner: boolean) => owner || KEL_SC
 export const playerPath = (name: string) => `${KEL_SCREENS.players.path}?p=${encodeURIComponent(name)}`;
 
 // 첫 화면의 묶음. 하위 화면 아래에는 같은 묶음의 다른 화면 링크를 둠
-export const KEL_SECTIONS: { title: string; items: [KelScreen, string][] }[] = [
-  {
-    title: "챔피언십",
-    items: [
-      ["odds", "서킷 단계마다 계산한 결승 직행, 준결승, 탈락 확률과 경우의 수"],
-      ["rules", "결승 직행 조건, 순차 체크포인트, 감점, 동점 처리"],
-    ],
-  },
-  {
-    title: "경기",
-    items: [
-      ["finals", "서킷과 미드 시즌 컵 결승의 라운드별 누적 점수, 체크포인트, 메인 날씨"],
-      ["records", "최다 킬, 가한 피해, 군중제어 시간, 팀원 회복, 실험체별 최고 기록, 낮은 기록"],
-    ],
-  },
-  {
-    title: "선수",
-    items: [
-      ["players", "KPR, 가한 피해, 군중제어 시간, 팀원 회복, 시야 점수, 생존 시간"],
-      ["roles", "팀이 가한 피해, 받은 피해, 군중제어 시간, 팀원 회복에서 선수가 차지한 비중"],
-      ["kills", "같은 상대를 많이 잡은 기록과 팀끼리 잡은 횟수"],
-    ],
-  },
-  {
-    title: "팀",
-    items: [
-      ["circuits", "16팀의 서킷 1~4 최종 순위"],
-      ["teams", "1위와 8위 횟수, 킬 점수 비중, 위클라인 처치, 평균 생존 시간, 탈출"],
-      ["regions", "시작 지역별 팀 순위, 사망이 많았던 지역, 팀과 선수가 많이 시작한 지역"],
-    ],
-  },
-  {
-    title: "실험체와 조합",
-    items: [
-      ["characters", "대회별 등장률, 무기, 전술 스킬, 핵심 특성, 최종 장비, 스킬 순서"],
-      ["comps", "조합별 횟수, 평균 순위, 1위 횟수"],
-    ],
-  },
+export const KEL_SECTIONS: { title: string; items: KelScreen[] }[] = [
+  { title: "챔피언십", items: ["odds", "rules"] },
+  { title: "경기", items: ["finals", "records"] },
+  { title: "선수", items: ["players", "roles", "kills"] },
+  { title: "팀", items: ["circuits", "teams", "regions"] },
+  { title: "실험체와 조합", items: ["characters", "comps"] },
 ];

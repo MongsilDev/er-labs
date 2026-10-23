@@ -1,7 +1,7 @@
 import { Fragment } from "react";
 import Lines from "@/components/Lines";
 import Checkpoints from "@/er/components/kel/Checkpoints";
-import KelPage from "@/er/components/kel/KelPage";
+import KelPage, { KelScroll } from "@/er/components/kel/KelPage";
 import { TeamName } from "@/er/components/kel/Team";
 import { rampColor } from "@/er/lib/format";
 import { CIRCUIT_POINTS, KEL_EVENTS, QUALIFY, SEEDS, seasonStandings } from "@/er/lib/kel";
@@ -28,18 +28,18 @@ const PENALTIES: [string, string][] = [
 
 const FAQ: { q: string; a?: string; extra?: React.ReactNode }[] = [
   {
-    q: "서킷에서 우승하면 결승에 바로 가나요?",
-    a: "아닙니다. 서킷 1~4에서 받은 서킷 포인트를 더해서 1~4위가 결승에 바로 갑니다. 5~12위는 11월 7일 준결승을 치르고, 그중 상위 4팀이 결승에 합류합니다.",
+    q: "서킷에서 우승하면 결승에 바로 진출하나요?",
+    a: "아닙니다. 서킷 1~4에서 받은 서킷 포인트를 더해서 1~4위가 결승에 바로 진출합니다. 5~12위는 11월 7일 준결승을 치르고, 그중 상위 4팀이 결승에 진출합니다.",
   },
   {
     q: "순차 체크포인트는 무엇인가요?",
     a: "오프닝 위크와 서킷, 미드 시즌 컵, 챔피언십의 결승에서 쓰는 방식입니다. 4라운드까지는 점수만 쌓고, 5라운드부터 직전 라운드까지의 순위 상위 팀이 체크포인트를 받습니다. 체크포인트를 받은 팀이 그 라운드에서 마지막까지 살아남으면 우승입니다.",
     extra: <Checkpoints />,
   },
-  { q: "점수가 가장 높은데 왜 우승이 아닌가요?", a: "체크포인트 방식에서는 체크포인트를 가진 상태로 가장 먼저 최종 생존에 성공한 팀이 1위로 고정됩니다. 나머지 팀만 점수로 순위를 정합니다." },
+  { q: "점수가 가장 높은데 왜 우승이 아닌가요?", a: "체크포인트를 가진 팀이 라운드 1위를 하면 그 팀이 점수와 관계없이 우승합니다. 나머지 팀은 점수로 순위를 정합니다." },
   {
     q: "감점을 받으면 체크포인트가 없어지나요?",
-    a: "라운드 사이에 받은 감점으로는 없어지지 않습니다. 9월 7일 개정 공지가 이렇게 정했지만, 10월 12일 시행판 규정집에는 이 내용이 없습니다. 게임 안에서 받은 감점은 그 라운드 점수에 들어가서 체크포인트를 받는 순위에도 반영됩니다.",
+    a: "라운드 사이에 받은 감점으로는 체크포인트가 없어지지 않습니다. 9월 7일 개정 공지에는 이 내용이 있지만, 10월 12일 시행판 규정집에는 없습니다. 게임 안에서 받은 감점은 그 라운드 점수에 반영되므로, 체크포인트를 받는 순위에도 영향을 줍니다.",
   },
   {
     q: "감점은 몇 점인가요?",
@@ -55,27 +55,31 @@ const FAQ: { q: string; a?: string; extra?: React.ReactNode }[] = [
             ))}
           </tbody>
         </table>
-        <p className="mt-2 text-[14px] text-fg-2">처치한 선수가 없는 탈락은 마지막 2팀이 남았을 때는 감점하지 않습니다.</p>
+        <p className="mt-2 text-[14px] text-fg-2">처치한 선수 없이 탈락해도 마지막 2팀이 남았을 때는 감점하지 않습니다.</p>
       </>
     ),
   },
   {
     q: "포인트나 점수가 같으면 누가 위인가요?",
-    a: "서킷 포인트 합계가 같으면 서킷 4 순위가 높은 팀이 위입니다. 한 경기 안에서 총점이 같을 때 규정집은 킬 수, 마지막 라운드 순위 순서로 가린다고 적었지만, 공식 순위표는 킬 점수로 가렸습니다. 서킷 1 결승에서는 82점으로 같았던 두 팀 가운데 킬 점수가 1점 많은 GC 부산 스텔라가 3위였고, 킬 수가 더 많았던 경남 스파클은 4위였습니다.",
+    a: "서킷 포인트 합계가 같으면 서킷 4 순위가 높은 팀이 위입니다. 한 경기 안에서 총점이 같으면 규정집에는 킬 수, 마지막 라운드 순위 순서로 정한다고 적혀 있지만, 공식 순위표는 킬 점수로 정했습니다. 서킷 1 결승에서는 82점으로 같았던 두 팀 가운데 킬 점수가 1점 많은 GC 부산 스텔라가 3위였고, 킬 수가 더 많았던 경남 스파클은 4위였습니다.",
   },
   {
-    q: "킬 점수가 0.5점인 때는 언제인가요?",
-    a: "팀이 전멸해도 자동으로 부활할 수 있는 때의 킬은 0.5점입니다. 게임 안 1일차와 2일차 전투 연구실에서 나온 킬이 여기에 들어갑니다. 3일차부터 나온 킬은 1점입니다. 2일차에 전투 연구실 밖에서 나온 킬의 점수는 규정집에 적혀 있지 않습니다.",
+    q: "킬 점수가 0.5점인 경우는 언제인가요?",
+    a: "팀이 전멸해도 자동으로 부활할 수 있는 시간에 나온 킬은 0.5점입니다. 게임 안 1일차와 2일차 전투 연구실에서 나온 킬이 여기에 들어갑니다. 3일차부터 나온 킬은 1점입니다. 2일차에 전투 연구실 밖에서 나온 킬의 점수는 규정집에 적혀 있지 않습니다.",
   },
   {
     q: "2픽캡은 무엇인가요?",
     a: "한 팀이 같은 실험체를 매치마다 2번까지만 쓸 수 있는 규칙입니다. 규정집에는 하루에 2번까지라고 적혀 있지만, 경기 기록을 보면 같은 날 열린 패자조와 최종전에서는 횟수를 따로 셌습니다. 결승도 서킷 2부터 2픽캡으로 진행했습니다.",
   },
   { q: "선수는 언제 바꿀 수 있나요?", a: "2라운드마다 바꿀 수 있습니다. 경기가 끝난 뒤 온라인은 5분, 오프라인은 2분 안에 알려야 합니다. 마감 뒤에 바꾸면 3점을 감점합니다." },
-  { q: "MVP는 어떻게 뽑나요?", a: "규정집과 공식 공지에는 MVP를 뽑는 기준이 없습니다." },
 ];
 
 const CUTS: Record<number, string> = { [SEEDS]: "여기까지 결승 직행", [QUALIFY]: "여기까지 준결승" };
+
+const POINT_ROWS: [string, number[]][] = [
+  ["서킷 1, 2", CIRCUIT_POINTS.early],
+  ["서킷 3, 4", CIRCUIT_POINTS.late],
+];
 
 export default async function Page() {
   const { user, owner } = await kelGate("rules");
@@ -89,7 +93,6 @@ export default async function Page() {
       owner={owner}
       screen="rules"
       lead="정규 시즌 순위는 서킷 1~4에서 받은 서킷 포인트를 더해서 정합니다."
-      notes={["규칙은 KEL 공지에 올라온 2026 경기 규정 10월 12일 시행판을 기준으로 정리했습니다.", "서킷 순위는 bori.wiki 대회 문서의 결과 표에서 가져왔습니다."]}
     >
       <section className="panel p-5 max-[760px]:p-4" aria-labelledby="flow">
         <h2 id="flow" className="text-[17px] font-extrabold">
@@ -177,24 +180,30 @@ export default async function Page() {
           <h2 id="circuit-points" className="text-[17px] font-extrabold">
             서킷 포인트
           </h2>
-          <table className="kel-table mt-2">
-            <thead>
-              <tr>
-                <th className="l">서킷 순위</th>
-                <th>서킷 1, 2</th>
-                <th>서킷 3, 4</th>
-              </tr>
-            </thead>
-            <tbody>
-              {ranks.map((label, i) => (
-                <tr key={label}>
-                  <td className="l">{label}</td>
-                  <td>{(CIRCUIT_POINTS.early[i] ?? 0).toLocaleString("ko-KR")}</td>
-                  <td>{(CIRCUIT_POINTS.late[i] ?? 0).toLocaleString("ko-KR")}</td>
+          <KelScroll label="서킷 포인트" className="mt-2">
+            <table className="kel-table">
+              <thead>
+                <tr>
+                  <th className="l">
+                    <span className="sr-only">서킷</span>
+                  </th>
+                  {ranks.map((label) => (
+                    <th key={label}>{label}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {POINT_ROWS.map(([name, points]) => (
+                  <tr key={name}>
+                    <td className="l">{name}</td>
+                    {ranks.map((label, i) => (
+                      <td key={label}>{(points[i] ?? 0).toLocaleString("ko-KR")}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </KelScroll>
         </section>
         <section className="panel p-5 max-[760px]:p-4" aria-labelledby="game-points">
           <h2 id="game-points" className="text-[17px] font-extrabold">

@@ -124,7 +124,7 @@ const SCREENS: Screen[] = [
   { name: "KEL 챔피언십 진출 확률 서킷 2 승자조 뒤", path: () => "/er/kel/odds?c=2&s=3", login: true },
   { name: "KEL 포맷과 규칙", path: () => "/er/kel/rules", login: true },
   { name: "KEL 서킷별 순위", path: () => "/er/kel/circuits", login: true },
-  { name: "KEL 결승 점수 흐름", path: () => "/er/kel/finals", login: true },
+  { name: "KEL 결승 라운드별 점수", path: () => "/er/kel/finals", login: true },
   { name: "KEL 팀 성향", path: () => "/er/kel/teams", login: true },
   { name: "KEL 팀 성향 결승 운영", path: () => "/er/kel/teams?s=finals&v=ops", login: true },
   { name: "KEL 시작 지역과 사망 지역", path: () => "/er/kel/regions", login: true },

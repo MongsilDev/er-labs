@@ -50,13 +50,13 @@ export default async function Page() {
   return (
     <KelPage user={user} owner={owner} screen="home" lead={lead}>
       <div className="grid grid-cols-2 gap-4 max-[760px]:grid-cols-1">
-        <Event date="11월 7일 토요일, 대전이스포츠경기장" name="준결승" teams={semi} text="정규 시즌 5~12위 8팀이 6라운드를 치릅니다. 상위 4팀이 결승에 올라갑니다." />
+        <Event date="11월 7일 토요일, 대전이스포츠경기장" name="준결승" teams={semi} text="정규 시즌 5~12위 8팀이 6라운드를 치릅니다. 상위 4팀이 결승에 진출합니다." />
         <Event
           date="11월 8일 일요일, 대전이스포츠경기장"
           name="결승"
           teams={seeds}
           slot="준결승 상위 4팀"
-          text="정규 시즌 1~4위는 결승에 바로 올라갔습니다. 순차 체크포인트 방식으로 최대 9라운드를 치릅니다."
+          text="정규 시즌 1~4위는 결승에 바로 진출했습니다. 순차 체크포인트 방식으로 최대 9라운드를 치릅니다."
         />
       </div>
       {rec && (
@@ -80,25 +80,26 @@ export default async function Page() {
           </div>
         </section>
       )}
-      {KEL_SECTIONS.map((s) => {
-        const items = s.items.filter(([key]) => kelVisible(key, owner));
-        if (!items.length) return null;
-        return (
-          <section key={s.title} className="panel grid grid-cols-[160px_1fr] gap-5 p-5 max-[760px]:grid-cols-1 max-[760px]:gap-2 max-[760px]:p-4" aria-label={s.title}>
-            <h2 className="text-[17px] font-extrabold">{s.title}</h2>
-            <ul className="grid">
-              {items.map(([key, desc]) => (
-                <li key={key} className="border-b border-line-soft py-2.5 first:pt-0 last:border-b-0 last:pb-0">
-                  <Link className="font-bold decoration-line-strong underline-offset-[3px] hover:decoration-fg-3" href={KEL_SCREENS[key].path}>
-                    {KEL_SCREENS[key].title}
-                  </Link>
-                  <p className="mt-0.5 text-[14px] text-fg-3">{desc}</p>
-                </li>
-              ))}
-            </ul>
-          </section>
-        );
-      })}
+      <nav className="panel grid px-5 py-2 max-[760px]:px-4" aria-label="KEL 화면">
+        {KEL_SECTIONS.map((s) => {
+          const items = s.items.filter((key) => kelVisible(key, owner));
+          if (!items.length) return null;
+          return (
+            <div key={s.title} className="grid grid-cols-[160px_minmax(0,1fr)] items-baseline gap-x-5 gap-y-1.5 border-b border-line-soft py-3 last:border-b-0 max-[760px]:grid-cols-1">
+              <h2 className="text-[14px] font-semibold text-fg-3">{s.title}</h2>
+              <ul className="flex flex-wrap gap-x-6 gap-y-1.5">
+                {items.map((key) => (
+                  <li key={key}>
+                    <Link className="font-bold decoration-line-strong underline-offset-[3px] hover:decoration-fg-3" href={KEL_SCREENS[key].path}>
+                      {KEL_SCREENS[key].title}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
+      </nav>
     </KelPage>
   );
 }

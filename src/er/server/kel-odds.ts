@@ -403,7 +403,7 @@ function cases(input: OddsInput, final: ReturnType<typeof enumerateFinal>): Map<
       const d = run((v) => !v[1] && !v[2]);
       if (d) lines.push(`${within(d)} 결승 직행이 확정됩니다.`);
       const k = from((v) => v[0]);
-      if (k) lines.push(`${short(k - 1)} 결승 직행이 불가능해집니다.`);
+      if (k) lines.push(`${short(k - 1)} 결승에 바로 갈 수 없습니다.`);
     }
     if (p[t][2] > 0 && p[t][2] < 1) {
       const s = run((v) => v[2] === 0);
