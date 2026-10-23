@@ -100,13 +100,13 @@ describe("KEL 자료", () => {
     kelFixture(process.env.DATA_DIR!);
     const { damage, deaths } = lows(kelData()!);
     expect(damage.map((x) => [x.rank, x.r.damage])).toEqual([
-      [1, 281],
-      [2, 590],
-      [3, 830],
-      [4, 892],
-      [5, 1024],
+      [1, 300],
+      [2, 610],
+      [3, 820],
+      [4, 905],
+      [5, 1010],
     ]);
-    expect(deaths.map((x) => [x.rank, x.r.deaths])).toEqual([[1, 11], ...Array.from({ length: 6 }, () => [2, 9])]);
+    expect(deaths.map((x) => [x.rank, x.r.deaths])).toEqual([[1, 10], ...Array.from({ length: 6 }, () => [2, 8])]);
   });
 
   it("dak.gg 경기 상세로 결승 날씨, 팀 운영 기록, 시작 지역과 사망 장소를 모은다", () => {

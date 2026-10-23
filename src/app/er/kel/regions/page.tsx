@@ -37,7 +37,6 @@ export default async function Page() {
   ];
   const deaths = data.rows.reduce((a, r) => a + (r.dak ? r.deaths : 0), 0);
   const counted = reg.deaths.reduce((a, x) => a + x.count, 0);
-  const maxStart = Math.max(1, ...starts.map((s) => s.count));
   const maxDeath = Math.max(1, most?.count ?? 0);
   const order = seasonStandings().map((r) => r.team.key);
   const teams = [...reg.teams].sort((a, b) => order.indexOf(a.team) - order.indexOf(b.team));
@@ -52,9 +51,8 @@ export default async function Page() {
       notes={[
         "시작 지역은 선수 한 명이 한 게임에서 시작한 기록 하나로 셉니다.",
         `시작 지역별 팀 순위에는 ${MIN_STARTS}번 넘게 시작한 지역만 넣었습니다.`,
-        `사망 장소는 dak.gg 경기 상세에 선수마다 세 번까지만 남아 있어, 데스 ${int(deaths)}번 가운데 ${int(counted)}번만 셌습니다.`,
+        `사망 장소는 선수마다 세 번까지만 기록돼 있어, 데스 ${int(deaths)}번 가운데 ${int(counted)}번만 셌습니다.`,
         `선수별 표에는 ${MIN_GAMES}게임 이상 나온 선수만 넣었습니다.`,
-        "많이 시작한 지역의 비율은 그 팀이나 선수가 시작한 기록 가운데 그 지역의 비율입니다.",
       ]}
     >
       <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-5 max-[1080px]:grid-cols-1">
@@ -76,12 +74,7 @@ export default async function Page() {
                 {starts.map((s) => (
                   <tr key={s.area}>
                     <td className="l font-semibold">{s.area}</td>
-                    <td>
-                      <span className="inline-flex items-center justify-end gap-2">
-                        <span className="h-1.5 rounded-full bg-line-strong max-[760px]:hidden" style={{ width: (s.count / maxStart) * 120 }} aria-hidden="true" />
-                        {s.count}
-                      </span>
-                    </td>
+                    <td>{s.count}</td>
                     <td className="font-bold">{s.avgPlace.toFixed(2)}위</td>
                     <td>{pct(s.top3)}</td>
                   </tr>

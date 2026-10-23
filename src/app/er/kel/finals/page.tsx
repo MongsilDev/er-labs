@@ -47,7 +47,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ f
       lead={lead}
       notes={[
         state.rows.some((r) => r.penalty > 0) && "감점 칸에는 bori.wiki 결과 표 점수와 경기 기록 점수의 차이를 넣었습니다.",
-        f.weather.some(Boolean) && "라운드 번호 아래 글자는 dak.gg 경기 상세에 남은 그 라운드의 메인 날씨입니다.",
+        f.weather.some(Boolean) && "라운드 번호 아래 글자는 그 라운드의 메인 날씨입니다.",
         NOTES[f.event],
       ]}
     >

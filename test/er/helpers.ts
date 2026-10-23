@@ -73,11 +73,11 @@ const WEATHERS = [
 
 // 첫 게임의 팀 순서-선수 순서별 가한 피해
 const LOW_DAMAGE = new Map([
-  ["7-0", 281],
-  ["7-1", 590],
-  ["7-2", 830],
-  ["6-0", 892],
-  ["6-1", 1024],
+  ["7-0", 300],
+  ["7-1", 610],
+  ["7-2", 820],
+  ["6-0", 905],
+  ["6-1", 1010],
 ]);
 
 // 단계별 경기 날짜는 서킷 첫날부터 센 날수
@@ -134,7 +134,7 @@ export function kelFixture(dataDir: string) {
           const c = (i * 3 + p + r) % KEL_CHARS.length;
           // 첫 게임에만 최다 데스와 최저 가한 피해를 따로 두어 낮은 기록 표가 다섯 줄 남짓 나옴
           const first = f === 0 && r === 1;
-          const deaths = first && p === 0 && i < 7 ? (i ? 9 : 11) : p % 2;
+          const deaths = first && p === 0 && i < 7 ? (i ? 8 : 10) : p % 2;
           const low = first ? LOW_DAMAGE.get(`${i}-${p}`) : undefined;
           lines.push(
             [
