@@ -55,19 +55,40 @@ export type { Player };
 const KEL_HEADER = "매치,날짜,라운드,gameId,순위,팀,선수,실험체,킬,어시,데스,채집,가한피해,받은피해,rankScore,killScore,TS,크레딧,KPR";
 const KEL_CHARS = ["Nadine", "Alonso", "Debi & Marlene", "Li Dailin", "NiaH", "Yumin", "Jackie", "Aya", "Eleven"];
 
+// 단계별 경기 날짜는 서킷 첫날부터 센 날수
+const DAYS = [0, 0, 1, 7, 7, 8];
+const shift = (date: string, days: number) => new Date(Date.parse(date) + days * 86_400_000).toISOString().slice(0, 10);
+
+// 서킷 최종 순위에 맞춘 단계별 8팀. 1~8위 가운데 홀수 순위는 승자조에서 바로, 짝수 순위는 최종전을 거쳐 결승에 감
+function bracket(c: number): [string, string[]][] {
+  const byRank = [...KEL_TEAMS].sort((a, b) => a.circuits[c - 1] - b.circuits[c - 1]).map((t) => t.csv);
+  const direct = byRank.filter((_, i) => i < 8 && i % 2 === 0);
+  const via = byRank.filter((_, i) => i < 8 && i % 2 === 1);
+  const nine = byRank.slice(8, 12);
+  const upper = [...direct, via[0], via[1], nine[0], nine[1]];
+  const lower = [via[2], via[3], nine[2], nine[3], ...byRank.slice(12)];
+  return [
+    ["Group_A", [...upper.slice(0, 4), ...lower.slice(0, 4)]],
+    ["Group_B", [...upper.slice(4), ...lower.slice(4)]],
+    ["Upper_Match", upper],
+    ["Lower_Match", lower],
+    ["Lower_Finals", [...via, ...nine]],
+    ["Finals", byRank.slice(0, 8)],
+  ];
+}
+
 // 실제 경기 기록 대신 지어낸 값으로 KEL CSV를 만듦
 export function kelFixture(dataDir: string) {
   const dir = join(dataDir, "kel");
   mkdirSync(dir, { recursive: true });
   const all = KEL_TEAMS.map((t) => t.csv);
-  // 4~7번 팀 선수는 30게임이 되어 선수끼리 견주는 화면에도 나옴
+  // 서킷 결승에 자주 오른 팀 선수는 30게임을 넘겨 선수끼리 견주는 화면에도 나옴
   const files: [string, string[], number][] = [
     ["2026_KEL_Opening_week_Group_Alpha_2026-05-22.csv", all.slice(0, 8), 4],
-    ["2026_KEL_CIRCUIT_1_Group_A_2026-06-06.csv", all.slice(0, 8), 6],
-    ["2026_KEL_CIRCUIT_2_Group_A_2026-07-04.csv", all.slice(0, 8), 6],
     ["2026_KEL_MIDSEASON_CUP_SEMIFINALS_2026-08-01.csv", all.slice(8, 16), 6],
-    ["2026_KEL_CIRCUIT_3_Finals_2026-09-20.csv", all.slice(0, 8), 8],
-    ["2026_KEL_CIRCUIT_4_Finals_2026-10-18.csv", all.slice(4, 12), 6],
+    ...(["2026-06-06", "2026-07-04", "2026-09-12", "2026-10-10"] as const).flatMap((start, i) =>
+      bracket(i + 1).map(([stage, teams], k): [string, string[], number] => [`2026_KEL_CIRCUIT_${i + 1}_${stage}_${shift(start, DAYS[k])}.csv`, teams, stage === "Finals" ? (i === 2 ? 8 : 6) : 2]),
+    ),
   ];
   files.forEach(([name, teams, rounds], f) => {
     const date = name.slice(-14, -4);

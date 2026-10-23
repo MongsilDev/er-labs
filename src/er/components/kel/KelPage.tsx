@@ -6,7 +6,7 @@ import { KEL_SCREENS, KEL_SECTIONS, kelVisible, type KelScreen } from "@/er/lib/
 import type { User } from "@/er/server/auth";
 
 type Text = string | (string | false | null | undefined)[];
-type Tab<K extends string> = readonly [K, string];
+type Tab<K extends string> = readonly [K, React.ReactNode];
 
 const join = (t?: Text) => (Array.isArray(t) ? t.filter(Boolean).join(" ") : (t ?? ""));
 
@@ -14,21 +14,22 @@ export const NO_DATA = "경기 기록 CSV를 찾지 못했습니다. 서버 데�
 
 export const pickTab = <K extends string>(items: readonly Tab<K>[], value?: string): K => (items.find(([k]) => k === value) ?? items[0])[0];
 
-// 표를 감싼 구역과 이름이 겹치지 않게 뒤에 '표'를 붙임
-export function KelScroll({ label, className = "", children }: { label: string; className?: string; children: React.ReactNode }) {
-  return (
-    <div className={`kel-scroll scroll-fade overflow-x-auto ${className}`} role="region" aria-label={`${label} 표`} tabIndex={0}>
-      {children}
-    </div>
-  );
-}
+export { default as KelScroll } from "./KelScroll";
 
-export function KelTabs<K extends string>({ screen, param, label, items, current }: { screen: KelScreen; param: string; label: string; items: readonly Tab<K>[]; current: K }) {
-  const path = KEL_SCREENS[screen].path;
+type TabsProps<K extends string> = { label: string; items: readonly Tab<K>[]; current: K } & ({ screen: KelScreen; param: string } | { href: (k: K) => string });
+
+// screen과 param을 주면 첫 탭은 화면 주소, 나머지는 ?param=값
+export function KelTabs<K extends string>(props: TabsProps<K>) {
+  const { label, items, current } = props;
+  const href = (k: K, i: number) => {
+    if ("href" in props) return props.href(k);
+    const path = KEL_SCREENS[props.screen].path;
+    return i === 0 ? path : `${path}?${props.param}=${k}`;
+  };
   return (
     <nav className="tabs" aria-label={label}>
       {items.map(([k, name], i) => (
-        <Link key={k} href={i === 0 ? path : `${path}?${param}=${k}`} aria-current={k === current ? "page" : undefined}>
+        <Link key={k} href={href(k, i)} aria-current={k === current ? "page" : undefined}>
           {name}
         </Link>
       ))}

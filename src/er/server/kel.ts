@@ -66,7 +66,9 @@ export type TeamGame = {
 
 export type Kel = { rows: KelRow[]; games: TeamGame[] };
 
-const STAGES: Record<string, string> = { group_a: "A조", group_b: "B조", upper_match: "승자조", lower_match: "패자조", lower_finals: "최종전", finals: "결승" };
+// 서킷 단계, 경기 순서대로
+const STAGES = { group_a: "A조", group_b: "B조", upper_match: "승자조", lower_match: "패자조", lower_finals: "최종전", finals: "결승" } as const;
+export const CIRCUIT_STAGES = Object.values(STAGES);
 
 function stageOf(file: string): { event: KelEvent; stage: string } | null {
   if (/Opening_week_Group_Alpha/i.test(file)) return { event: "opening", stage: "알파 그룹" };
@@ -74,7 +76,7 @@ function stageOf(file: string): { event: KelEvent; stage: string } | null {
   if (/MIDSEASON_CUP_SEMIFINALS/i.test(file)) return { event: "msc", stage: "준결승" };
   if (/MIDSEASON_CUP_FINALS/i.test(file)) return { event: "msc", stage: "결승" };
   const m = /CIRCUIT_([1-4])_(Group_A|Group_B|Upper_Match|Lower_Match|Lower_Finals|Finals)_/i.exec(file);
-  return m ? { event: `c${m[1]}` as KelEvent, stage: STAGES[m[2].toLowerCase()] } : null;
+  return m ? { event: `c${m[1]}` as KelEvent, stage: STAGES[m[2].toLowerCase() as keyof typeof STAGES] } : null;
 }
 
 const CHARACTER = new Map(Object.keys(characters).map((k) => [k.toLowerCase(), k]));
@@ -207,6 +209,9 @@ export function kelSummary(data: Kel): KelSummary {
 // bori.wiki 결과 표 점수와 경기 기록 점수의 차이, 종류는 대회 문서에 적힌 감점 사유 기준이고 사유가 없으면 penalty
 const CORRECTIONS: { event: KelEvent; stage: string; round: number; team: string; points: number; kind: "penalty" | "rule" }[] = [
   { event: "c1", stage: "결승", round: 4, team: "gj-slasher", points: 3, kind: "rule" },
+  // 미드 시즌 컵 준결승 두 줄은 아직 읽는 화면이 없지만 대조 결과라 남겨 둠
+  { event: "msc", stage: "준결승", round: 1, team: "gj-slasher", points: 1, kind: "penalty" },
+  { event: "msc", stage: "준결승", round: 6, team: "jeonnam-esports", points: 1, kind: "penalty" },
   { event: "msc", stage: "결승", round: 4, team: "daejeon-autoarms", points: 3, kind: "rule" },
   { event: "msc", stage: "결승", round: 4, team: "gyeongbuk-ascenders", points: 5, kind: "rule" },
   { event: "c4", stage: "결승", round: 3, team: "new-rise-gangwon", points: 1, kind: "penalty" },

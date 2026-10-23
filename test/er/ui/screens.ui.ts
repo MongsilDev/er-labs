@@ -120,6 +120,8 @@ const SCREENS: Screen[] = [
   { name: "없는 대회", path: () => "/er/t/ZZZZZZ/a", status: 404 },
   { name: "없는 페이지", path: () => "/nope", status: 404 },
   { name: "KEL 기록", path: () => "/er/kel", login: true },
+  { name: "KEL 챔피언십 진출 확률", path: () => "/er/kel/odds", login: true },
+  { name: "KEL 챔피언십 진출 확률 서킷 2 승자조 뒤", path: () => "/er/kel/odds?c=2&s=3", login: true },
   { name: "KEL 포맷과 규칙", path: () => "/er/kel/rules", login: true },
   { name: "KEL 서킷별 순위", path: () => "/er/kel/circuits", login: true },
   { name: "KEL 결승 점수 흐름", path: () => "/er/kel/finals", login: true },

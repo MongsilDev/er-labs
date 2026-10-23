@@ -1,6 +1,7 @@
+import HeatCell from "@/er/components/kel/HeatCell";
 import KelPage, { KelScroll, KelTabs, NO_DATA, pickTab } from "@/er/components/kel/KelPage";
 import Char from "@/er/components/t/Char";
-import { characterName, pct, rampColor, rampTextClass } from "@/er/lib/format";
+import { characterName, pct } from "@/er/lib/format";
 import { josa, KEL_EVENTS } from "@/er/lib/kel";
 import { kelData, kelGate, kelMetadata } from "@/er/server/kel";
 import { characterStats, top, type CharacterStat } from "@/er/server/kel-stats";
@@ -21,17 +22,6 @@ const SORT: Record<Sort, (a: CharacterStat, b: CharacterStat) => number> = {
   place: (a, b) => a.avgPlace - b.avgPlace,
   rise: (a, b) => b.byEvent.c4 - b.byEvent.c3 - (a.byEvent.c4 - a.byEvent.c3),
 };
-
-const STEPS = 10;
-
-function Heat({ v }: { v: number }) {
-  const step = Math.min(STEPS - 1, Math.floor(v * STEPS));
-  return (
-    <td className={`h ${rampTextClass(step, STEPS) ?? ""}`} style={{ background: rampColor(step, STEPS) }}>
-      {pct(v, 0)}
-    </td>
-  );
-}
 
 export default async function Page({ searchParams }: { searchParams: Promise<{ sort?: string }> }) {
   const { user, owner } = await kelGate("characters");
@@ -100,7 +90,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
                   </td>
                   <td className="narrow font-bold">{pct(r.rate, 0)}</td>
                   {events.map((e) => (
-                    <Heat key={e.key} v={r.byEvent[e.key]} />
+                    <HeatCell key={e.key} v={r.byEvent[e.key]}>
+                      {pct(r.byEvent[e.key], 0)}
+                    </HeatCell>
                   ))}
                   <td className="wide font-bold">{pct(r.rate, 0)}</td>
                   <td>{r.avgPlace.toFixed(2)}위</td>

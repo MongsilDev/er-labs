@@ -4,7 +4,7 @@ import Checkpoints from "@/er/components/kel/Checkpoints";
 import KelPage from "@/er/components/kel/KelPage";
 import { TeamName } from "@/er/components/kel/Team";
 import { rampColor } from "@/er/lib/format";
-import { CIRCUIT_POINTS, KEL_EVENTS, seasonStandings } from "@/er/lib/kel";
+import { CIRCUIT_POINTS, KEL_EVENTS, QUALIFY, SEEDS, seasonStandings } from "@/er/lib/kel";
 import { PLACEMENT_POINTS } from "@/er/lib/rules";
 import { kelGate, kelMetadata } from "@/er/server/kel";
 
@@ -39,7 +39,7 @@ const FAQ: { q: string; a?: string; extra?: React.ReactNode }[] = [
   { q: "점수가 가장 높은데 왜 우승이 아닌가요?", a: "체크포인트 방식에서는 체크포인트를 가진 상태로 가장 먼저 최종 생존에 성공한 팀이 1위로 고정됩니다. 나머지 팀만 점수로 순위를 정합니다." },
   {
     q: "감점을 받으면 체크포인트가 없어지나요?",
-    a: "라운드 사이에 받은 감점으로는 없어지지 않습니다. 9월 7일 개정 공지가 이렇게 정했지만, 10월 12일 시행판 규정집에는 이 문장이 없습니다. 게임 안에서 받은 감점은 그 라운드 점수에 들어가서 체크포인트를 받는 순위에도 반영됩니다.",
+    a: "라운드 사이에 받은 감점으로는 없어지지 않습니다. 9월 7일 개정 공지가 이렇게 정했지만, 10월 12일 시행판 규정집에는 이 내용이 없습니다. 게임 안에서 받은 감점은 그 라운드 점수에 들어가서 체크포인트를 받는 순위에도 반영됩니다.",
   },
   {
     q: "감점은 몇 점인가요?",
@@ -75,7 +75,7 @@ const FAQ: { q: string; a?: string; extra?: React.ReactNode }[] = [
   { q: "MVP는 어떻게 뽑나요?", a: "규정집과 공식 공지에는 MVP를 뽑는 기준이 없습니다." },
 ];
 
-const CUTS: Record<number, string> = { 4: "여기까지 결승 직행", 12: "여기까지 준결승" };
+const CUTS: Record<number, string> = { [SEEDS]: "여기까지 결승 직행", [QUALIFY]: "여기까지 준결승" };
 
 export default async function Page() {
   const { user, owner } = await kelGate("rules");
@@ -142,8 +142,8 @@ export default async function Page() {
           {season.map((r) => (
             <Fragment key={r.team.key}>
               <li className="grid grid-cols-[30px_190px_minmax(0,1fr)] items-center gap-x-3 py-0.5 max-[760px]:grid-cols-[30px_minmax(0,1fr)] max-[760px]:gap-y-1.5">
-                <span className={r.rank <= 4 ? "rk adv" : "rk"}>{r.rank}</span>
-                <span className={`min-w-0 ${r.rank > 12 ? "text-fg-3" : ""}`}>
+                <span className={r.rank <= SEEDS ? "rk adv" : "rk"}>{r.rank}</span>
+                <span className={`min-w-0 ${r.rank > QUALIFY ? "text-fg-3" : ""}`}>
                   <TeamName team={r.team} />
                 </span>
                 <span className="flex items-center gap-2 max-[760px]:col-span-2">

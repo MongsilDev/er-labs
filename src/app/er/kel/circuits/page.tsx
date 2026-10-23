@@ -1,7 +1,7 @@
 import BumpChart from "@/er/components/kel/BumpChart";
 import KelPage, { KelScroll } from "@/er/components/kel/KelPage";
 import { TeamName } from "@/er/components/kel/Team";
-import { josa, KEL_EVENTS, KEL_TEAMS, seasonStandings } from "@/er/lib/kel";
+import { josa, KEL_EVENTS, KEL_TEAMS, SEEDS, seasonStandings } from "@/er/lib/kel";
 import { kelGate, kelMetadata } from "@/er/server/kel";
 import { top } from "@/er/server/kel-stats";
 
@@ -52,7 +52,7 @@ export default async function Page() {
               {season.map((r) => (
                 <tr key={r.team.key}>
                   <td className="l">
-                    <span className={r.rank <= 4 ? "rk adv" : "rk"}>{r.rank}</span>
+                    <span className={r.rank <= SEEDS ? "rk adv" : "rk"}>{r.rank}</span>
                   </td>
                   <td className="l max-w-[200px]">
                     <TeamName team={r.team} />

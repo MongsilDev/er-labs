@@ -35,6 +35,18 @@ export async function register() {
   };
   run();
   setInterval(run, 10 * 60 * 1000).unref();
+  // KEL 진출 확률은 계산에 2초쯤 걸려 첫 방문 전에 미리 계산해 둠
+  setTimeout(async () => {
+    try {
+      const { kelData } = await import("./er/server/kel");
+      const { kelOdds } = await import("./er/server/kel-odds");
+      const data = kelData();
+      if (data) await kelOdds(data);
+    } catch (e) {
+      console.error("[KEL] 진출 확률 계산 실패", e);
+      import("@sentry/node").then((Sentry) => Sentry.captureException(e));
+    }
+  }, 1_000).unref();
 
   if (process.env.JOBS === "0") return;
   const { runIndex } = await import("./tarkov/server/indexer");

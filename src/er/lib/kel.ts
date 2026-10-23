@@ -63,9 +63,13 @@ export function seasonStandings(): SeasonRow[] {
 
 export const FINAL_ROUNDS = 9;
 
+// 시즌 순위로 가르는 결승 직행과 준결승 진출 기준
+export const SEEDS = 4;
+export const QUALIFY = 12;
+
 export function championshipTeams() {
   const season = seasonStandings();
-  return { seeds: season.slice(0, 4).map((r) => r.team), semi: season.slice(4, 12).map((r) => r.team) };
+  return { seeds: season.slice(0, SEEDS).map((r) => r.team), semi: season.slice(SEEDS, QUALIFY).map((r) => r.team) };
 }
 
 export const KEL_EVENTS = [
@@ -80,11 +84,12 @@ export const KEL_EVENTS = [
 export type KelEvent = (typeof KEL_EVENTS)[number]["key"];
 export const EVENT_NAME = Object.fromEntries(KEL_EVENTS.map((e) => [e.key, e.name])) as Record<KelEvent, string>;
 
-export type KelScreen = "home" | "rules" | "circuits" | "finals" | "teams" | "players" | "roles" | "characters" | "comps" | "records";
+export type KelScreen = "home" | "odds" | "rules" | "circuits" | "finals" | "teams" | "players" | "roles" | "characters" | "comps" | "records";
 
 // public이 false인 화면은 KEL_OWNER_ID 계정만 열 수 있음
 export const KEL_SCREENS: Record<KelScreen, { path: string; title: string; public: boolean }> = {
   home: { path: "/er/kel", title: "2026 KEL 기록", public: true },
+  odds: { path: "/er/kel/odds", title: "챔피언십 진출 확률", public: false },
   rules: { path: "/er/kel/rules", title: "포맷과 규칙", public: true },
   circuits: { path: "/er/kel/circuits", title: "서킷별 순위", public: true },
   finals: { path: "/er/kel/finals", title: "결승 점수 흐름", public: true },
@@ -100,7 +105,13 @@ export const kelVisible = (screen: KelScreen, owner: boolean) => owner || KEL_SC
 
 // 첫 화면의 묶음. 하위 화면 아래에는 같은 묶음의 다른 화면 링크를 둠
 export const KEL_SECTIONS: { title: string; items: [KelScreen, string][] }[] = [
-  { title: "챔피언십", items: [["rules", "결승 직행 조건, 순차 체크포인트, 감점, 동점 처리"]] },
+  {
+    title: "챔피언십",
+    items: [
+      ["odds", "서킷 단계마다 계산한 결승 직행, 준결승, 탈락 확률과 경우의 수"],
+      ["rules", "결승 직행 조건, 순차 체크포인트, 감점, 동점 처리"],
+    ],
+  },
   {
     title: "팀",
     items: [

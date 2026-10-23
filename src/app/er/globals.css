@@ -1092,6 +1092,14 @@
     border: 1px solid var(--surface);
     text-align: center;
   }
+  .kel-heat td.h.none {
+    background: var(--field);
+  }
+  /* 지금 고른 단계의 열 */
+  .kel-heat .on {
+    outline: 2px solid var(--text);
+    outline-offset: -2px;
+  }
   .kel-tip {
     position: absolute;
     z-index: 2;
