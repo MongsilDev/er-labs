@@ -16,7 +16,7 @@ const TEAMS = {
 };
 
 const get = async (path) => {
-  const res = await fetch(API + path, { headers: { "User-Agent": "er-labs example builder" } });
+  const res = await fetch(API + path, { headers: { "User-Agent": "agent-local" } });
   if (!res.ok) throw new Error(`${path} ${res.status}`);
   return res.json();
 };

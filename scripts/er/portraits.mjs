@@ -7,7 +7,7 @@ const out = process.argv[2];
 if (!out) throw new Error("저장할 폴더를 지정해주세요.");
 mkdirSync(out, { recursive: true });
 
-const res = await fetch("https://er.dakgg.io/api/v1/data/characters?hl=en", { headers: { "User-Agent": "er-labs portraits" } });
+const res = await fetch("https://er.dakgg.io/api/v1/data/characters?hl=en", { headers: { "User-Agent": "agent-local" } });
 const { characters } = await res.json();
 let saved = 0;
 for (const c of characters) {

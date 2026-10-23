@@ -1,7 +1,7 @@
 import "server-only";
 
 export const PLAYERS_BASE = (process.env.PLAYERS_BASE || "https://players.tarkov.dev").replace(/\/$/, "");
-export const USER_AGENT = "Labs (+https://labs.mongsil.dev/tarkov)";
+export const USER_AGENT = "agent-local";
 
 // 화면 조회는 0.5초, 비교군 수집은 1초 간격 제한을 따로 씀
 type Lane = { gap: number; next: number };

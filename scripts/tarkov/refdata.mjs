@@ -3,7 +3,7 @@
 import { execFileSync } from "node:child_process";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 
-const UA = { "user-agent": "Labs (+https://labs.mongsil.dev/tarkov)" };
+const UA = { "user-agent": "agent-local" };
 const get = async (path) => {
   const r = await fetch(`https://json.tarkov.dev/${path}`, { headers: UA });
   if (!r.ok) throw new Error(`${path} ${r.status}`);
