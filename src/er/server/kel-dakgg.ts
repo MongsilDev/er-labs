@@ -77,7 +77,9 @@ function names(dir: string, file: string, list: string, id: string): Map<string,
 
 const counts = (json?: string): Record<string, number> => {
   try {
-    return json ? JSON.parse(json) : {};
+    const v: unknown = json ? JSON.parse(json) : null;
+    if (!v || typeof v !== "object" || Array.isArray(v)) return {};
+    return Object.fromEntries(Object.entries(v).filter((e): e is [string, number] => Number.isFinite(e[1])));
   } catch {
     return {};
   }

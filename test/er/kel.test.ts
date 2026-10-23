@@ -185,8 +185,8 @@ describe("KEL 선수 기록", () => {
     expect(rankOf(all, all.find((x) => x.games < MIN_GAMES)!, "deaths")).toBeNull();
   });
 
-  it("실험체 이름표에 없는 Yumin은 유민으로 쓴다", () => {
-    expect([characterName("Yumin"), characterName("DebiMarlene"), characterName("LiDailin")]).toEqual(["유민", "데비&마를렌", "리 다이린"]);
+  it("경기 기록에서 맞춘 실험체 key는 한국어 이름으로 쓴다", () => {
+    expect([characterName("YuMin"), characterName("DebiMarlene"), characterName("LiDailin")]).toEqual(["유민", "데비&마를렌", "리 다이린"]);
   });
 });
 
