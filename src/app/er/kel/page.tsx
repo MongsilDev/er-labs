@@ -9,13 +9,7 @@ export const dynamic = "force-dynamic";
 export const generateMetadata = () => kelMetadata("home");
 
 const SECTIONS: { title: string; items: [KelScreen, string][] }[] = [
-  {
-    title: "챔피언십",
-    items: [
-      ["calc", "준결승의 결승 진출 확률과 확정 여부, 결승 체크포인트"],
-      ["rules", "결승 직행 조건, 순차 체크포인트, 감점, 동점 처리"],
-    ],
-  },
+  { title: "챔피언십", items: [["rules", "결승 직행 조건, 순차 체크포인트, 감점, 동점 처리"]] },
   {
     title: "팀",
     items: [

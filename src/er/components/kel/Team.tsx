@@ -12,17 +12,13 @@ export function Logo({ team, size = 24, label = false }: { team: KelTeam; size?:
   );
 }
 
-export function TeamName({ team, size = 24, link = true }: { team: KelTeam; size?: number; link?: boolean }) {
+export function TeamName({ team, size = 24 }: { team: KelTeam; size?: number }) {
   return (
     <span className="inline-flex min-w-0 items-center gap-2">
       <Logo team={team} size={size} />
-      {link ? (
-        <a className="truncate decoration-line-strong underline-offset-[3px] hover:decoration-fg-3" href={wikiUrl(team.wiki)}>
-          {team.name}
-        </a>
-      ) : (
-        <span className="truncate">{team.name}</span>
-      )}
+      <a className="truncate decoration-line-strong underline-offset-[3px] hover:decoration-fg-3" href={wikiUrl(team.wiki)}>
+        {team.name}
+      </a>
     </span>
   );
 }

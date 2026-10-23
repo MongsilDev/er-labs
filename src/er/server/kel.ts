@@ -7,7 +7,7 @@ import { cache } from "react";
 import characters from "@/er/data/characters.json";
 import { parseCsv } from "@/er/lib/csv";
 import { KEL_SCREENS, TEAM_BY_CSV, type KelEvent, type KelScreen } from "@/er/lib/kel";
-import type { KillPool, Round } from "@/er/lib/kel-calc";
+import type { Round } from "@/er/lib/kel-calc";
 import { currentUser, type User } from "./auth";
 
 const viewer = cache(async (): Promise<{ user: User | null; owner: boolean }> => {
@@ -205,8 +205,6 @@ export function kelSummary(data: Kel): KelSummary {
 
 // bori.wiki 결과 표 점수와 경기 기록 점수의 차이, 종류는 대회 문서에 적힌 감점 사유 기준이고 사유가 없으면 penalty
 const CORRECTIONS: { event: KelEvent; stage: string; round: number; team: string; points: number; kind: "penalty" | "rule" }[] = [
-  { event: "msc", stage: "준결승", round: 1, team: "gj-slasher", points: 1, kind: "penalty" },
-  { event: "msc", stage: "준결승", round: 6, team: "jeonnam-esports", points: 1, kind: "penalty" },
   { event: "c1", stage: "결승", round: 4, team: "gj-slasher", points: 3, kind: "rule" },
   { event: "msc", stage: "결승", round: 4, team: "daejeon-autoarms", points: 3, kind: "rule" },
   { event: "msc", stage: "결승", round: 4, team: "gyeongbuk-ascenders", points: 5, kind: "rule" },
@@ -223,18 +221,4 @@ export function stageRounds(data: Kel, event: KelEvent, stage: string): { teams:
     if (e) e[c.kind] = (e[c.kind] ?? 0) + c.points;
   }
   return { teams: [...new Set(games.map((g) => g.team))], rounds };
-}
-
-export type CalcData = { pool: KillPool; maxKillScore: number; teamGames: number; demo: { teams: string[]; rounds: Round[] } | null };
-
-export function kelCalcData(data: Kel): CalcData {
-  const pool: KillPool = Array.from({ length: 8 }, () => []);
-  let maxKillScore = 0;
-  for (const g of data.games) {
-    if (g.placement >= 1 && g.placement <= 8) pool[g.placement - 1].push(g.killScore);
-    maxKillScore = Math.max(maxKillScore, g.killScore);
-  }
-  const { teams, rounds } = stageRounds(data, "msc", "준결승");
-  const complete = teams.length === 8 && rounds.length === 6 && Array.from({ length: 6 }, (_, i) => rounds[i]).every((r) => r && Object.keys(r).length === 8);
-  return { pool, maxKillScore, teamGames: data.games.length, demo: complete ? { teams, rounds } : null };
 }

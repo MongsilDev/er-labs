@@ -61,7 +61,6 @@ export function seasonStandings(): SeasonRow[] {
     .map((row, i) => ({ ...row, rank: i + 1 }));
 }
 
-export const SEMI = { rounds: 6, advance: 4 };
 export const FINAL_ROUNDS = 9;
 
 export function championshipTeams() {
@@ -81,12 +80,11 @@ export const KEL_EVENTS = [
 export type KelEvent = (typeof KEL_EVENTS)[number]["key"];
 export const EVENT_NAME = Object.fromEntries(KEL_EVENTS.map((e) => [e.key, e.name])) as Record<KelEvent, string>;
 
-export type KelScreen = "home" | "calc" | "rules" | "circuits" | "finals" | "teams" | "players" | "roles" | "characters" | "comps" | "records";
+export type KelScreen = "home" | "rules" | "circuits" | "finals" | "teams" | "players" | "roles" | "characters" | "comps" | "records";
 
 // public이 false인 화면은 KEL_OWNER_ID 계정만 열 수 있음
 export const KEL_SCREENS: Record<KelScreen, { path: string; title: string; public: boolean }> = {
   home: { path: "/er/kel", title: "2026 KEL 기록", public: false },
-  calc: { path: "/er/kel/calc", title: "챔피언십 진출 계산기", public: false },
   rules: { path: "/er/kel/rules", title: "포맷과 규칙", public: false },
   circuits: { path: "/er/kel/circuits", title: "서킷별 순위", public: false },
   finals: { path: "/er/kel/finals", title: "결승 점수 흐름", public: false },

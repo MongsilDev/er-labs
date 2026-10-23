@@ -120,9 +120,6 @@ const SCREENS: Screen[] = [
   { name: "없는 대회", path: () => "/er/t/ZZZZZZ/a", status: 404 },
   { name: "없는 페이지", path: () => "/nope", status: 404 },
   { name: "KEL 기록", path: () => "/er/kel", login: true },
-  { name: "KEL 진출 계산기", path: () => "/er/kel/calc", login: true },
-  { name: "KEL 진출 계산기 결승", path: () => "/er/kel/calc", login: true, tab: "11월 8일 결승" },
-  { name: "KEL 진출 계산기 지난 경기", path: () => "/er/kel/calc", login: true, tab: "지난 경기" },
   { name: "KEL 포맷과 규칙", path: () => "/er/kel/rules", login: true },
   { name: "KEL 서킷별 순위", path: () => "/er/kel/circuits", login: true },
   { name: "KEL 결승 점수 흐름", path: () => "/er/kel/finals", login: true },
@@ -134,7 +131,7 @@ const SCREENS: Screen[] = [
   { name: "KEL 한 게임 기록", path: () => "/er/kel/records", login: true },
   { name: "KEL 한 게임 기록 실험체별", path: () => "/er/kel/records?view=characters", login: true },
   { name: "KEL 로그아웃", path: () => "/er/kel", status: 404 },
-  { name: "KEL 다른 계정", path: () => "/er/kel/calc", login: "other", status: 404 },
+  { name: "KEL 다른 계정", path: () => "/er/kel/rules", login: "other", status: 404 },
 ];
 
 const KEL_PATHS = Object.values(KEL_SCREENS).map((s) => s.path);
@@ -244,26 +241,10 @@ describe("화면 점검", () => {
       expect([path, res.status]).toEqual([path, 200]);
       expect(await res.text()).toMatch(/<meta name="robots" content="noindex, nofollow"/);
     }
+    const calc = await fetch(`${base}/er/kel/calc`, { headers: { cookie: `er_session=${OWNER_SID}` } });
+    expect(calc.status).toBe(404);
     const sitemap = await fetch(`${base}/sitemap.xml`).then((r) => r.text());
     expect(sitemap).not.toContain("/er/kel");
-  });
-
-  it("KEL 준결승 라운드를 넣으면 순위와 확률이 바뀌고 새로고침해도 남는다", async () => {
-    const { page, errors } = await open(SCREENS.find((x) => x.name === "KEL 진출 계산기")!, 390, "dark");
-    await page.getByRole("tab", { name: "11월 7일 준결승" }).click();
-    const selects = page.locator("select[aria-label$=' 순위']");
-    const count = await selects.count();
-    for (let i = 0; i < count; i++) await selects.nth(i).selectOption(String(count - i));
-    await page.locator("input[aria-label$=' 킬 점수']").first().fill("3");
-    await page.getByRole("button", { name: "1라운드 결과 저장" }).click();
-    await expect(page.getByRole("heading", { name: "1라운드가 끝난 뒤" }).isVisible()).resolves.toBe(true);
-    await expect(page.getByText("%").first().isVisible()).resolves.toBe(true);
-    await page.reload({ waitUntil: "networkidle" });
-    await expect(page.getByRole("heading", { name: "1라운드가 끝난 뒤" }).isVisible()).resolves.toBe(true);
-    const p = await page.evaluate(inspect);
-    await page.context().close();
-    expect(p).toEqual({ overflow: 0, undefinedClass: [], unstyled: [] });
-    expect(errors).toEqual([]);
   });
 
   it("방송 화면은 1920x1080 안에 들어간다", async () => {
