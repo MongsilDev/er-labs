@@ -794,7 +794,7 @@ export default async function Profile({ params, searchParams }: Props) {
             </div>
             {res.error && (
               <p className="err">
-                tarkov.dev에서 기록을 받아오지 못했습니다.
+                {res.limited ? "요청이 많아 tarkov.dev에서 기록을 새로 받지 않았습니다." : "tarkov.dev에서 기록을 받아오지 못했습니다."}
                 <br />
                 {s ? "이전에 받은 기록을 표시합니다." : "잠시 뒤 다시 불러오기를 눌러주세요."}
               </p>

@@ -17,6 +17,8 @@ afterAll(() => {
 });
 
 const pvp = MODES.find((m) => m.key === "pvp")!;
+const pve = MODES.find((m) => m.key === "pve")!;
+const IP = "203.0.113.1";
 const fixture = (aid: number) => readFileSync(join(__dirname, "fixtures/profile", `${aid}.json`), "utf8");
 const lanes = (globalThis as unknown as { __tlLanes: Record<string, { gap: number; next: number }> }).__tlLanes;
 let calls: string[] = [];
@@ -33,7 +35,7 @@ beforeEach(() => {
 
 describe("프로필 업스트림 조회", () => {
   it("같은 계정을 동시에 열면 업스트림은 한 번만 부른다", async () => {
-    const all = await Promise.all(Array.from({ length: 5 }, () => load(pvp, 1001)));
+    const all = await Promise.all(Array.from({ length: 5 }, () => load(pvp, 1001, false, IP)));
     expect(calls).toHaveLength(1);
     expect(all.every((r) => r.summary?.aid === 1001 && !r.error)).toBe(true);
   });
@@ -41,10 +43,10 @@ describe("프로필 업스트림 조회", () => {
   it("대기열이 5초 넘게 밀려 있으면 기다리지 않고 마지막 기록으로 답한다", async () => {
     lanes.view.next = Date.now() + 60_000;
     const t = Date.now();
-    const r = await load(pvp, 1002);
+    const r = await load(pvp, 1002, false, IP);
     expect(Date.now() - t).toBeLessThan(500);
     expect(calls).toHaveLength(0);
-    expect(r).toMatchObject({ stale: true, error: true });
+    expect(r).toMatchObject({ stale: true, error: true, limited: true });
   });
 
   it("IP마다 분당 30번 넘게 업스트림을 부르면 마지막 기록으로 답한다", async () => {
@@ -57,9 +59,19 @@ describe("프로필 업스트림 조회", () => {
   });
 
   it("다시 불러오기는 진행 중인 조회에 붙지 않고 새로 부른다", async () => {
-    const [shared, fresh] = await Promise.all([load(pvp, 1002), load(pvp, 1002, true)]);
+    const [shared, fresh] = await Promise.all([load(pvp, 1002, false, IP), load(pvp, 1002, true, IP)]);
     expect(calls).toHaveLength(2);
     expect([shared.error, fresh.error]).toEqual([false, false]);
+  });
+
+  it("IP마다 업스트림 호출은 동시에 계정 2개까지 하고, 같은 계정의 다른 모드와 끝난 뒤의 호출은 받는다", async () => {
+    const ip = "203.0.113.20";
+    const [a, a2, b, c] = await Promise.all([load(pvp, 1001, true, ip), load(pve, 1001, true, ip), load(pvp, 1002, true, ip), load(pvp, 1003, true, ip)]);
+    expect(calls).toHaveLength(3);
+    expect([a.error, a2.error, b.error]).toEqual([false, false, false]);
+    expect(c).toMatchObject({ stale: true, error: true, limited: true });
+    expect((await load(pvp, 1003, true, ip)).error).toBe(false);
+    expect(calls).toHaveLength(4);
   });
 });
 
@@ -107,7 +119,7 @@ describe("숨긴 계정", () => {
     expect(account(1001)).toBeNull();
     expect(search("1001")).toEqual([]);
     expect(search("fixture-alpha")).toEqual([]);
-    expect(await load(pvp, 1001, true)).toEqual({ summary: null, stale: false, error: false });
+    expect(await load(pvp, 1001, true, IP)).toEqual({ summary: null, stale: false, error: false });
     expect(calls).toEqual([]);
     vi.stubGlobal("fetch", async (url: string) => {
       const m = url.match(/\/([\w-]+)\/(index|updated)\.json$/);

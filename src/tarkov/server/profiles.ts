@@ -5,16 +5,18 @@ import type { Mode, ModeKey } from "@/tarkov/lib/modes";
 import { parse, type Summary } from "@/tarkov/lib/summary";
 import { db, isHidden } from "./db";
 import { allow } from "@/limits";
-import { fetchProfile, Upstream } from "./upstream";
+import { Busy, fetchProfile, Upstream } from "./upstream";
 
 const TTL = 10 * 60 * 1000;
 
 type Entry = { summary: Summary | null; at: number };
-const g = globalThis as unknown as { __tlCache?: Map<string, Entry>; __tlInflight?: Map<string, Promise<Loaded>> };
+const g = globalThis as unknown as { __tlCache?: Map<string, Entry>; __tlInflight?: Map<string, Promise<Loaded>>; __tlBusy?: Map<string, Map<number, number>> };
 const cache = (g.__tlCache ??= new Map());
 const inflight = (g.__tlInflight ??= new Map());
+const busy = (g.__tlBusy ??= new Map());
 
-export type Loaded = { summary: Summary | null; stale: boolean; error: boolean };
+// limited는 업스트림 장애가 아니라 이쪽 요청 제한이나 대기열 때문에 새로 받지 않았다는 뜻
+export type Loaded = { summary: Summary | null; stale: boolean; error: boolean; limited?: boolean };
 
 function remember(mode: Mode, s: Summary) {
   if (isHidden(s.aid)) return;
@@ -45,17 +47,25 @@ function lastSnapshot(aid: number, mode: ModeKey): Summary | null {
   return row ? (JSON.parse(row.data) as Summary) : null;
 }
 
-// 같은 계정의 동시 조회는 업스트림 호출 하나를 나눠 쓰되 다시 불러오기는 새로 요청하고, ip를 넘긴 조회는 업스트림 호출을 IP마다 분당 30번까지 함
-export async function load(mode: Mode, aid: number, fresh = false, ip?: string): Promise<Loaded> {
+// 같은 계정의 동시 조회는 업스트림 호출 하나를 공유하고 다시 불러오기만 새로 요청
+// 업스트림 호출은 IP마다 동시에 계정 2개, 분당 30번까지. 프로필 화면 하나가 한 계정의 두 모드를 함께 부름
+export async function load(mode: Mode, aid: number, fresh: boolean, ip: string): Promise<Loaded> {
   if (isHidden(aid)) return { summary: null, stale: false, error: false };
   const key = `${mode.key}:${aid}`;
   const hit = cache.get(key);
   if (hit && !fresh && Date.now() - hit.at < TTL) return { summary: hit.summary, stale: false, error: false };
   const running = inflight.get(key);
   if (running && !fresh) return running;
-  if (ip && !allow(`u:${ip}`, 30, 60_000)) return { summary: lastSnapshot(aid, mode.key), stale: true, error: true };
+  const held: Map<number, number> = busy.get(ip) ?? new Map();
+  if ((!held.has(aid) && held.size >= 2) || !allow(`u:${ip}`, 30, 60_000)) return { summary: lastSnapshot(aid, mode.key), stale: true, error: true, limited: true };
+  held.set(aid, (held.get(aid) ?? 0) + 1);
+  busy.set(ip, held);
   const p: Promise<Loaded> = fetchAndStore(mode, aid, key).finally(() => {
     if (inflight.get(key) === p) inflight.delete(key);
+    const n = held.get(aid)! - 1;
+    if (n > 0) held.set(aid, n);
+    else held.delete(aid);
+    if (!held.size && busy.get(ip) === held) busy.delete(ip);
   });
   inflight.set(key, p);
   return p;
@@ -73,6 +83,7 @@ async function fetchAndStore(mode: Mode, aid: number, key: string): Promise<Load
     if (cache.size > 5000) for (const [k, v] of cache) if (Date.now() - v.at > TTL) cache.delete(k);
     return { summary, stale: false, error: false };
   } catch (e) {
+    if (e instanceof Busy) return { summary: lastSnapshot(aid, mode.key), stale: true, error: true, limited: true };
     if (!(e instanceof Upstream)) captureException(e);
     console.error(`[프로필] ${key} 실패`, e);
     return { summary: lastSnapshot(aid, mode.key), stale: true, error: true };

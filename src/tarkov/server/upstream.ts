@@ -14,7 +14,7 @@ async function wait(lane: keyof typeof lanes) {
   const l = lanes[lane];
   const t = Date.now();
   const at = Math.max(t, l.next);
-  if (lane === "view" && at - t > MAX_VIEW_WAIT) throw new Upstream(503);
+  if (lane === "view" && at - t > MAX_VIEW_WAIT) throw new Busy();
   l.next = at + l.gap;
   if (at > t) await new Promise((r) => setTimeout(r, at - t));
 }
@@ -24,6 +24,8 @@ export class Upstream extends Error {
     super(`upstream ${status}`);
   }
 }
+
+export class Busy extends Error {}
 
 export async function fetchProfile(folder: string, aid: number, lane: "view" | "crawl" = "view"): Promise<unknown | null> {
   await wait(lane);
