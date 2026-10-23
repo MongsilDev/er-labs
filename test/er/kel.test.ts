@@ -240,19 +240,22 @@ describe("KEL 실험체 빌드", () => {
         ["Tia", "띠아"],
         ["DebiMarlene", "데비&마를렌"],
         ["Camilo", "카밀로"],
+        ["Echion", "에키온"],
       ]),
       ids: new Map([
         ["Karla", 1],
         ["Tia", 2],
         ["DebiMarlene", 3],
         ["Camilo", 4],
+        ["Echion", 5],
       ]),
       official: {
         own: new Map<number, [string, string][]>([
           [1, [["T", "작살 장전"], ["Q", "관통 작살"], ["W", "회수"]]],
-          [2, [["T", "알록달록 컬러믹스"], ["Q", "브러쉬 스트로크 - 노란색"]]],
+          [2, [["T", "알록달록 컬러믹스"], ["Q", "브러쉬 스트로크"]]],
           [3, [["Q", "하드 슬래시"]]],
           [4, [["E", "알 꼼빠스"]]],
+          [5, [["R", "독사의 진노"]]],
         ]),
         weapon: new Map([["도끼", "피의 나선"]]),
         common: new Map(["피의 나선", "벽력", "블래스터 탄환"].map((n) => [n.replace(/\s+/g, ""), n])),
@@ -263,7 +266,7 @@ describe("KEL 실험체 빌드", () => {
       traits: new Map(),
       skills: new Map(),
     };
-    // 공식 이름을 못 찾은 원문은 처치 실험체 이름과 단계 번호만 뗌
+    // 이름표 이름은 labels()가 끝의 형태와 색 갈래를 뗀 것. 공식 이름을 못 찾은 원문은 처치 실험체 이름, 단계 번호, 끝 괄호와 N타를 뗌
     const cases: [string, string, string, boolean][] = [
       ["Karla", "basicAttack", "기본 공격", true],
       ["Karla", "칼라 Q - 관통 작살", "관통 작살", true],
@@ -274,9 +277,12 @@ describe("KEL 실험체 빌드", () => {
       ["Karla", "블래스터 탄환v3", "블래스터 탄환", true],
       ["Karla", "관통 작살 회수", "관통 작살 회수", false],
       ["Karla", "칼라 구속 작살_2", "구속 작살", false],
+      ["Karla", "구속 작살 2타", "구속 작살", false],
       ["Tia", "P - 알록달록 컬러믹스", "알록달록 컬러믹스", true],
-      ["Tia", "Q - 브러쉬 스트로크 (노란)", "브러쉬 스트로크 - 노란색", true],
-      ["Tia", "Q - 브러쉬 스트로크 (파란)", "브러쉬 스트로크 - 노란색", true],
+      ["Tia", "Q - 브러쉬 스트로크 (노란)", "브러쉬 스트로크", true],
+      ["Tia", "Q - 브러쉬 스트로크 (파란)", "브러쉬 스트로크", true],
+      ["Tia", "Q", "브러쉬 스트로크", true],
+      ["Echion", "독사의 진노(블랙맘바)", "독사의 진노", true],
       ["DebiMarlene", "데비 Q - 하드 슬래시", "하드 슬래시", true],
       ["Camilo", "알 콤빠스 (Al Compas)", "알 꼼빠스", true],
     ];

@@ -150,6 +150,8 @@ function skillNames(list: Skill[]) {
   return [...map];
 }
 
+// 에키온 '독사의 진노[바이퍼]', 띠아 '브러쉬 스트로크 - 노란색'처럼 이름 끝에 붙은 형태와 색 갈래는 뗌. 갈래가 바뀌어도 같은 스킬
+const plain = (name: string) => name.replace(/\[[^\]]*\]$/, "").replace(/ - [가-힣]+색$/, "");
 // 아이템 설명에 노란 굵은 글씨로 적힌 고유 능력 이름
 const ABILITY = /<b><color=yellow>([^<]+)<\/color><\/b>/g;
 // 이름 비교에서 빼는 공백과 끝 문장부호
@@ -182,7 +184,7 @@ function labels(dir: string): Omit<Labels, "names" | "ids"> {
     const groups = new Map((j.traitSkillGroups as { key: string; name: string }[]).map((g) => [g.key, g.name]));
     return (j.traitSkills as (Named & { group: string })[]).map((t) => [t.id, { name: t.name, group: groups.get(t.group) ?? "" }]);
   });
-  const skillList = [...readLabel(dir, skills, whole<Skill>("skills")).values()];
+  const skillList = [...readLabel(dir, skills, whole<Skill>("skills")).values()].map((s) => ({ ...s, name: plain(s.name) }));
   const abilities = itemList.flatMap((x) => [...(x.tooltip ?? "").matchAll(ABILITY)].map((m) => m[1]));
   return {
     weapons: weaponNames,
@@ -212,14 +214,14 @@ const BASIC = /^(기본\s*공격|강화\s*공격|평타\s*강화|NormalAttack)/;
 // 이름표와 철자만 다르고 같은 기술이 확실한 원문
 const ALIASES = new Map([["알 콤빠스", "알 꼼빠스"]]);
 
-// dak.gg 원문은 '아르다 Q - 샤마쉬의 두루마리', '도끼 - 피의나선', 'Q1' 같은 내부 이름이라 이름표의 공식 이름으로 바꾸고, 못 바꾸면 처치 실험체 이름과 단계 번호만 뗀 원문을 씀
+// dak.gg 원문은 '아르다 Q - 샤마쉬의 두루마리', '도끼 - 피의나선', 'Q1' 같은 내부 이름이라 이름표의 공식 이름으로 바꾸고, 못 바꾸면 처치 실험체 이름, 단계 번호, 끝 괄호를 뗀 원문을 씀
 export function lastHit(text: string, killer: string, l: Labels): { name: string; official: boolean } {
   if (text === "basicAttack") return { name: BASIC_ATTACK, official: true };
   const name = l.names.get(killer) ?? "";
   const prefix = [name, ...name.split("&")].find((n) => n && text.startsWith(`${n} `));
-  const t = (prefix ? text.slice(prefix.length + 1) : text).replace(/_\d+$/, "").trim();
+  const t = (prefix ? text.slice(prefix.length + 1) : text).replace(/_\d+$/, "").trim() || text.trim();
   const found = officialName(ALIASES.get(tail(t)) ?? t, killer, l);
-  return found ? { name: found, official: true } : { name: t, official: false };
+  return found ? { name: found, official: true } : { name: tail(t) || t, official: false };
 }
 
 function officialName(t: string, killer: string, l: Labels): string {
@@ -235,7 +237,6 @@ function officialName(t: string, killer: string, l: Labels): string {
     const after = t.slice(slot[0].length).replace(/^[\s\-[]+|[\s\]]+$/g, "");
     const named = after ? find(after) : undefined;
     if (named) return named;
-    // 띠아 Q처럼 이름표 한 항목이 색이나 형태 갈래를 모두 설명하는 스킬은 갈래가 달라도 그 이름을 씀
     const key = (slot[2] ?? slot[1]).replace("P", "T");
     return own.find(([s]) => s === key)?.[1] ?? "";
   }

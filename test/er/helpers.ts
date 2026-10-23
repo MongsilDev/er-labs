@@ -71,7 +71,7 @@ const WEATHERS = [
   { key: 10004, name: "모래바람" },
 ];
 
-// 빌드 이름표. 나딘(1번)은 Q칸 스킬이 둘이라 번호가 작은 이름이 기준
+// 빌드 이름표. 나딘(1번)은 Q칸 스킬이 둘이라 번호가 작은 이름이 기준이고, R은 끝에 형태 갈래가 붙은 이름
 const DAK_LABELS = {
   "d_masteries.json": { masteries: [{ id: 1, name: "석궁" }, { id: 2, name: "활" }] },
   "d_items.json": { items: [101, 102, 201, 301, 401, 501].map((id, i) => ({ id, name: ["혈색반월", "아르기로톡소스", "현자의 로브", "빛의 증표", "운명의 주사위", "알렉산드로스"][i] })) },
@@ -83,7 +83,7 @@ const DAK_LABELS = {
   "d_skills.json": {
     skills: [
       { id: 1033250, characterId: 1, slot: "Q", name: "황소의 눈 강화" },
-      ...["T", "Q", "W", "E", "R"].map((slot, i) => ({ id: 1033100 + i * 100, characterId: 1, slot, name: ["야성", "황소의 눈", "다람쥐 덫", "원숭이 와이어", "늑대 맹습"][i] })),
+      ...["T", "Q", "W", "E", "R"].map((slot, i) => ({ id: 1033100 + i * 100, characterId: 1, slot, name: ["야성", "황소의 눈", "다람쥐 덫", "원숭이 와이어", "늑대 맹습[야성]"][i] })),
       { id: 3008000, characterIds: [1], slot: "D", weaponTypeId: 1, name: "강노" },
     ],
   },
