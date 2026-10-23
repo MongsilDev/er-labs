@@ -524,3 +524,26 @@ export const seasonBuilds = memo((data) => {
     traits: pickRates(rows, (r) => r.dak.trait).map((t) => ({ ...t, group: groups.get(t.name) })),
   };
 });
+
+// 첫 화면 KEL 카드. 많이 나온 실험체, 한 게임 최고 기록, 자주 나온 3인 조합을 n개씩
+export const highlights = memo((data) => {
+  const rec = records(data);
+  const bests = [
+    { key: "kills", label: "킬", r: rec.kills, value: rec.kills.kills },
+    { key: "damage", label: "가한 피해", r: rec.damage[0]?.r, value: rec.damage[0]?.r.damage },
+    { key: "taken", label: "받은 피해", r: rec.taken, value: rec.taken.taken },
+  ].filter((b): b is { key: string; label: string; r: KelRow; value: number } => Boolean(b.r));
+  return {
+    characters: [...characterStats(data).rows].sort((a, b) => b.games - a.games || byCharacter(a.key, b.key)).slice(0, 3),
+    bests,
+    comps: comps(data, 1).slice(0, 3),
+  };
+});
+
+export const kelHighlights = (data: Kel | null) => (data && data.rows.length ? highlights(data) : null);
+
+// 서울 날짜 기준으로 date(YYYY-MM-DD)까지 남은 날 수, 지난 날은 음수
+export function daysUntil(date: string, now = new Date()): number {
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul" }).format(now);
+  return Math.round((Date.parse(date) - Date.parse(today)) / 864e5);
+}
