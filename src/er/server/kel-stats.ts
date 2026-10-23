@@ -453,19 +453,22 @@ export const characterBuilds = memo((data) => {
     all.flatMap((r) => (r.dak.death ? [{ ...r.dak.death, character: keyOf.get(r.dak.death.character.toLowerCase()) ?? r.dak.death.character }] : [])),
     (d) => d.character,
   );
+  // 고른 횟수와 순위는 경기 상세가 없는 기록까지 셈
+  const picked = Map.groupBy(data.rows, (r) => r.character);
   return [...Map.groupBy(all, (r) => r.character)]
     .map(([key, rows]): CharacterBuild => {
       const weapons = shares(rows, (r) => r.dak.weapon).map((w) => ({ ...w, avgPlace: mean(rows.filter((r) => r.dak.weapon === w.name).map((r) => r.placement)) }));
       const killed = hits.get(key) ?? [];
-      const wins = rows.filter((r) => r.placement === 1).length;
+      const every = picked.get(key) ?? rows;
+      const wins = every.filter((r) => r.placement === 1).length;
       return {
         key,
-        picks: rows.length,
-        games: count(rows),
-        rate: count(rows) / total,
-        avgPlace: mean(rows.map((r) => r.placement)),
+        picks: every.length,
+        games: count(every),
+        rate: count(every) / total,
+        avgPlace: mean(every.map((r) => r.placement)),
         wins,
-        winRate: wins / rows.length,
+        winRate: wins / every.length,
         weapons,
         tactical: shares(rows, (r) => r.dak.tactical).slice(0, 3),
         traits: shares(rows, (r) => r.dak.trait).slice(0, 3),
