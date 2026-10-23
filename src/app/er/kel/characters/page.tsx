@@ -317,7 +317,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ v
           `무기, 전술 스킬, 핵심 특성, 최종 장비, 스킬 순서 비율은 그 실험체를 고른 기록 가운데 경기 상세가 있는 ${b.records}개를 기준으로 셉니다.`,
           "무기 칸 장비는 그 무기를 든 기록을 기준으로 셉니다.",
           `마지막 일격 기술은 사망 기록 첫 칸에서 이 실험체가 처치한 ${b.deaths}번을 기준으로 셉니다.`,
-          b.unnamed > 0 && `공식 기술 이름을 찾지 못한 ${b.unnamed}번은 목록에 넣지 않았습니다.`,
+          b.unnamed > 0 && `공식 기술 이름을 찾지 못한 처치 ${b.unnamed}번은 목록에 넣지 않았습니다.`,
           `전술 스킬과 핵심 특성 선택률은 선수 기록 ${records.toLocaleString("ko-KR")}개, 대회별 칸은 그 대회의 선수 기록을 기준으로 셉니다.`,
           "평균 순위는 고른 선수가 속한 팀의 순위입니다.",
         ]}
