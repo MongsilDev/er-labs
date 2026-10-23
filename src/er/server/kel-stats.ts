@@ -23,10 +23,12 @@ export const gameLabel = (g: { event: KelEvent; stage: string; round: number }) 
 
 export type StyleScope = "season" | "c4" | "finals";
 
-export type TeamStyle = { team: string; games: number; wins: number; top3: number; rankPerGame: number; killPerGame: number; killShare: number; perGame: number };
+export type TeamStyle = { team: string; games: number; wins: number; eighth: number; top3: number; rankPerGame: number; killPerGame: number; killShare: number; perGame: number };
+
+const inScope = (scope: StyleScope) => (g: { event: KelEvent; stage: string }) => (scope === "c4" ? g.event === "c4" : scope === "finals" ? g.stage === "결승" : true);
 
 export function teamStyles(data: Kel, scope: StyleScope): TeamStyle[] {
-  const games = data.games.filter((g) => (scope === "c4" ? g.event === "c4" : scope === "finals" ? g.stage === "결승" : true));
+  const games = data.games.filter(inScope(scope));
   return [...Map.groupBy(games, (g) => g.team)]
     .map(([team, list]) => {
       const rank = list.reduce((a, g) => a + placementPoints(g.placement), 0);
@@ -35,6 +37,7 @@ export function teamStyles(data: Kel, scope: StyleScope): TeamStyle[] {
         team,
         games: list.length,
         wins: list.filter((g) => g.placement === 1).length,
+        eighth: list.filter((g) => g.placement === 8).length,
         top3: list.filter((g) => g.placement <= 3).length / list.length,
         rankPerGame: rank / list.length,
         killPerGame: kill / list.length,
@@ -217,14 +220,88 @@ export function wicklines(data: Kel): { team: string; count: number; games: numb
 // 오프닝 위크는 결승이 없어 빠짐
 const FINAL_ORDER = [...KEL_EVENTS].reverse().map((e) => e.key);
 
-export type Final = { event: KelEvent; teams: string[]; rounds: Round[]; state: FinalState };
+// weather는 라운드별 메인 날씨, 경기 상세가 없는 라운드는 빈 문자열
+export type Final = { event: KelEvent; teams: string[]; rounds: Round[]; state: FinalState; weather: string[] };
 
 export function finals(data: Kel): Final[] {
+  const weather = new Map(withDak(data.rows).map((r) => [r.gameId, r.dak.weather]));
   return FINAL_ORDER.flatMap((event) => {
     const { teams, rounds: all } = stageRounds(data, event, "결승");
     if (!teams.length) return [];
     const end = all.findIndex((r) => !r);
     const rounds = end < 0 ? all : all.slice(0, end);
-    return [{ event, teams, rounds, state: finalState(teams, rounds) }];
+    const ids = new Map(data.games.filter((g) => g.event === event && g.stage === "결승").map((g) => [g.round, g.gameId]));
+    return [{ event, teams, rounds, state: finalState(teams, rounds), weather: rounds.map((_, i) => weather.get(ids.get(i + 1) ?? 0) ?? "") }];
   });
+}
+
+export type TeamOps = {
+  team: string;
+  games: number;
+  wickline: number;
+  wicklinePlace: number | null;
+  time: number;
+  vision: number;
+  camera: number;
+  escaped: number;
+  start: [string, number] | null;
+};
+
+// 지역별 비율이 큰 순서로 n곳, 같은 비율은 이름순
+function favorites(rows: DakRow[], n: number): [string, number][] {
+  return [...Map.groupBy(rows, (r) => r.dak.start)]
+    .map(([area, list]): [string, number] => [area, list.length / rows.length])
+    .sort((a, b) => b[1] - a[1] || byText(a[0], b[0]))
+    .slice(0, n);
+}
+
+// 팀 성향 운영 보기, 경기 상세가 있는 팀 게임만 셈. ranks는 위클라인을 잡은 팀의 순위별 게임 수
+export function teamOps(data: Kel, scope: StyleScope): { rows: TeamOps[]; ranks: number[] } {
+  const rows = withDak(data.rows).filter(inScope(scope));
+  const ranks = Array.from({ length: 8 }, () => 0);
+  const out = [...Map.groupBy(rows, (r) => r.team)].map(([team, list]): TeamOps => {
+    const games = [...Map.groupBy(list, (r) => r.gameId).values()];
+    const wick = games.filter((g) => g.some((r) => r.dak.wickline));
+    for (const g of wick) ranks[g[0].placement - 1]++;
+    const sum = (g: DakRow[], value: (d: KelDak) => number) => g.reduce((a, r) => a + value(r.dak), 0);
+    return {
+      team,
+      games: games.length,
+      wickline: wick.length,
+      wicklinePlace: wick.length ? mean(wick.map((g) => g[0].placement)) : null,
+      time: mean(games.map((g) => Math.max(...g.map((r) => r.dak.time)))),
+      vision: mean(games.map((g) => sum(g, (d) => d.vision))),
+      camera: mean(games.map((g) => sum(g, (d) => d.camera))),
+      escaped: games.filter((g) => g.every((r) => r.dak.escaped)).length,
+      start: favorites(
+        list.filter((r) => r.dak.start),
+        1,
+      )[0] ?? null,
+    };
+  });
+  return { rows: out, ranks };
+}
+
+// 시작 지역 표는 이보다 많이 시작한 지역만 넣음
+export const MIN_STARTS = 40;
+
+// 시작 지역은 선수 한 명이 한 게임에서 시작한 기록 하나로 셈
+export function regions(data: Kel) {
+  const rows = withDak(data.rows);
+  const started = rows.filter((r) => r.dak.start);
+  const starts = [...Map.groupBy(started, (r) => r.dak.start)]
+    .map(([area, list]) => ({ area, count: list.length, avgPlace: mean(list.map((r) => r.placement)), top3: list.filter((r) => r.placement <= 3).length / list.length }))
+    .sort((a, b) => a.avgPlace - b.avgPlace || b.count - a.count);
+  const deaths = new Map<string, number>();
+  for (const r of rows) for (const area of r.dak.deathPlaces) deaths.set(area, (deaths.get(area) ?? 0) + 1);
+  return {
+    starts,
+    deaths: [...deaths]
+      .map(([area, count]) => ({ area, count, starts: starts.find((s) => s.area === area)?.count ?? 0 }))
+      .sort((a, b) => b.count - a.count || byText(a.area, b.area)),
+    teams: [...Map.groupBy(started, (r) => r.team)].map(([team, list]) => ({ team, areas: favorites(list, 3) })),
+    players: [...Map.groupBy(started, (r) => r.player)]
+      .filter(([, list]) => list.length >= MIN_GAMES)
+      .map(([name, list]) => ({ name, team: list[0].team, games: list.length, areas: favorites(list, 3) })),
+  };
 }

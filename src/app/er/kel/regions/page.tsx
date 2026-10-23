@@ -1,0 +1,174 @@
+import KelPage, { KelScroll, NO_DAK, NO_DATA } from "@/er/components/kel/KelPage";
+import { PlayerName, TeamName } from "@/er/components/kel/Team";
+import { int } from "@/er/lib/cut";
+import { pct } from "@/er/lib/format";
+import { josa, seasonStandings, TEAM, TONES } from "@/er/lib/kel";
+import { kelData, kelGate, kelMetadata } from "@/er/server/kel";
+import { MIN_GAMES, MIN_STARTS, regions } from "@/er/server/kel-stats";
+
+export const dynamic = "force-dynamic";
+export const generateMetadata = () => kelMetadata("regions");
+
+const RANKS = ["1순위", "2순위", "3순위"];
+
+function Areas({ areas }: { areas: [string, number][] }) {
+  return RANKS.map((k, i) => (
+    <td key={k} className="l">
+      {areas[i] && (
+        <>
+          {areas[i][0]} <span className="text-fg-3">{pct(areas[i][1], 0)}</span>
+        </>
+      )}
+    </td>
+  ));
+}
+
+export default async function Page() {
+  const { user, owner } = await kelGate("regions");
+  const data = kelData();
+  if (!data) return <KelPage user={user} owner={owner} screen="regions" lead={NO_DATA} />;
+  const reg = regions(data);
+  if (!reg.starts.length) return <KelPage user={user} owner={owner} screen="regions" lead={NO_DAK} />;
+  const starts = reg.starts.filter((s) => s.count > MIN_STARTS);
+  const [best, worst, most] = [starts[0], starts.at(-1), reg.deaths[0]];
+  const lead = [
+    best && worst && best !== worst && `${best.area}에서 시작한 선수의 팀은 평균 ${best.avgPlace.toFixed(2)}위였고, ${worst.area}에서 시작한 선수의 팀은 평균 ${worst.avgPlace.toFixed(2)}위였습니다.`,
+    most && `사망 기록은 ${josa(most.area, "이", "가")} ${int(most.count)}번으로 가장 많았고, ${most.area}에서 시작한 기록은 ${most.starts}번입니다.`,
+  ];
+  const deaths = data.rows.reduce((a, r) => a + (r.dak ? r.deaths : 0), 0);
+  const counted = reg.deaths.reduce((a, x) => a + x.count, 0);
+  const maxStart = Math.max(1, ...starts.map((s) => s.count));
+  const maxDeath = Math.max(1, most?.count ?? 0);
+  const order = seasonStandings().map((r) => r.team.key);
+  const teams = [...reg.teams].sort((a, b) => order.indexOf(a.team) - order.indexOf(b.team));
+  const players = [...reg.players].sort((a, b) => b.areas[0][1] - a.areas[0][1] || b.games - a.games);
+
+  return (
+    <KelPage
+      user={user}
+      owner={owner}
+      screen="regions"
+      lead={lead}
+      notes={[
+        "시작 지역은 선수 한 명이 한 게임에서 시작한 기록 하나로 셉니다.",
+        `시작 지역별 팀 순위에는 ${MIN_STARTS}번 넘게 시작한 지역만 넣었습니다.`,
+        `사망 장소는 dak.gg 경기 상세에 선수마다 세 번까지만 남아 있어, 데스 ${int(deaths)}번 가운데 ${int(counted)}번만 셌습니다.`,
+        `선수별 표에는 ${MIN_GAMES}게임 이상 나온 선수만 넣었습니다.`,
+        "많이 시작한 지역의 비율은 그 팀이나 선수가 시작한 기록 가운데 그 지역의 비율입니다.",
+      ]}
+    >
+      <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-5 max-[1080px]:grid-cols-1">
+        <section className="panel p-5 max-[760px]:p-4" aria-labelledby="start-rank">
+          <h2 id="start-rank" className="text-[17px] font-extrabold">
+            시작 지역별 팀 순위
+          </h2>
+          <KelScroll label="시작 지역별 팀 순위" className="mt-3">
+            <table className="kel-table">
+              <thead>
+                <tr>
+                  <th className="l">지역</th>
+                  <th>시작</th>
+                  <th>평균 순위</th>
+                  <th>3위 이내</th>
+                </tr>
+              </thead>
+              <tbody>
+                {starts.map((s) => (
+                  <tr key={s.area}>
+                    <td className="l font-semibold">{s.area}</td>
+                    <td>
+                      <span className="inline-flex items-center justify-end gap-2">
+                        <span className="h-1.5 rounded-full bg-line-strong max-[760px]:hidden" style={{ width: (s.count / maxStart) * 120 }} aria-hidden="true" />
+                        {s.count}
+                      </span>
+                    </td>
+                    <td className="font-bold">{s.avgPlace.toFixed(2)}위</td>
+                    <td>{pct(s.top3)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </KelScroll>
+        </section>
+        <section className="panel p-5 max-[760px]:p-4" aria-labelledby="deaths">
+          <h2 id="deaths" className="text-[17px] font-extrabold">
+            사망이 많았던 지역
+          </h2>
+          <ul className="mt-4 grid gap-2.5 text-[14px]">
+            {reg.deaths.map((x) => (
+              <li key={x.area} className="grid grid-cols-[88px_minmax(0,1fr)_96px] items-center gap-3 max-[420px]:grid-cols-[72px_minmax(0,1fr)_88px]">
+                <span className="font-semibold">{x.area}</span>
+                <span className="h-2.5 rounded-r-[4px]" style={{ width: `${(x.count / maxDeath) * 100}%`, background: TONES[1] }} aria-hidden="true" />
+                <span className="text-right tabular-nums">
+                  <b>{int(x.count)}</b> <span className="text-[12px] text-fg-3">시작 {x.starts}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
+      <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-5 max-[1080px]:grid-cols-1">
+        <section className="panel p-5 max-[760px]:p-4" aria-labelledby="team-starts">
+          <h2 id="team-starts" className="text-[17px] font-extrabold">
+            팀별로 많이 시작한 지역
+          </h2>
+          <KelScroll label="팀별로 많이 시작한 지역" className="mt-3">
+            <table className="kel-table">
+              <thead>
+                <tr>
+                  <th className="l">팀</th>
+                  {RANKS.map((k) => (
+                    <th key={k} className="l">
+                      {k}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {teams.map((t) => (
+                  <tr key={t.team}>
+                    <td className="l max-w-[180px]">
+                      <TeamName team={TEAM.get(t.team)!} />
+                    </td>
+                    <Areas areas={t.areas} />
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </KelScroll>
+        </section>
+        <section className="panel p-5 max-[760px]:p-4" aria-labelledby="player-starts">
+          <h2 id="player-starts" className="text-[17px] font-extrabold">
+            선수별로 많이 시작한 지역
+          </h2>
+          <KelScroll label="선수별로 많이 시작한 지역" className="mt-3">
+            <table className="kel-table">
+              <thead>
+                <tr>
+                  <th className="l">선수</th>
+                  <th>게임</th>
+                  {RANKS.map((k) => (
+                    <th key={k} className="l">
+                      {k}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {players.map((p) => (
+                  <tr key={p.name}>
+                    <td className="l max-w-[160px]">
+                      <PlayerName name={p.name} team={TEAM.get(p.team)} />
+                    </td>
+                    <td className="text-fg-3">{p.games}</td>
+                    <Areas areas={p.areas} />
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </KelScroll>
+        </section>
+      </div>
+    </KelPage>
+  );
+}

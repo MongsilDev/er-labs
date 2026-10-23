@@ -6,7 +6,7 @@ import { championshipTeams, KEL_TEAMS, seasonStandings } from "../../src/er/lib/
 import { finalState, standings, type Entry, type Round } from "../../src/er/lib/kel-calc";
 import { kelData, stageRounds } from "../../src/er/server/kel";
 import { kelOdds } from "../../src/er/server/kel-odds";
-import { lows, records, wicklines } from "../../src/er/server/kel-stats";
+import { finals, lows, records, regions, teamOps, wicklines } from "../../src/er/server/kel-stats";
 import { kelFixture } from "./helpers";
 
 process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "er-labs-kel-"));
@@ -107,6 +107,21 @@ describe("KEL 자료", () => {
       [5, 1024],
     ]);
     expect(deaths.map((x) => [x.rank, x.r.deaths])).toEqual([[1, 11], ...Array.from({ length: 6 }, () => [2, 9])]);
+  });
+
+  it("dak.gg 경기 상세로 결승 날씨, 팀 운영 기록, 시작 지역과 사망 장소를 모은다", () => {
+    kelFixture(process.env.DATA_DIR!);
+    const data = kelData()!;
+    const f = finals(data)[0];
+    expect(f.weather).toHaveLength(f.rounds.length);
+    expect(f.weather.every(Boolean)).toBe(true);
+    const games = new Set(data.rows.map((r) => r.gameId)).size;
+    const { rows, ranks } = teamOps(data, "season");
+    expect(ranks).toEqual([0, games, 0, 0, 0, 0, 0, 0]);
+    expect(rows.reduce((a, t) => a + t.escaped, 0)).toBe(new Set(data.rows.map((r) => `${r.event}:${r.stage}`)).size);
+    const reg = regions(data);
+    expect(reg.starts.reduce((a, s) => a + s.count, 0)).toBe(data.rows.length);
+    expect(reg.deaths.reduce((a, d) => a + d.count, 0)).toBe(data.rows.length);
   });
 });
 

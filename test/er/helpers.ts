@@ -57,6 +57,20 @@ const KEL_CHARS = ["Nadine", "Alonso", "Debi & Marlene", "Li Dailin", "NiaH", "Y
 // dak.gg 실험체 이름표의 key, 경기 기록의 영문 이름과 표기가 다름
 const DAK_KEYS = ["Nadine", "Alonso", "DebiMarlene", "LiDailin", "Niah", "YuMin", "Jackie", "Aya", "Eleven"];
 
+// dak.gg 지역과 날씨 이름표의 일부
+const AREAS = [
+  { id: 10, name: "항구" },
+  { id: 20, name: "창고" },
+  { id: 30, name: "연못" },
+  { id: 40, name: "바지선" },
+];
+const WEATHERS = [
+  { key: 10001, name: "흐림" },
+  { key: 10002, name: "쾌청" },
+  { key: 10003, name: "비" },
+  { key: 10004, name: "모래바람" },
+];
+
 // 첫 게임의 팀 순서-선수 순서별 가한 피해
 const LOW_DAMAGE = new Map([
   ["7-0", 281],
@@ -104,6 +118,8 @@ export function kelFixture(dataDir: string) {
   const dak = join(dir, "dakgg");
   mkdirSync(join(dak, "games"), { recursive: true });
   writeFileSync(join(dak, "d_characters.json"), JSON.stringify({ characters: DAK_KEYS.map((key, i) => ({ id: i + 1, key })) }));
+  writeFileSync(join(dak, "d_areas.json"), JSON.stringify({ areas: AREAS }));
+  writeFileSync(join(dak, "d_weathers.json"), JSON.stringify({ weathers: WEATHERS }));
   files.forEach(([name, teams, rounds], f) => {
     const date = name.slice(-14, -4);
     const lines = [KEL_HEADER];
@@ -126,7 +142,7 @@ export function kelFixture(dataDir: string) {
               (r + i + p) % 4, (i + p) % 6, deaths, 30 + i, low ?? 9000 + i * 700 + p * 300 + r * 50, 7000 + p * 900 + i * 100, RS[place - 1], ks, RS[place - 1] + ks, 1500 + i, (1 + ((i + p) % 3) / 2).toFixed(3),
             ].join(","),
           );
-          // 위클라인은 2위 팀 세 명이 모두 처치 크레딧을 받음
+          // 위클라인은 2위 팀 세 명이 모두 처치 크레딧을 받고, 파일마다 첫 라운드의 3위 팀이 탈출함
           players.push({
             gameId,
             gameRank: place,
@@ -137,6 +153,11 @@ export function kelFixture(dataDir: string) {
             addTelephotoCamera: (i + p + r) % 7,
             viewContribution: 20 + i * 4 + p + r,
             killWicklineGainVFCredit: place === 2 ? 10 : 0,
+            playTime: 600 + (8 - place) * 90 + p * 10,
+            placeOfStart: String(AREAS[(i + p) % AREAS.length].id),
+            placeOfDeath: String(AREAS[(i + r) % AREAS.length].id),
+            escapeState: place === 3 && r === 1 ? 3 : 0,
+            mainWeather: WEATHERS[r % WEATHERS.length].key,
           });
         }
       });

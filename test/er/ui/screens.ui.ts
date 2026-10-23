@@ -126,6 +126,8 @@ const SCREENS: Screen[] = [
   { name: "KEL 서킷별 순위", path: () => "/er/kel/circuits", login: true },
   { name: "KEL 결승 점수 흐름", path: () => "/er/kel/finals", login: true },
   { name: "KEL 팀 성향", path: () => "/er/kel/teams", login: true },
+  { name: "KEL 팀 성향 결승 운영", path: () => "/er/kel/teams?s=finals&v=ops", login: true },
+  { name: "KEL 시작 지역과 탈락 지역", path: () => "/er/kel/regions", login: true },
   { name: "KEL 선수 카드", path: () => playerPath("선수4-0"), login: true },
   { name: "KEL 선수 카드 처음", path: () => "/er/kel/players", login: true },
   { name: "KEL 역할", path: () => "/er/kel/roles", login: true },

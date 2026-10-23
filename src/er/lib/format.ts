@@ -5,6 +5,10 @@ const KO = characters as Record<string, string>;
 export const fmt = (v: number) => (Number.isInteger(v) ? String(v) : (Math.round(v * 100) / 100).toString());
 export const fmt1 = (v: number) => (Math.round(v * 10) / 10).toFixed(1);
 export const pct = (v: number, digits = 1) => `${(v * 100).toFixed(digits)}%`;
+export const duration = (seconds: number) => {
+  const s = Math.round(seconds);
+  return `${Math.floor(s / 60)}분 ${String(s % 60).padStart(2, "0")}초`;
+};
 
 export function characterName(english: string): string {
   return KO[english] ?? KO[english.replace(/\s+/g, "")] ?? english;

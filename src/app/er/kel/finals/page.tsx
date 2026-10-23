@@ -45,7 +45,11 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ f
       owner={owner}
       screen="finals"
       lead={lead}
-      notes={[state.rows.some((r) => r.penalty > 0) && "감점 칸에는 bori.wiki 결과 표 점수와 경기 기록 점수의 차이를 넣었습니다.", NOTES[f.event]]}
+      notes={[
+        state.rows.some((r) => r.penalty > 0) && "감점 칸에는 bori.wiki 결과 표 점수와 경기 기록 점수의 차이를 넣었습니다.",
+        f.weather.some(Boolean) && "라운드 번호 아래 글자는 dak.gg 경기 상세에 남은 그 라운드의 메인 날씨입니다.",
+        NOTES[f.event],
+      ]}
     >
       <KelTabs screen="finals" param="f" label="결승" items={list.map((x) => [x.event, EVENT_NAME[x.event]] as const)} current={f.event} />
       <section className="panel p-5 max-[760px]:p-4" aria-labelledby="flow">
@@ -83,7 +87,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ f
                 <th className="l pin">팀</th>
                 <th className="narrow">합계</th>
                 {Array.from({ length: played }, (_, r) => (
-                  <th key={r}>{r + 1}R</th>
+                  <th key={r}>
+                    {r + 1}R{f.weather[r] && <span className="block text-[12px] font-normal">{f.weather[r]}</span>}
+                  </th>
                 ))}
                 <th>킬 점수</th>
                 <th>감점</th>

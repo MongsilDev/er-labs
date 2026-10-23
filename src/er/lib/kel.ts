@@ -86,7 +86,7 @@ export const KEL_EVENTS = [
 export type KelEvent = (typeof KEL_EVENTS)[number]["key"];
 export const EVENT_NAME = Object.fromEntries(KEL_EVENTS.map((e) => [e.key, e.name])) as Record<KelEvent, string>;
 
-export type KelScreen = "home" | "odds" | "rules" | "circuits" | "finals" | "teams" | "players" | "roles" | "characters" | "comps" | "records";
+export type KelScreen = "home" | "odds" | "rules" | "circuits" | "finals" | "teams" | "regions" | "players" | "roles" | "characters" | "comps" | "records";
 
 // public이 false인 화면은 KEL_OWNER_ID 계정만 열 수 있음
 export const KEL_SCREENS: Record<KelScreen, { path: string; title: string; public: boolean }> = {
@@ -96,6 +96,7 @@ export const KEL_SCREENS: Record<KelScreen, { path: string; title: string; publi
   circuits: { path: "/er/kel/circuits", title: "서킷별 순위", public: true },
   finals: { path: "/er/kel/finals", title: "결승 점수 흐름", public: true },
   teams: { path: "/er/kel/teams", title: "팀 성향", public: true },
+  regions: { path: "/er/kel/regions", title: "시작 지역과 탈락 지역", public: false },
   players: { path: "/er/kel/players", title: "선수 카드", public: true },
   roles: { path: "/er/kel/roles", title: "팀 안에서 맡은 역할", public: true },
   characters: { path: "/er/kel/characters", title: "실험체 등장률", public: true },
@@ -119,7 +120,7 @@ export const KEL_SECTIONS: { title: string; items: [KelScreen, string][] }[] = [
   {
     title: "경기",
     items: [
-      ["finals", "서킷과 미드 시즌 컵 결승의 라운드별 누적 점수와 체크포인트"],
+      ["finals", "서킷과 미드 시즌 컵 결승의 라운드별 누적 점수, 체크포인트, 메인 날씨"],
       ["records", "최다 킬, 가한 피해, 군중제어 시간, 팀원 회복, 실험체별 최고 기록, 낮은 기록"],
     ],
   },
@@ -134,7 +135,8 @@ export const KEL_SECTIONS: { title: string; items: [KelScreen, string][] }[] = [
     title: "팀",
     items: [
       ["circuits", "16팀의 서킷 1~4 최종 순위"],
-      ["teams", "1위 횟수, 3위 이내 비율, 킬 점수 비중, 게임당 점수"],
+      ["teams", "1위와 8위 횟수, 킬 점수 비중, 위클라인 처치, 평균 생존 시간, 탈출"],
+      ["regions", "시작 지역별 팀 순위, 사망이 많았던 지역, 팀과 선수가 많이 시작한 지역"],
     ],
   },
   {
