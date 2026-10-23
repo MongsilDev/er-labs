@@ -3,10 +3,10 @@ import KelPage, { NO_DATA } from "@/er/components/kel/KelPage";
 import { Logo } from "@/er/components/kel/Team";
 import Char from "@/er/components/t/Char";
 import { int } from "@/er/lib/cut";
-import { pct } from "@/er/lib/format";
+import { byText, pct } from "@/er/lib/format";
 import { playerPath, seasonStandings, TEAM, wikiUrl } from "@/er/lib/kel";
 import { kelData, kelGate, kelMetadata, type KelRow } from "@/er/server/kel";
-import { gameLabel, killStats, MIN_GAMES, playerStats, ranked, rankOf, type KillPair, type Metric, type PlayerStat } from "@/er/server/kel-stats";
+import { gameLabel, killStats, MIN_GAMES, playerStats, rankOf, type KillPair, type Metric, type PlayerStat } from "@/er/server/kel-stats";
 
 export const dynamic = "force-dynamic";
 export const generateMetadata = () => kelMetadata("players");
@@ -51,6 +51,13 @@ const BESTS: [string, (p: PlayerStat) => KelRow | null, (r: KelRow) => string][]
   ["팀원 회복", (p) => p.bests.heal, (r) => int(r.dak!.heal)],
 ];
 
+// 횟수가 같으면 이름 순으로 세 명까지
+const opponents = (list: KillPair[], side: "killer" | "victim") =>
+  [...list]
+    .sort((a, b) => b.count - a.count || byText(a[side].player, b[side].player))
+    .slice(0, 3)
+    .map((r) => ({ r }));
+
 function Opponents({ title, list, side }: { title: string; list: { r: KillPair }[]; side: "killer" | "victim" }) {
   return (
     <div className="min-w-0">
@@ -75,16 +82,8 @@ function Opponents({ title, list, side }: { title: string; list: { r: KillPair }
 
 function Card({ p, all, eligible, pairs }: { p: PlayerStat; all: PlayerStat[]; eligible: number; pairs: KillPair[] }) {
   const team = TEAM.get(p.team)!;
-  const victims = ranked(
-    pairs.filter((x) => x.killer.player === p.name),
-    (x) => x.count,
-    3,
-  );
-  const killers = ranked(
-    pairs.filter((x) => x.victim.player === p.name),
-    (x) => x.count,
-    3,
-  );
+  const victims = opponents(pairs.filter((x) => x.killer.player === p.name), "victim");
+  const killers = opponents(pairs.filter((x) => x.victim.player === p.name), "killer");
   return (
     <section className="panel grid grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] gap-6 p-6 max-[860px]:grid-cols-1 max-[760px]:p-4" aria-labelledby="player">
       <div className="min-w-0">
@@ -186,6 +185,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ p
         "KPR은 경기 기록에 게임마다 적힌 선수 평점을 평균한 값이고, 한 게임의 평균은 약 1.0입니다.",
         "가한 피해 비중은 게임마다 팀 세 명이 가한 피해 합계에서 그 선수가 차지한 비율을 평균한 값입니다.",
         "잡은 상대와 잡힌 상대는 같은 실험체를 고른 상대가 둘 이상이라 누구인지 가릴 수 없는 킬을 빼고 셌습니다.",
+        "잡은 상대와 잡힌 상대는 횟수가 같으면 이름 순으로 세 명까지 보여 줍니다.",
       ]}
     >
       {picked && <Card p={picked} all={all} eligible={eligible} pairs={killStats(data).pairs} />}
