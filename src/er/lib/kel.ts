@@ -125,6 +125,3 @@ export const KEL_SECTIONS: { title: string; items: [KelScreen, string][] }[] = [
     ],
   },
 ];
-
-// 팀별 조합처럼 결승 뒤에 공개하기로 한 항목
-export const AFTER_FINAL = Date.parse("2026-11-09T00:00:00+09:00");

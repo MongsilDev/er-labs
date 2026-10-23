@@ -4,7 +4,7 @@ import Char from "@/er/components/t/Char";
 import { characterName } from "@/er/lib/format";
 import { josa, TEAM } from "@/er/lib/kel";
 import { kelData, kelGate, kelMetadata } from "@/er/server/kel";
-import { afterFinal, comps } from "@/er/server/kel-stats";
+import { comps } from "@/er/server/kel-stats";
 
 export const dynamic = "force-dynamic";
 export const generateMetadata = () => kelMetadata("comps");
@@ -16,12 +16,11 @@ export default async function Page() {
   const data = kelData();
   const rows = data ? comps(data, MIN) : [];
   if (!rows.length) return <KelPage user={user} owner={owner} screen="comps" lead={NO_DATA} />;
-  const open = afterFinal();
   const first = rows[0];
   const [team, times] = first.teams[0];
   const lead = [
     `${first.characters.map(characterName).join(", ")} 조합은 ${first.count}번 나왔고, 평균 순위는 ${first.avgPlace.toFixed(2)}위였습니다.`,
-    open && `그중 ${times}번은 ${josa(TEAM.get(team)!.name, "이", "가")} 고른 조합입니다.`,
+    `그중 ${times}번은 ${josa(TEAM.get(team)!.name, "이", "가")} 고른 조합입니다.`,
   ];
 
   return (
@@ -45,11 +44,7 @@ export default async function Page() {
                 <th>횟수</th>
                 <th>평균 순위</th>
                 <th>1위</th>
-                {(open || owner) && (
-                  <th className="l wide">
-                    <span className="inline-flex items-center gap-2">많이 고른 팀{!open && <span className="chip h-5 px-1.5 text-[11px]">11월 9일 공개</span>}</span>
-                  </th>
-                )}
+                <th className="l wide">많이 고른 팀</th>
               </tr>
             </thead>
             <tbody>
@@ -65,18 +60,16 @@ export default async function Page() {
                   <td>{r.count}</td>
                   <td className="font-bold">{r.avgPlace.toFixed(2)}위</td>
                   <td>{r.wins}</td>
-                  {(open || owner) && (
-                    <td className="l wide">
-                      <span className="flex gap-3">
-                        {r.teams.slice(0, 3).map(([k, n]) => (
-                          <span key={k} className="inline-flex items-center gap-1.5 text-fg-2">
-                            <Logo team={TEAM.get(k)!} size={22} label />
-                            {n}번
-                          </span>
-                        ))}
-                      </span>
-                    </td>
-                  )}
+                  <td className="l wide">
+                    <span className="flex gap-3">
+                      {r.teams.slice(0, 3).map(([k, n]) => (
+                        <span key={k} className="inline-flex items-center gap-1.5 text-fg-2">
+                          <Logo team={TEAM.get(k)!} size={22} label />
+                          {n}번
+                        </span>
+                      ))}
+                    </span>
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -1,6 +1,6 @@
 import "server-only";
 import { byCharacter, byText } from "@/er/lib/format";
-import { AFTER_FINAL, EVENT_NAME, KEL_EVENTS, TEAM, type KelEvent } from "@/er/lib/kel";
+import { EVENT_NAME, KEL_EVENTS, TEAM, type KelEvent } from "@/er/lib/kel";
 import { finalState, placementPoints, type FinalState, type Round } from "@/er/lib/kel-calc";
 import { stageRounds, type Kel, type KelRow } from "./kel";
 
@@ -14,8 +14,6 @@ export function top<T>(list: T[], value: (x: T) => number, tie: (x: T) => number
   return list.reduce((a, x) => (value(x) > value(a) || (value(x) === value(a) && tie(x) > tie(a)) ? x : a));
 }
 
-// 팀별 조합은 선수 여론에 따라 11월 8일 결승이 끝난 뒤 공개
-export const afterFinal = () => Date.now() >= AFTER_FINAL;
 
 export const gameLabel = (g: { event: KelEvent; stage: string; round: number }) => `${EVENT_NAME[g.event]} ${g.stage} ${g.round}R`;
 
