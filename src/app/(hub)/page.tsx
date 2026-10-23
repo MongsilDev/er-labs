@@ -2,15 +2,17 @@ import Image from "next/image";
 import Link from "next/link";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
-import ExampleBoard, { exampleResult } from "@/er/components/ExampleBoard";
+import ExampleBoard from "@/er/components/ExampleBoard";
 import ThemeToggle from "@/er/components/ThemeToggle";
 import { int as rp, TIERS, tens } from "@/er/lib/cut";
 import { getCut } from "@/er/server/cut";
 import CutMini from "@/er/components/cut/CutMini";
-import { seasonStandings } from "@/er/lib/kel";
+import { exampleView } from "@/er/lib/example";
+import { TEAM } from "@/er/lib/kel";
+import { kelData } from "@/er/server/kel";
+import { records } from "@/er/server/kel-stats";
 import { date, int } from "@/tarkov/lib/format";
 import { PERSONAL } from "@/tarkov/lib/kord";
-import { baselineAccounts } from "@/tarkov/server/baseline";
 import { getMeta } from "@/tarkov/server/db";
 
 export const dynamic = "force-dynamic";
@@ -72,13 +74,14 @@ const signed = (n: number) => (n > 0 ? `+${n}` : String(n));
 
 export default async function Hub() {
   const cut = await getCut();
-  const example = exampleResult();
   const indexed = Number(getMeta("indexed_at")) || null;
   const plus = PERSONAL.filter((p) => (p.points ?? 0) < 0);
   const minus = PERSONAL.filter((p) => (p.points ?? 0) > 0);
   // 포인트를 가장 많이 쓰는 긍정 특성과 가장 많이 얻는 부정 특성 둘씩
   const picks = [...[...plus].sort((a, b) => a.points! - b.points!).slice(0, 2), ...[...minus].sort((a, b) => b.points! - a.points!).slice(0, 2)];
-  const seeds = seasonStandings().slice(0, 4);
+  const kel = kelData();
+  const rec = kel && records(kel);
+  const best = rec && ([["킬", rec.kills, "kills"], ["가한 피해", rec.damage[0], "damage"], ["받은 피해", rec.taken, "taken"]] as const);
   return (
     <>
       <SiteHeader>
@@ -94,6 +97,35 @@ export default async function Hub() {
           <Tool
             game="이터널 리턴"
             icon="er"
+            href="/er/kel"
+            name="KEL 기록"
+            desc="2026 KEL 서킷 순위, 결승 점수 흐름, 선수와 실험체 기록"
+            className="col-span-2 max-[760px]:col-span-1"
+            stats={[
+              { label: "준결승", value: "11월 7일" },
+              { label: "결승", value: "11월 8일" },
+            ]}
+          >
+            {best && (
+              <>
+                <p className="mb-2 text-[13px] text-fg-3">한 게임 최고 기록</p>
+                <ul className="grid grid-cols-3 gap-x-6">
+                  {best.map(([label, r, key]) => (
+                    <li key={label} className="grid min-w-0 content-start gap-0.5">
+                      <span className="text-[13px] text-fg-3">{label}</span>
+                      <span className="text-[20px] leading-tight font-extrabold tabular-nums">{rp(r[key])}</span>
+                      <span className="mt-1 truncate text-[14px] font-bold">{r.player}</span>
+                      <span className="truncate text-[13px] text-fg-3">{TEAM.get(r.team)!.name}</span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </Tool>
+
+          <Tool
+            game="이터널 리턴"
+            icon="er"
             href="/er/score"
             name="점수 계산"
             desc="결과 CSV로 대회 순위, 감점, 체크포인트, 금지 실험체 계산"
@@ -102,11 +134,10 @@ export default async function Hub() {
                 label: "예시 대회",
                 value: (
                   <Link className="link p-0 text-[20px] font-extrabold text-fg" href="/er/example/a">
-                    {example.name}
+                    {exampleView().name}
                   </Link>
                 ),
               },
-              { label: "진행", value: `${example.res.played}라운드` },
             ]}
           >
             <ExampleBoard rows={3} bare />
@@ -166,38 +197,12 @@ export default async function Hub() {
           </Tool>
 
           <Tool
-            game="이터널 리턴"
-            icon="er"
-            href="/er/kel"
-            name="KEL 기록"
-            desc="2026 KEL 서킷 순위, 결승 점수 흐름, 선수와 실험체 기록"
-            className="col-span-2 max-[760px]:col-span-1"
-            stats={[
-              { label: "준결승", value: "11월 7일" },
-              { label: "결승", value: "11월 8일" },
-            ]}
-          >
-            <p className="mb-2 text-[13px] text-fg-3">챔피언십 결승 직행</p>
-            <ul className="grid grid-cols-4 gap-x-6 gap-y-3 max-[760px]:grid-cols-2">
-              {seeds.map((r) => (
-                <li key={r.team.key} className="min-w-0">
-                  <span className="block truncate text-[14px] font-bold">{r.team.name}</span>
-                  <span className="text-[14px] font-extrabold tabular-nums text-fg-2">{r.total.toLocaleString("ko-KR")}포인트</span>
-                </li>
-              ))}
-            </ul>
-          </Tool>
-
-          <Tool
             game="Escape from Tarkov"
             icon="eft"
             href="/tarkov/players"
             name="계정 조회"
             desc="시즌, PvP, PvE, 아레나 전적과 판정 배지"
-            stats={[
-              { label: "색인 계정", value: int(Number(getMeta("accounts")) || 0) },
-              { label: "판정 비교군", value: int(baselineAccounts()) },
-            ]}
+            stats={[{ label: "찾을 수 있는 계정", value: int(Number(getMeta("accounts")) || 0) }]}
           >
             <form className="flex gap-2" action="/tarkov/players" method="get" role="search">
               <input

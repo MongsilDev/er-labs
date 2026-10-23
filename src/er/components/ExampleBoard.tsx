@@ -3,7 +3,7 @@ import Bar from "@/er/components/t/Bar";
 import { barTotal, computeGroup } from "@/er/lib/engine";
 import { exampleView } from "@/er/lib/example";
 
-export function exampleResult() {
+function exampleResult() {
   const ex = exampleView();
   const g = ex.groups[0];
   const res = computeGroup({

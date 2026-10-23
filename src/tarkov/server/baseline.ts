@@ -114,10 +114,6 @@ export function verdict(mode: Mode, aid: number, sum: Summary | null): Verdict {
   return judge("eft", s, rows, width);
 }
 
-export function baselineAccounts(): number {
-  return (db().prepare(`SELECT COUNT(DISTINCT aid) AS c FROM baseline WHERE n > 0 AND mode NOT LIKE '${ARENA_PREFIX}%'`).get() as { c: number }).c;
-}
-
 export function baselineCounts(): Record<string, number> {
   const rows = db().prepare(`SELECT mode, COUNT(*) AS c FROM baseline WHERE n > 0 AND mode NOT LIKE '${ARENA_PREFIX}%' GROUP BY mode`).all() as { mode: string; c: number }[];
   return Object.fromEntries(rows.map((r) => [r.mode, r.c]));
