@@ -2,11 +2,12 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { characterName } from "../../src/er/lib/format";
 import { championshipTeams, KEL_TEAMS, seasonStandings } from "../../src/er/lib/kel";
 import { finalState, standings, type Entry, type Round } from "../../src/er/lib/kel-calc";
 import { kelData, stageRounds } from "../../src/er/server/kel";
 import { kelOdds } from "../../src/er/server/kel-odds";
-import { finals, lows, records, regions, teamOps, wicklines } from "../../src/er/server/kel-stats";
+import { finals, killStats, lows, MIN_GAMES, playerStats, rankOf, records, regions, teamOps, wicklines } from "../../src/er/server/kel-stats";
 import { kelFixture } from "./helpers";
 
 process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "er-labs-kel-"));
@@ -122,6 +123,70 @@ describe("KEL 자료", () => {
     const reg = regions(data);
     expect(reg.starts.reduce((a, s) => a + s.count, 0)).toBe(data.rows.length);
     expect(reg.deaths.reduce((a, d) => a + d.count, 0)).toBe(data.rows.length);
+  });
+});
+
+describe("KEL 선수 기록", () => {
+  beforeAll(() => kelFixture(process.env.DATA_DIR!));
+  const key = (i: number) => KEL_TEAMS[i].key;
+
+  it("킬 기록의 잡힌 실험체로 상대를 찾고, 같은 실험체 상대는 데스 기록으로 가리며, 그래도 못 가린 킬은 뺀다", () => {
+    const k = killStats(kelData()!);
+    expect([k.total, k.counted]).toEqual([5, 4]);
+    expect(k.pairs.map((p) => [p.killer.player, p.victim.player, p.count]).sort()).toEqual([
+      ["선수0-0", "선수4-0", 1],
+      ["선수2-0", "선수5-1", 2],
+      ["선수5-0", "선수2-2", 1],
+    ]);
+    expect(Object.fromEntries(k.teams)).toEqual({ [`${key(2)}|${key(5)}`]: 2, [`${key(5)}|${key(2)}`]: 1, [`${key(0)}|${key(4)}`]: 1 });
+  });
+
+  it("두 팀이 같은 게임에 나온 횟수는 양쪽이 같고, 팀 경기 기록에서 센 값과 맞는다", () => {
+    const data = kelData()!;
+    const { together } = killStats(data);
+    const games = (t: string) => new Set(data.games.filter((g) => g.team === t).map((g) => g.gameId));
+    for (const [a, b] of [
+      [0, 4],
+      [2, 5],
+      [3, 15],
+    ]) {
+      const [x, y] = [games(key(a)), games(key(b))];
+      const met = [...x].filter((g) => y.has(g)).length;
+      expect(met).toBeGreaterThan(0);
+      expect([together.get(`${key(a)}|${key(b)}`), together.get(`${key(b)}|${key(a)}`)]).toEqual([met, met]);
+    }
+    expect(together.has(`${key(0)}|${key(0)}`)).toBe(false);
+  });
+
+  it("군중제어 시간과 팀원 회복 비중은 팀 합계가 0인 게임을 0으로 넣어 평균한다", () => {
+    const data = kelData()!;
+    const p = playerStats(data).find((x) => x.name === "선수7-2")!;
+    const teamGame = new Map(data.games.map((g) => [`${g.gameId}:${g.team}`, g]));
+    const shares = data.rows
+      .filter((r) => r.player === "선수7-2")
+      .map((r) => {
+        const g = teamGame.get(`${r.gameId}:${r.team}`)!;
+        return g.heal ? r.dak!.heal / g.heal : 0;
+      });
+    expect(shares).toContain(0);
+    expect(p.healShare).toBeCloseTo(shares.reduce((a, b) => a + b, 0) / shares.length, 12);
+  });
+
+  it("선수 기록에 데스, 카메라 파괴, 동료 부활, 생존 시간을 넣고, 데스는 적을수록 높은 순위다", () => {
+    const all = playerStats(kelData()!);
+    const p = all.find((x) => x.name === "선수4-0")!;
+    expect(p.games).toBeGreaterThanOrEqual(MIN_GAMES);
+    expect(p.time).toBeGreaterThan(600);
+    expect(p.cameraOff).toBeGreaterThan(0);
+    expect(all.some((x) => x.revive > 0)).toBe(true);
+    const eligible = all.filter((x) => x.games >= MIN_GAMES);
+    const fewest = eligible.reduce((a, x) => (x.deaths < a.deaths ? x : a));
+    expect(rankOf(all, fewest, "deaths")).toBe(1);
+    expect(rankOf(all, all.find((x) => x.games < MIN_GAMES)!, "deaths")).toBeNull();
+  });
+
+  it("실험체 이름표에 없는 Yumin은 유민으로 쓴다", () => {
+    expect([characterName("Yumin"), characterName("DebiMarlene"), characterName("LiDailin")]).toEqual(["유민", "데비&마를렌", "리 다이린"]);
   });
 });
 

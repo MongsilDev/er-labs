@@ -80,6 +80,22 @@ const LOW_DAMAGE = new Map([
   ["6-1", 1010],
 ]);
 
+// 첫 게임의 킬과 데스, 키는 팀 순서-선수 순서이고 값의 키는 상대 실험체 번호
+// 실험체가 하나뿐인 상대(2-0이 5-1을, 5-0이 2-2를), 같은 실험체 셋 가운데 데스 기록으로 가리는 상대(0-0이 4-0을), 데스 기록으로도 못 가리는 상대(0-1이 1-1과 4-1 가운데 하나를)
+const KILLS = new Map<string, Record<string, number>>([
+  ["2-0", { 9: 2 }],
+  ["5-0", { 1: 1 }],
+  ["0-0", { 5: 1 }],
+  ["0-1", { 6: 1 }],
+]);
+const DEATHS = new Map<string, Record<string, number>>([
+  ["5-1", { 8: 2 }],
+  ["2-2", { 8: 1 }],
+  ["4-0", { 2: 1 }],
+  ["1-1", { 3: 1 }],
+  ["4-1", { 3: 1 }],
+]);
+
 // 단계별 경기 날짜는 서킷 첫날부터 센 날수
 const DAYS = [0, 0, 1, 7, 7, 8];
 const shift = (date: string, days: number) => new Date(Date.parse(date) + days * 86_400_000).toISOString().slice(0, 10);
@@ -142,22 +158,26 @@ export function kelFixture(dataDir: string) {
               (r + i + p) % 4, (i + p) % 6, deaths, 30 + i, low ?? 9000 + i * 700 + p * 300 + r * 50, 7000 + p * 900 + i * 100, RS[place - 1], ks, RS[place - 1] + ks, 1500 + i, (1 + ((i + p) % 3) / 2).toFixed(3),
             ].join(","),
           );
-          // 위클라인은 2위 팀 세 명이 모두 처치 크레딧을 받고, 파일마다 첫 라운드의 3위 팀이 탈출함
+          // 위클라인은 2위 팀 세 명이 모두 처치 크레딧을 받고, 파일마다 첫 라운드의 3위 팀이 탈출함. 첫 게임의 마지막 팀은 팀원 회복이 0
           players.push({
             gameId,
             gameRank: place,
             characterNum: c + 1,
             ccTimeToPlayer: 10 + i * 3 + p + r,
-            teamRecover: 500 * p + 100 * i,
+            teamRecover: first && i === 7 ? 0 : 500 * p + 100 * i,
             protectAbsorb: 50 * r,
             addTelephotoCamera: (i + p + r) % 7,
+            removeTelephotoCamera: (i + r) % 3,
             viewContribution: 20 + i * 4 + p + r,
+            creditRevivedOthersCount: p === 2 && r % 2 ? 1 : 0,
             killWicklineGainVFCredit: place === 2 ? 10 : 0,
             playTime: 600 + (8 - place) * 90 + p * 10,
             placeOfStart: String(AREAS[(i + p) % AREAS.length].id),
             placeOfDeath: String(AREAS[(i + r) % AREAS.length].id),
             escapeState: place === 3 && r === 1 ? 3 : 0,
             mainWeather: WEATHERS[r % WEATHERS.length].key,
+            ...(first && KILLS.has(`${i}-${p}`) && { killDetails: JSON.stringify(KILLS.get(`${i}-${p}`)) }),
+            ...(first && DEATHS.has(`${i}-${p}`) && { deathDetails: JSON.stringify(DEATHS.get(`${i}-${p}`)) }),
           });
         }
       });
