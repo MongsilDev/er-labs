@@ -261,16 +261,16 @@ describe("화면 점검", () => {
     expect(calc.status).toBe(404);
   });
 
-  it("실험체 빌드 탭은 운영자에게만 보이고, 다른 사람이 주소로 열면 404가 나간다", async () => {
+  it("실험체 빌드 탭은 누구나 열리고 sitemap에 있다", async () => {
     for (const sid of [null, OTHER_SID]) {
       const headers: Record<string, string> = sid ? { cookie: `er_session=${sid}` } : {};
       const html = await fetch(`${base}/er/kel/characters`, { headers }).then((r) => r.text());
-      expect([sid, html.includes("view=build")]).toEqual([sid, false]);
+      expect([sid, html.includes("view=build")]).toEqual([sid, true]);
       const build = await fetch(`${base}/er/kel/characters?view=build`, { headers });
-      expect([sid, build.status]).toEqual([sid, 404]);
+      expect([sid, build.status]).toEqual([sid, 200]);
     }
-    const owner = await fetch(`${base}/er/kel/characters`, { headers: { cookie: `er_session=${OWNER_SID}` } }).then((r) => r.text());
-    expect(owner).toContain("view=build");
+    const sitemap = await fetch(`${base}/sitemap.xml`).then((r) => r.text());
+    expect(sitemap).toContain(`${base}/er/kel/characters?view=build<`);
   });
 
   it("방송 화면은 1920x1080 안에 들어간다", async () => {

@@ -17,6 +17,7 @@ const PATHS = [
   ...Object.values(KEL_SCREENS)
     .filter((s) => s.public)
     .map((s) => s.path),
+  `${KEL_SCREENS.characters.path}?view=build`,
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import HeatCell from "@/er/components/kel/HeatCell";
 import KelPage, { KelScroll, KelTabs, NO_DATA, pickTab } from "@/er/components/kel/KelPage";
 import { Logo } from "@/er/components/kel/Team";
@@ -288,15 +287,12 @@ function rateLead(rows: CharacterStat[], events: readonly (typeof KEL_EVENTS)[nu
 export default async function Page({ searchParams }: { searchParams: Promise<{ view?: string; sort?: string; c?: string }> }) {
   const { user, owner } = await kelGate("characters");
   const q = await searchParams;
-  // 빌드 탭은 공개 전이라 운영자만
-  const views = owner ? VIEWS : VIEWS.filter(([v]) => v !== "build");
-  if (q.view === "build" && !owner) notFound();
-  const view = pickTab(views, q.view);
+  const view = pickTab(VIEWS, q.view);
   const sort = pickTab(SORTS, q.sort);
   const data = kelData();
   if (!data) return <KelPage user={user} owner={owner} screen="characters" lead={NO_DATA} />;
   const { total, eventGames, rows } = characterStats(data);
-  const tabs = views.length > 1 && <KelTabs screen="characters" param="view" label="보기" items={views} current={view} />;
+  const tabs = <KelTabs screen="characters" param="view" label="보기" items={VIEWS} current={view} />;
 
   if (view === "build") {
     const builds = characterBuilds(data);
