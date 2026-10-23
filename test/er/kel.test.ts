@@ -233,6 +233,22 @@ describe("KEL 실험체 빌드", () => {
     expect(characterBuilds(data).find((x) => x.key === "Alonso")!.lastHits).toEqual([]);
   });
 
+  it("무기가 하나뿐인 실험체는 최종 장비 무기 칸 이름표를 '무기'로 쓴다", () => {
+    const alonso = characterBuilds(kelData()!).find((x) => x.key === "Alonso")!;
+    expect(alonso.weapons).toHaveLength(1);
+    expect(alonso.gear[0]).toMatchObject({ slot: "무기", weapon: alonso.weapons[0].name });
+  });
+
+  it("개인 최고 군중제어 시간과 팀원 회복은 기록이 모두 0이면 비운다", () => {
+    const data = kelData()!;
+    const name = "선수7-2";
+    const zero = { ...data, rows: data.rows.map((r) => (r.player === name && r.dak ? { ...r, dak: { ...r.dak, heal: 0 } } : r)) };
+    const p = playerStats(zero).find((x) => x.name === name)!;
+    expect(p.bests.heal).toBeNull();
+    expect(p.bests.cc).not.toBeNull();
+    expect(playerStats(data).find((x) => x.name === name)!.bests.heal).not.toBeNull();
+  });
+
   it("마지막 일격 기술 원문을 공식 이름으로 바꾸고, 공식 이름을 못 찾거나 스킬 이름 둘이 섞인 원문은 원문 이름으로 둔다", () => {
     const labels: Parameters<typeof lastHit>[2] = {
       names: new Map([

@@ -84,6 +84,7 @@ export type PlayerStat = {
   healShare: number;
   dakGames: number;
   characters: [string, number][];
+  // cc와 heal은 경기 상세가 없거나 값이 모두 0이면 null
   bests: { kills: KelRow; damage: KelRow; cc: DakRow | null; heal: DakRow | null };
 };
 
@@ -136,8 +137,8 @@ export const playerStats = memo((data): PlayerStat[] => {
           (r) => r.damage,
         ),
         damage: top(rows, (r) => r.damage),
-        cc: dak.length ? top(dak, (r) => r.dak.cc) : null,
-        heal: dak.length ? top(dak, (r) => r.dak.heal) : null,
+        cc: dak.some((r) => r.dak.cc > 0) ? top(dak, (r) => r.dak.cc) : null,
+        heal: dak.some((r) => r.dak.heal > 0) ? top(dak, (r) => r.dak.heal) : null,
       },
     };
   });
@@ -432,11 +433,12 @@ export type CharacterBuild = {
 const GEAR = ["무기", "옷", "머리", "팔", "다리"];
 
 // 무기 칸은 무기 종류마다 따로 셈. 분모는 그 무기를 든 기록 수
+// 무기가 하나뿐이면 이름표를 '무기'로 둠. 하트 '기타'는 옷, 머리 옆에서 '그 외'로 읽힘
 function gearOf(rows: DakRow[], weapons: Share[]): GearSlot[] {
   const weapon = weapons.flatMap((w) => {
     const list = rows.filter((r) => r.dak.weapon === w.name);
     const top = shares(list, (r) => r.dak.gear[0])[0];
-    return top ? [{ slot: w.name, weapon: w.name, ...top }] : [];
+    return top ? [{ slot: weapons.length > 1 ? w.name : GEAR[0], weapon: w.name, ...top }] : [];
   });
   const rest = GEAR.slice(1).flatMap((slot, i) => {
     const top = shares(rows, (r) => r.dak.gear[i + 1])[0];

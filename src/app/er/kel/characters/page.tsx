@@ -71,7 +71,7 @@ function Card({ b }: { b: CharacterBuild }) {
           {characterName(b.key)}
         </h2>
         <p className="mt-4 text-fg-2">
-          2026 시즌에 선수들이 {b.picks}번 골랐고, 그중 {b.wins}번은 1위를 했습니다.
+          2026 시즌에 선수들이 {b.picks}번 골랐고, {b.wins > 0 ? `그중 ${b.wins}번은 1위를 했습니다.` : "1위를 한 적은 없습니다."}
         </p>
         <dl className="mt-4 grid grid-cols-3 gap-2.5">
           {[
@@ -121,14 +121,14 @@ function Card({ b }: { b: CharacterBuild }) {
             ))}
           </ul>
         </Block>
-        <Block title="마지막 일격 기술" empty={!b.lastHits.length}>
+        <Block title="마지막 일격 스킬" empty={!b.lastHits.length}>
           <ul>
             {b.lastHits.map((s) => (
               <Bar key={s.name} s={s} sub={`${s.count}번`} />
             ))}
           </ul>
         </Block>
-        <Block title="많이 간 최종 장비" empty={!b.gear.length}>
+        <Block title="많이 고른 최종 장비" empty={!b.gear.length}>
           <dl className="grid grid-cols-[auto_minmax(0,1fr)_auto] gap-x-3 gap-y-2 text-[14px]">
             {b.gear.map((g) => (
               <div key={g.slot} className="contents">
@@ -236,12 +236,12 @@ function Build({ data, b }: { data: Kel; b: CharacterBuild }) {
         </ul>
       </section>
       <div className="grid grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)] gap-5 max-[1280px]:grid-cols-1">
-        <RateTable title="전술 스킬 대회별 선택률" rows={season.tactical} events={events} />
+        <RateTable title="모든 실험체의 전술 스킬 대회별 선택률" rows={season.tactical} events={events} />
         <section className="panel min-w-0 p-5 max-[760px]:p-4" aria-labelledby="traits">
           <h2 id="traits" className="text-[17px] font-extrabold">
-            많이 고른 핵심 특성
+            모든 실험체에서 많이 고른 핵심 특성
           </h2>
-          <KelScroll label="많이 고른 핵심 특성" className="mt-3">
+          <KelScroll label="모든 실험체에서 많이 고른 핵심 특성" className="mt-3">
             <table className="kel-table w-full">
               <thead>
                 <tr>
@@ -316,8 +316,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ v
         notes={[
           `무기, 전술 스킬, 핵심 특성, 최종 장비, 스킬 순서 비율은 그 실험체를 고른 기록 가운데 경기 상세가 있는 ${b.records}개를 기준으로 셉니다.`,
           "무기 칸 장비는 그 무기를 든 기록을 기준으로 셉니다.",
-          `마지막 일격 기술은 사망 기록 첫 칸에서 이 실험체가 처치한 ${b.deaths}번을 기준으로 셉니다.`,
-          b.unnamed > 0 && `공식 이름을 찾지 못한 기술로 처치한 ${b.unnamed}번은 기술 이름을 dak.gg 원문 그대로 적었습니다.`,
+          `마지막 일격 스킬은 한 게임에서 선수마다 세 번까지 남는 사망 기록 가운데 첫 번째만 보고, 이 실험체가 처치한 ${b.deaths}번을 기준으로 셉니다.`,
+          b.unnamed > 0 && `공식 이름을 찾지 못한 스킬로 처치한 ${b.unnamed}번은 스킬 이름을 dak.gg 원문 그대로 적었습니다.`,
           `전술 스킬과 핵심 특성 선택률은 선수 기록 ${records.toLocaleString("ko-KR")}개, 대회별 칸은 그 대회의 선수 기록을 기준으로 셉니다.`,
           "평균 순위는 고른 선수가 속한 팀의 순위입니다.",
         ]}
@@ -347,7 +347,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ v
         "평균 순위와 1위 비율은 그 실험체를 고른 선수의 팀 순위로 셉니다.",
       ]}
     >
-      <div className="grid gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         {tabs}
         <KelTabs screen="characters" param="sort" label="정렬" items={SORTS} current={sort} />
       </div>

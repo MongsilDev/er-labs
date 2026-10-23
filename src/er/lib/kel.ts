@@ -142,7 +142,7 @@ export const KEL_SECTIONS: { title: string; items: [KelScreen, string][] }[] = [
     ],
   },
   {
-    title: "실험체",
+    title: "실험체와 조합",
     items: [
       ["characters", "대회별 등장률, 평균 순위, 1위 비율"],
       ["comps", "조합별 횟수, 평균 순위, 1위 횟수"],

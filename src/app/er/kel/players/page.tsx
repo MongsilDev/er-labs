@@ -135,10 +135,12 @@ function Card({ p, all, pairs }: { p: PlayerStat; all: PlayerStat[]; pairs: Kill
           <section key={title} aria-label={title}>
             <h3 className="text-[13px] font-semibold text-fg-3">{title}</h3>
             <dl className="mt-2 grid grid-cols-3 gap-3 max-[560px]:grid-cols-2 max-[420px]:gap-2">
-              {tiles.map(([m, label, value, sub]) => {
+              {tiles.map(([m, label, value, sub], i) => {
                 const rank = rankOf(all, p, m);
+                // 3열과 2열 모두 마지막 줄에 한 칸만 남으면 그 칸을 줄 끝까지 늘림
+                const last = i === tiles.length - 1 && tiles.length % 6 === 1;
                 return (
-                  <div key={m} className="rounded-lg bg-field px-4 py-3.5 max-[420px]:px-3">
+                  <div key={m} className={`rounded-lg bg-field px-4 py-3.5 max-[420px]:px-3 ${last ? "col-span-full" : ""}`}>
                     <dt className="text-[13px] text-fg-3">{label}</dt>
                     <dd className="mt-1 text-[26px] leading-tight font-extrabold max-[420px]:text-[22px]">{value(p)}</dd>
                     {sub && <dd className="mt-0.5 text-[13px] text-fg-3">{sub(p)}</dd>}

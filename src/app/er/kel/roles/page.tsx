@@ -124,18 +124,38 @@ export default async function Page() {
               <table className="kel-table">
                 <thead>
                   <tr>
-                    <th className="l">선수</th>
-                    <th>가한 피해 비중</th>
-                    <th>받은 피해 비중</th>
-                    {support && <th>군중제어 시간 비중</th>}
-                    {support && <th>팀원 회복 비중</th>}
+                    <th className="l pin">선수</th>
+                    <th>
+                      가한 피해
+                      <br />
+                      비중
+                    </th>
+                    <th>
+                      받은 피해
+                      <br />
+                      비중
+                    </th>
+                    {support && (
+                      <th>
+                        군중제어 시간
+                        <br />
+                        비중
+                      </th>
+                    )}
+                    {support && (
+                      <th>
+                        팀원 회복
+                        <br />
+                        비중
+                      </th>
+                    )}
                     <th>게임</th>
                   </tr>
                 </thead>
                 <tbody>
                   {all.map((p) => (
                     <tr key={p.name}>
-                      <td className="l max-w-[180px]">
+                      <td className="l pin max-w-[180px]">
                         <PlayerName name={p.name} team={TEAM.get(p.team)} />
                       </td>
                       <td>{pct(p.damageShare)}</td>
@@ -157,8 +177,8 @@ export default async function Page() {
       </div>
       {support && (
         <div className="grid grid-cols-2 items-start gap-5 max-[1080px]:grid-cols-1">
-          <Top id="top-cc" title={`군중제어 시간 비중 상위 ${TOP}명`} rows={cc} value={(p) => p.ccShare} per={["게임당", (p) => `${p.cc.toFixed(1)}초`]} />
-          <Top id="top-heal" title={`팀원 회복 비중 상위 ${TOP}명`} rows={heal} value={(p) => p.healShare} per={["게임당", (p) => int(p.heal)]} />
+          <Top id="top-cc" title={`군중제어 시간 비중 상위 ${TOP}명`} rows={cc} value={(p) => p.ccShare} per={["게임당 시간", (p) => `${p.cc.toFixed(1)}초`]} />
+          <Top id="top-heal" title={`팀원 회복 비중 상위 ${TOP}명`} rows={heal} value={(p) => p.healShare} per={["게임당 회복량", (p) => int(p.heal)]} />
         </div>
       )}
     </KelPage>

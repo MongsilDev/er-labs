@@ -216,7 +216,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
       most.wickline > 0 && `${josa(name(most.team), "이", "가")} ${most.games}게임에서 ${most.wickline}번으로 위클라인을 가장 많이 잡았습니다.`,
     ];
     return (
-      <KelPage user={user} owner={owner} screen="teams" lead={lead} notes={OPS_NOTES}>
+      <KelPage user={user} owner={owner} screen="teams" lead={lead} notes={[...OPS_NOTES, ops.some((r) => r.wicklinePlace === null) && "위클라인을 처치한 게임이 없는 팀은 평균 순위를 -로 적었습니다."]}>
         {tabs}
         <Ops rows={ops} ranks={ranks} />
       </KelPage>

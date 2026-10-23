@@ -28,7 +28,7 @@ export default async function Page() {
   const [first] = pairs;
   const [tk, tv] = [...stats.teams].reduce((a, x) => (x[1] > a[1] ? x : a))[0].split("|");
   const lead = [
-    `${TEAM.get(first.r.killer.team)!.name} ${first.r.killer.player} 선수가 ${TEAM.get(first.r.victim.team)!.name} ${first.r.victim.player} 선수를 ${first.r.count}번 잡아 같은 상대를 가장 많이 잡았습니다.`,
+    `${TEAM.get(first.r.killer.team)!.name}의 ${first.r.killer.player} 선수가 ${TEAM.get(first.r.victim.team)!.name}의 ${first.r.victim.player} 선수를 ${first.r.count}번 잡아 같은 상대를 가장 많이 잡았습니다.`,
     `팀끼리는 ${josa(TEAM.get(tk)!.name, "이", "가")} ${josa(TEAM.get(tv)!.name, "을", "를")} ${kills(tk, tv)}번 잡아 가장 많았고, 두 팀이 같은 게임에 나온 횟수는 ${stats.together.get(`${tk}|${tv}`) ?? 0}번입니다.`,
   ];
 
@@ -39,7 +39,7 @@ export default async function Page() {
       screen="kills"
       lead={lead}
       notes={[
-        "킬 기록에는 잡힌 실험체만 남아, 같은 게임에 같은 실험체를 고른 상대가 둘 이상이면 데스 기록으로 누구인지 가렸습니다.",
+        "킬 기록에는 잡힌 실험체만 남아 있어, 같은 게임에 같은 실험체를 고른 상대가 둘 이상이면 데스 기록으로 누구인지 구분했습니다.",
         `상대 선수를 특정할 수 없는 킬은 빼서, ${int(stats.total)}킬 가운데 ${int(stats.counted)}킬만 셌습니다.`,
         unmet && "같은 게임에 나온 적 없는 두 팀은 -로 적었습니다.",
       ]}
@@ -63,20 +63,21 @@ export default async function Page() {
               </tr>
             </thead>
             <tbody>
+              {/* 팀 칸이 보이는 761px 이상에서는 선수 칸 로고를 숨김 */}
               {pairs.map(({ r, rank }) => (
                 <tr key={`${r.killer.player}|${r.victim.player}`}>
                   <td className="l">
                     <span className="rk">{rank}</span>
                   </td>
                   <td className="l max-w-[180px]">
-                    <PlayerName name={r.killer.player} team={TEAM.get(r.killer.team)} />
+                    <PlayerName name={r.killer.player} team={TEAM.get(r.killer.team)} logoClass="min-[761px]:hidden" />
                     <span className="narrow mt-0.5 text-[12px] text-fg-3">{TEAM.get(r.killer.team)!.name}</span>
                   </td>
                   <td className="l wide max-w-[200px]">
                     <TeamName team={TEAM.get(r.killer.team)!} size={22} />
                   </td>
                   <td className="l max-w-[180px]">
-                    <PlayerName name={r.victim.player} team={TEAM.get(r.victim.team)} />
+                    <PlayerName name={r.victim.player} team={TEAM.get(r.victim.team)} logoClass="min-[761px]:hidden" />
                     <span className="narrow mt-0.5 text-[12px] text-fg-3">{TEAM.get(r.victim.team)!.name}</span>
                   </td>
                   <td className="l wide max-w-[200px]">
