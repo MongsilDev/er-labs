@@ -36,6 +36,7 @@
     --gold: #ffd621;
     --gold-text: #ffd621;
     --minus: #ff6b6b;
+    --on-status: #111;
     --ramp-a: #0f5c66;
     --ramp-b: #26f1f6;
     --adv-bg: #26f1f6;
@@ -62,6 +63,7 @@
     --gold: #ffd621;
     --gold-text: #8a6d00;
     --minus: #d93a3a;
+    --on-status: #fff;
     --ramp-a: #6fd6dd;
     --ramp-b: #0a5f66;
     --adv-bg: #26f1f6;
@@ -475,7 +477,7 @@
   }
   .toast.bad {
     background: var(--minus);
-    color: #fff;
+    color: var(--on-status);
   }
   .toast button {
     margin-left: auto;
@@ -1201,6 +1203,11 @@
 }
 .scroll-fade {
   mask-image: linear-gradient(to right, #000 calc(100% - var(--fade)), transparent);
+}
+/* mask가 바깥 포커스 표시까지 가려서 포커스 중에는 흐림을 끄고 안쪽에 그림 */
+.scroll-fade:focus-visible {
+  mask-image: none;
+  outline-offset: -2px;
 }
 @supports (animation-timeline: scroll()) {
   .scroll-fade {

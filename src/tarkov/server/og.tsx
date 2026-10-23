@@ -75,8 +75,7 @@ function stats(s: Summary): [string, string, string?][] {
 
 export async function profileImage(name: string, mode: Mode, s: Summary | null, v: Verdict | null) {
   const badge = v ? VERDICT_LABEL[v.state] : null;
-  const badgeBg = v?.state === "alert" ? C.alert : v?.state === "warn" ? C.warn : C.panel;
-  const badgeFg = v?.state === "alert" ? "#fff" : v?.state === "warn" ? "#111" : C.text2;
+  const [badgeBg, badgeFg] = v?.state === "alert" ? [C.alert, "#111"] : v?.state === "warn" ? [C.warn, "#111"] : [C.panel, C.text2];
   // 공유 이미지에는 상위 절반일 때만 순위를 붙임
   const metric = (key?: string) => (key && v && v.state !== "none" ? v.metrics.find((m) => m.key === key && m.top <= 0.5) : undefined);
   return new ImageResponse(

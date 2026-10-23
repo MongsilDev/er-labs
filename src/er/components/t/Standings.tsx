@@ -12,8 +12,8 @@ const TIE: Record<string, string> = {
 };
 
 export function Delta({ d }: { d: number }) {
-  if (d > 0) return <span className="text-[12px] font-bold whitespace-nowrap text-accent" aria-label={`${d}계단 상승`}>▲{d}</span>;
-  if (d < 0) return <span className="text-[12px] font-bold whitespace-nowrap text-minus" aria-label={`${-d}계단 하락`}>▼{-d}</span>;
+  if (d > 0) return <span className="text-[12px] font-bold whitespace-nowrap text-accent" role="img" aria-label={`${d}계단 상승`}>▲{d}</span>;
+  if (d < 0) return <span className="text-[12px] font-bold whitespace-nowrap text-minus" role="img" aria-label={`${-d}계단 하락`}>▼{-d}</span>;
   return null;
 }
 
@@ -37,7 +37,7 @@ export default function Standings({ result, rules, mode, label }: { result: Grou
     );
   }
   return (
-    <section className="panel overflow-x-auto" aria-label={`${label} 순위표`}>
+    <section className="panel overflow-x-auto" aria-label={`${label} 순위표`} tabIndex={0}>
       <table className="stand">
         <thead>
           <tr>
@@ -81,7 +81,7 @@ export default function Standings({ result, rules, mode, label }: { result: Grou
                 <td className="r tot tabular-nums">
                   {fmt1(s.total)}
                   {s.tiedBy && (
-                    <span className="tie-mark" title={`동점, ${TIE[s.tiedBy]}`} aria-label={`동점, ${TIE[s.tiedBy]}`}>
+                    <span className="tie-mark" title={`동점, ${TIE[s.tiedBy]}`} role="img" aria-label={`동점, ${TIE[s.tiedBy]}`}>
                       =
                     </span>
                   )}

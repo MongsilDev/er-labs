@@ -22,6 +22,7 @@
   --accent: #c8d65a;
   --warn: #f0b429;
   --minus: #ff6b6b;
+  --on-status: #111;
   --dim: rgba(5, 7, 11, 0.72);
 }
 
@@ -40,6 +41,7 @@
   --accent: #5d6b0c;
   --warn: #9a6a00;
   --minus: #d93a3a;
+  --on-status: #fff;
   --dim: rgba(10, 13, 20, 0.45);
 }
 
@@ -350,7 +352,7 @@ select.field {
 }
 .toast.bad {
   background: var(--minus);
-  color: #fff;
+  color: var(--on-status);
 }
 .toast button {
   margin-left: auto;
@@ -511,12 +513,12 @@ table {
 .badge.warn {
   background: var(--warn);
   border-color: var(--warn);
-  color: #111;
+  color: var(--on-status);
 }
 .badge.alert {
   background: var(--minus);
   border-color: var(--minus);
-  color: #fff;
+  color: var(--on-status);
 }
 .badge.none {
   color: var(--text-3);

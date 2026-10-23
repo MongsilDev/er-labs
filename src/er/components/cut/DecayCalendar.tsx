@@ -33,7 +33,7 @@ export default function DecayCalendar({ data }: { data: CutData }) {
           );
         })}
       </dl>
-      <div className="scroll-fade overflow-x-auto pb-1">
+      <div className="scroll-fade overflow-x-auto pb-1" tabIndex={0}>
         <ol className="flex w-full min-w-max items-end gap-1" aria-label="날짜별 휴면 강등으로 컷 아래로 내려가는 인원">
           {dates.map((d) => {
             const c = counts.get(d) ?? {};

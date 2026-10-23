@@ -165,7 +165,7 @@ function ArenaStats({ s, hide }: { s: ArenaSummary; hide: string[] }) {
       {s.modes.length > 1 && (
         <section className="block">
           <h2 className="h2">모드별</h2>
-          <div className="table-scroll panel">
+          <div className="table-scroll panel" role="region" aria-label="모드별" tabIndex={0}>
             <table className="grid-table">
               <thead>
                 <tr>
@@ -448,7 +448,7 @@ function Mastery({ s }: { s: EftSummary }) {
         <div className="m-body">
           <div className="m-top">
             <b className="ellipsis">{m.id.toUpperCase()}</b>
-            <span className="pips" aria-label={`${level}단계`}>
+            <span className="pips" role="img" aria-label={`${level}단계`}>
               {[1, 2, 3].map((n) => (
                 <i key={n} className={n <= level ? "on" : undefined} />
               ))}
@@ -610,7 +610,7 @@ function Trend({ list }: { list: Summary[] }) {
   return (
     <section className="block">
       <h2 className="h2">이 사이트에 저장된 기록</h2>
-      <div className="table-scroll panel">
+      <div className="table-scroll panel" role="region" aria-label="이 사이트에 저장된 기록" tabIndex={0}>
         <table className="grid-table">
           <thead>
             <tr>
@@ -837,7 +837,7 @@ export default async function Profile({ params, searchParams }: Props) {
         {history.length > 0 && (
           <section className="block">
             <h2 className="h2">닉네임 변경 내역</h2>
-            <div className="table-scroll panel">
+            <div className="table-scroll panel" role="region" aria-label="닉네임 변경 내역" tabIndex={0}>
               <table className="grid-table">
                 <thead>
                   <tr>

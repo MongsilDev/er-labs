@@ -28,7 +28,7 @@ export default function Details({ result, rules }: { result: GroupResult; rules:
           </button>
         ))}
       </div>
-      <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`} className={`panel overflow-x-auto ${tab === "players" ? "max-w-[720px]" : ""}`}>
+      <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`} tabIndex={0} className={`panel overflow-x-auto ${tab === "players" ? "max-w-[720px]" : ""}`}>
         {tab === "rounds" && (
           <table className="rt">
             <thead>
