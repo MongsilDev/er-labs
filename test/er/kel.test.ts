@@ -8,7 +8,7 @@ import { finalState, standings, type Entry, type Round } from "../../src/er/lib/
 import { kelData, stageRounds } from "../../src/er/server/kel";
 import { lastHit } from "../../src/er/server/kel-dakgg";
 import { kelOdds } from "../../src/er/server/kel-odds";
-import { characterBuilds, comps, finals, killStats, lows, MIN_GAMES, playerStats, rankOf, records, regions, seasonBuilds, teamOps, wicklines } from "../../src/er/server/kel-stats";
+import { characterBuilds, comps, daysUntil, finals, killStats, lows, MIN_GAMES, playerStats, rankOf, kelHighlights, records, regions, seasonBuilds, teamOps, wicklines } from "../../src/er/server/kel-stats";
 import { kelFixture } from "./helpers";
 
 process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "er-labs-kel-"));
@@ -76,6 +76,30 @@ describe("KEL 점수와 체크포인트", () => {
 describe("KEL 자료", () => {
   it("자료 폴더가 없으면 null을 돌려준다", () => {
     expect(kelData()).toBeNull();
+    expect(kelHighlights(kelData())).toBeNull();
+  });
+
+  it("첫 화면 카드는 게임 수가 많은 실험체, 한 게임 최고 기록, 많이 나온 3인 조합을 세 개씩 고른다", () => {
+    kelFixture(process.env.DATA_DIR!);
+    const data = kelData()!;
+    const h = kelHighlights(data)!;
+    const games = [...Map.groupBy(data.rows, (r) => r.character)].map(([k, v]) => [k, new Set(v.map((r) => r.gameId)).size] as const).sort((a, b) => b[1] - a[1]);
+    expect(h.characters.map((c) => c.games)).toEqual(games.slice(0, 3).map(([, n]) => n));
+    expect(h.characters[0].rate).toBe(games[0][1] / new Set(data.rows.map((r) => r.gameId)).size);
+    expect(h.bests.map((b) => [b.label, b.value])).toEqual([
+      ["킬", Math.max(...data.rows.map((r) => r.kills))],
+      ["가한 피해", Math.max(...data.rows.map((r) => r.damage))],
+      ["받은 피해", Math.max(...data.rows.map((r) => r.taken))],
+    ]);
+    expect(h.comps).toEqual(comps(data, 1).slice(0, 3));
+    expect(h.comps.length).toBeGreaterThan(0);
+  });
+
+  it("남은 날은 서울 날짜로 센다", () => {
+    expect(daysUntil("2026-11-07", new Date("2026-10-23T14:59:00Z"))).toBe(15);
+    expect(daysUntil("2026-11-07", new Date("2026-10-23T15:00:00Z"))).toBe(14);
+    expect(daysUntil("2026-11-07", new Date("2026-11-06T15:30:00Z"))).toBe(0);
+    expect(daysUntil("2026-11-08", new Date("2026-11-09T01:00:00Z"))).toBe(-1);
   });
 
   it("CSV를 읽어 팀 경기를 만들고 결과 표와 다른 점수는 감점으로 넣는다", () => {
