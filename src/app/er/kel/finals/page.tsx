@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export const generateMetadata = () => kelMetadata("finals");
 
 const NOTES: Partial<Record<KelEvent, string>> = {
-  c2: "전남 이스포츠의 4라운드 점수는 bori.wiki 결과 표보다 2점 낮지만, 이유를 찾지 못해 경기 기록 값을 그대로 썼습니다.",
+  c2: "전남 이스포츠의 4라운드 점수는 bori.wiki 결과 표보다 2점 낮지만, 이유를 찾지 못해 경기 기록에 있는 값을 그대로 썼습니다.",
 };
 
 const Ring = ({ color }: { color: string }) => <span className="inline-block size-[9px] flex-none rounded-full border-2" style={{ borderColor: color }} aria-hidden="true" />;
