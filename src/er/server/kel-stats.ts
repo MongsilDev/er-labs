@@ -14,6 +14,18 @@ export const MIN_GAMES = 30;
 const mean = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0);
 const count = (rows: { gameId: number }[]) => new Set(rows.map((r) => r.gameId)).size;
 
+// kelData가 같은 객체를 돌려주는 동안 계산 결과를 다시 씀
+function memo<T>(f: (data: Kel) => T): (data: Kel) => T {
+  const cache = new WeakMap<Kel, T>();
+  return (data) => {
+    if (!cache.has(data)) cache.set(data, f(data));
+    return cache.get(data)!;
+  };
+}
+
+// 팀 세 명 모두 경기 상세가 붙은 팀 게임, 일부만 붙으면 팀 합계와 비중이 틀어짐
+const fullTeams = memo((data) => new Set([...Map.groupBy(data.rows, (r) => `${r.gameId}:${r.team}`)].filter(([, list]) => list.every((r) => r.dak)).map(([key]) => key)));
+
 export function top<T>(list: T[], value: (x: T) => number, tie: (x: T) => number = () => 0): T {
   return list.reduce((a, x) => (value(x) > value(a) || (value(x) === value(a) && tie(x) > tie(a)) ? x : a));
 }
@@ -55,21 +67,43 @@ export type PlayerStat = {
   wins: number;
   kpr: number;
   kills: number;
+  deaths: number;
   top3: number;
   avgPlace: number;
   damage: number;
   damageShare: number;
   takenShare: number;
+  cc: number;
+  heal: number;
+  vision: number;
+  camera: number;
+  cameraOff: number;
+  revive: number;
+  time: number;
+  ccShare: number;
+  healShare: number;
+  dakGames: number;
   characters: [string, number][];
-  best: KelRow;
+  bests: { kills: KelRow; damage: KelRow; cc: DakRow | null; heal: DakRow | null };
 };
 
-export function playerStats(data: Kel): PlayerStat[] {
+// 경기 상세 값은 상세가 있는 게임만 평균하고, 팀 합계가 0인 게임은 비중 0으로 셈
+export const playerStats = memo((data): PlayerStat[] => {
   const teamGame = new Map(data.games.map((g) => [`${g.gameId}:${g.team}`, g]));
+  const full = fullTeams(data);
   return [...Map.groupBy(data.rows, (r) => r.player)].map(([name, rows]) => {
+    const dak = withDak(rows);
+    const avg = (value: (d: KelDak) => number) => mean(dak.map((r) => value(r.dak)));
     const shares = rows.map((r) => {
-      const g = teamGame.get(`${r.gameId}:${r.team}`);
-      return { damage: g?.damage ? r.damage / g.damage : 0, taken: g?.taken ? r.taken / g.taken : 0 };
+      const key = `${r.gameId}:${r.team}`;
+      const g = teamGame.get(key);
+      const d = full.has(key) ? r.dak : undefined;
+      return {
+        damage: g?.damage ? r.damage / g.damage : 0,
+        taken: g?.taken ? r.taken / g.taken : 0,
+        cc: d ? (g?.cc ? d.cc / g.cc : 0) : [],
+        heal: d ? (g?.heal ? d.heal / g.heal : 0) : [],
+      };
     });
     return {
       name,
@@ -78,29 +112,54 @@ export function playerStats(data: Kel): PlayerStat[] {
       wins: rows.filter((r) => r.placement === 1).length,
       kpr: mean(rows.map((r) => r.kpr)),
       kills: mean(rows.map((r) => r.kills)),
+      deaths: mean(rows.map((r) => r.deaths)),
       top3: rows.filter((r) => r.placement <= 3).length / rows.length,
       avgPlace: mean(rows.map((r) => r.placement)),
       damage: mean(rows.map((r) => r.damage)),
       damageShare: mean(shares.map((x) => x.damage)),
       takenShare: mean(shares.map((x) => x.taken)),
+      cc: avg((d) => d.cc),
+      heal: avg((d) => d.heal),
+      vision: avg((d) => d.vision),
+      camera: avg((d) => d.camera),
+      cameraOff: avg((d) => d.cameraOff),
+      revive: avg((d) => d.revive),
+      time: avg((d) => d.time),
+      ccShare: mean(shares.flatMap((x) => x.cc)),
+      healShare: mean(shares.flatMap((x) => x.heal)),
+      dakGames: dak.length,
       characters: [...Map.groupBy(rows, (r) => r.character)].map(([k, v]): [string, number] => [k, v.length]).sort((a, b) => b[1] - a[1] || byCharacter(a[0], b[0])),
-      best: top(
-        rows,
-        (r) => r.kills,
-        (r) => r.damage,
-      ),
+      bests: {
+        kills: top(
+          rows,
+          (r) => r.kills,
+          (r) => r.damage,
+        ),
+        damage: top(rows, (r) => r.damage),
+        cc: dak.length ? top(dak, (r) => r.dak.cc) : null,
+        heal: dak.length ? top(dak, (r) => r.dak.heal) : null,
+      },
     };
   });
-}
+});
 
-export type Metric = "kpr" | "kills" | "top3" | "avgPlace" | "damage" | "damageShare";
+export type Metric = "kpr" | "kills" | "deaths" | "top3" | "avgPlace" | "damage" | "damageShare" | "cc" | "heal" | "vision" | "camera" | "revive" | "time";
 
-// 평균 순위만 작을수록 위
+// 평균 순위와 데스는 작을수록 위
+const LOWER = new Set<Metric>(["avgPlace", "deaths"]);
+// 경기 상세가 하나도 없는 선수는 이 지표의 순위에서 뺌
+export const DAK_METRICS = new Set<Metric>(["cc", "heal", "vision", "camera", "revive", "time"]);
+
+const comparable = (x: PlayerStat, metric: Metric) => x.games >= MIN_GAMES && (!DAK_METRICS.has(metric) || x.dakGames > 0);
+
 export function rankOf(players: PlayerStat[], p: PlayerStat, metric: Metric): number | null {
-  if (p.games < MIN_GAMES) return null;
-  const better = (x: PlayerStat) => x.games >= MIN_GAMES && (metric === "avgPlace" ? x[metric] < p[metric] : x[metric] > p[metric]);
-  return 1 + players.filter(better).length;
+  if (!comparable(p, metric)) return null;
+  const sign = LOWER.has(metric) ? -1 : 1;
+  return 1 + players.filter((x) => comparable(x, metric) && sign * x[metric] > sign * p[metric]).length;
 }
+
+// rankOf가 견주는 선수 수
+export const rankPool = (players: PlayerStat[], metric: Metric) => players.filter((x) => comparable(x, metric)).length;
 
 export type CharacterStat = { key: string; games: number; rate: number; byEvent: Record<KelEvent, number>; avgPlace: number; winRate: number };
 
@@ -139,15 +198,6 @@ export function comps(data: Kel, min: number): Comp[] {
         .sort((a, b) => b[1] - a[1] || byText(TEAM.get(a[0])!.name, TEAM.get(b[0])!.name)),
     }))
     .sort((a, b) => b.count - a.count || a.avgPlace - b.avgPlace);
-}
-
-// kelData가 같은 객체를 돌려주는 동안 계산 결과를 다시 씀
-function memo<T>(f: (data: Kel) => T): (data: Kel) => T {
-  const cache = new WeakMap<Kel, T>();
-  return (data) => {
-    if (!cache.has(data)) cache.set(data, f(data));
-    return cache.get(data)!;
-  };
 }
 
 const STAGE_ORDER: readonly string[] = CIRCUIT_STAGES;
@@ -190,14 +240,14 @@ export const records = memo((data) => {
 
 export type Records = ReturnType<typeof records>;
 
-// 5위 안의 기록을 같은 값은 같은 순위로 모두 넣음
-function ranked<T>(list: T[], value: (x: T) => number): { r: T; rank: number }[] {
+// n위 안의 기록을 같은 값은 같은 순위로 모두 넣음
+export function ranked<T>(list: T[], value: (x: T) => number, n = 5): { r: T; rank: number }[] {
   const sorted = [...list].sort((a, b) => value(b) - value(a));
   const out: { r: T; rank: number }[] = [];
   for (const r of sorted) {
     const prev = out.at(-1);
     const rank = prev && value(prev.r) === value(r) ? prev.rank : out.length + 1;
-    if (rank > 5) break;
+    if (rank > n) break;
     out.push({ r, rank });
   }
   return out;
@@ -206,6 +256,42 @@ function ranked<T>(list: T[], value: (x: T) => number): { r: T; rank: number }[]
 export const lows = memo((data) => {
   const rows = inOrder(data.rows);
   return { damage: ranked(rows, (r) => -r.damage), deaths: ranked(rows, (r) => r.deaths) };
+});
+
+export type KillPair = { killer: KelRow; victim: KelRow; count: number };
+
+// 킬 기록에는 잡힌 실험체만 남음. 같은 실험체를 고른 상대가 둘 이상이면 그 상대들의 데스 기록으로 가리고, 상대를 한 명으로 정하지 못한 킬은 셈에서 뺌
+export const killStats = memo((data) => {
+  let total = 0;
+  const pairs = new Map<string, KillPair>();
+  const teams = new Map<string, number>();
+  for (const rows of Map.groupBy(withDak(data.rows), (r) => r.gameId).values()) {
+    for (const k of rows) {
+      for (const [num, count] of Object.entries(k.dak.killed)) {
+        total += count;
+        let v = rows.filter((r) => r.team !== k.team && String(r.dak.num) === num);
+        if (v.length > 1) v = v.filter((r) => String(k.dak.num) in r.dak.killedBy);
+        if (v.length !== 1) continue;
+        const key = `${k.player}|${v[0].player}`;
+        const pair = pairs.get(key) ?? { killer: k, victim: v[0], count: 0 };
+        pair.count += count;
+        pairs.set(key, pair);
+        const t = `${k.team}|${v[0].team}`;
+        teams.set(t, (teams.get(t) ?? 0) + count);
+      }
+    }
+  }
+  // 킬과 같은 범위로 세도록 경기 상세가 있는 게임만
+  const dakGames = new Set(withDak(data.rows).map((r) => r.gameId));
+  const together = new Map<string, number>();
+  for (const list of Map.groupBy(
+    data.games.filter((g) => dakGames.has(g.gameId)),
+    (g) => g.gameId,
+  ).values()) {
+    for (const a of list) for (const b of list) if (a !== b) together.set(`${a.team}|${b.team}`, (together.get(`${a.team}|${b.team}`) ?? 0) + 1);
+  }
+  const list = [...pairs.values()];
+  return { total, counted: list.reduce((a, p) => a + p.count, 0), pairs: list, teams, together };
 });
 
 // 팀 선수 가운데 누구라도 위클라인을 처치한 게임 수, 경기 상세가 없는 게임은 세지 않음
@@ -255,9 +341,12 @@ function favorites(rows: DakRow[], n: number): [string, number][] {
     .slice(0, n);
 }
 
-// 팀 성향 운영 보기, 경기 상세가 있는 팀 게임만 셈. ranks는 위클라인을 잡은 팀의 순위별 게임 수
+// 팀 성향 운영 보기, 세 명 모두 경기 상세가 있는 팀 게임만 셈. ranks는 위클라인을 잡은 팀의 순위별 게임 수
 export function teamOps(data: Kel, scope: StyleScope): { rows: TeamOps[]; ranks: number[] } {
-  const rows = withDak(data.rows).filter(inScope(scope));
+  const full = fullTeams(data);
+  const rows = withDak(data.rows)
+    .filter(inScope(scope))
+    .filter((r) => full.has(`${r.gameId}:${r.team}`));
   const ranks = Array.from({ length: 8 }, () => 0);
   const out = [...Map.groupBy(rows, (r) => r.team)].map(([team, list]): TeamOps => {
     const games = [...Map.groupBy(list, (r) => r.gameId).values()];

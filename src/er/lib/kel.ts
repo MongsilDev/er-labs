@@ -86,7 +86,7 @@ export const KEL_EVENTS = [
 export type KelEvent = (typeof KEL_EVENTS)[number]["key"];
 export const EVENT_NAME = Object.fromEntries(KEL_EVENTS.map((e) => [e.key, e.name])) as Record<KelEvent, string>;
 
-export type KelScreen = "home" | "odds" | "rules" | "circuits" | "finals" | "teams" | "regions" | "players" | "roles" | "characters" | "comps" | "records";
+export type KelScreen = "home" | "odds" | "rules" | "circuits" | "finals" | "teams" | "regions" | "players" | "roles" | "kills" | "characters" | "comps" | "records";
 
 // public이 false인 화면은 KEL_OWNER_ID 계정만 열 수 있음
 export const KEL_SCREENS: Record<KelScreen, { path: string; title: string; public: boolean }> = {
@@ -99,6 +99,7 @@ export const KEL_SCREENS: Record<KelScreen, { path: string; title: string; publi
   regions: { path: "/er/kel/regions", title: "시작 지역과 탈락 지역", public: false },
   players: { path: "/er/kel/players", title: "선수 카드", public: true },
   roles: { path: "/er/kel/roles", title: "팀 안에서 맡은 역할", public: true },
+  kills: { path: "/er/kel/kills", title: "처치 관계", public: false },
   characters: { path: "/er/kel/characters", title: "실험체 등장률", public: true },
   comps: { path: "/er/kel/comps", title: "자주 나온 3인 조합", public: true },
   records: { path: "/er/kel/records", title: "한 게임 기록", public: true },
@@ -127,8 +128,9 @@ export const KEL_SECTIONS: { title: string; items: [KelScreen, string][] }[] = [
   {
     title: "선수",
     items: [
-      ["players", "KPR, 게임당 킬, 가한 피해, 많이 고른 실험체"],
-      ["roles", "팀이 가한 피해와 받은 피해에서 선수가 차지한 비중"],
+      ["players", "KPR, 가한 피해, 군중제어 시간, 팀원 회복, 시야 점수, 생존 시간"],
+      ["roles", "팀이 가한 피해, 받은 피해, 군중제어 시간, 팀원 회복에서 선수가 차지한 비중"],
+      ["kills", "같은 상대를 많이 잡은 기록과 팀끼리 잡은 횟수"],
     ],
   },
   {

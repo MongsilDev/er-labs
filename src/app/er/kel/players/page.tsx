@@ -3,28 +3,82 @@ import KelPage, { NO_DATA } from "@/er/components/kel/KelPage";
 import { Logo } from "@/er/components/kel/Team";
 import Char from "@/er/components/t/Char";
 import { int } from "@/er/lib/cut";
-import { pct } from "@/er/lib/format";
+import { byText, duration, pct } from "@/er/lib/format";
 import { playerPath, seasonStandings, TEAM, wikiUrl } from "@/er/lib/kel";
-import { kelData, kelGate, kelMetadata } from "@/er/server/kel";
-import { gameLabel, MIN_GAMES, playerStats, rankOf, type Metric, type PlayerStat } from "@/er/server/kel-stats";
+import { kelData, kelGate, kelMetadata, type KelRow } from "@/er/server/kel";
+import { DAK_METRICS, gameLabel, killStats, MIN_GAMES, playerStats, rankOf, rankPool, type KillPair, type Metric, type PlayerStat } from "@/er/server/kel-stats";
 
 export const dynamic = "force-dynamic";
 export const generateMetadata = () => kelMetadata("players");
 
-// 하위 순위를 보여주지 않는 정책의 순위 표시 상한
-const SHOW_RANK = 10;
+type Tile = [Metric, string, (p: PlayerStat) => string, ((p: PlayerStat) => string)?];
 
-const TILES: [Metric, string, (p: PlayerStat) => string][] = [
-  ["kpr", "KPR", (p) => p.kpr.toFixed(3)],
-  ["kills", "게임당 킬", (p) => p.kills.toFixed(2)],
-  ["top3", "3위 이내 비율", (p) => pct(p.top3)],
-  ["avgPlace", "평균 순위", (p) => `${p.avgPlace.toFixed(2)}위`],
-  ["damage", "게임당 가한 피해", (p) => int(p.damage)],
-  ["damageShare", "가한 피해 비중", (p) => pct(p.damageShare)],
+const GROUPS: [string, Tile[]][] = [
+  [
+    "전투",
+    [
+      ["kpr", "KPR", (p) => p.kpr.toFixed(3)],
+      ["kills", "게임당 킬", (p) => p.kills.toFixed(2)],
+      ["deaths", "게임당 데스", (p) => p.deaths.toFixed(2)],
+      ["top3", "3위 이내 비율", (p) => pct(p.top3)],
+      ["avgPlace", "평균 순위", (p) => `${p.avgPlace.toFixed(2)}위`],
+      ["damage", "게임당 가한 피해", (p) => int(p.damage)],
+      ["damageShare", "가한 피해 비중", (p) => pct(p.damageShare)],
+    ],
+  ],
+  [
+    "지원과 시야",
+    [
+      ["cc", "게임당 군중제어 시간", (p) => `${p.cc.toFixed(1)}초`],
+      ["heal", "게임당 팀원 회복", (p) => int(p.heal)],
+      ["vision", "게임당 시야 점수", (p) => p.vision.toFixed(1)],
+      ["camera", "게임당 망원 카메라", (p) => `${p.camera.toFixed(1)}개`, (p) => `파괴 ${p.cameraOff.toFixed(1)}개`],
+      ["revive", "게임당 동료 부활", (p) => `${p.revive.toFixed(2)}번`],
+      ["time", "평균 생존 시간", (p) => duration(p.time)],
+    ],
+  ],
 ];
 
-function Card({ p, all, eligible }: { p: PlayerStat; all: PlayerStat[]; eligible: number }) {
+const BESTS: [string, (p: PlayerStat) => KelRow | null, (r: KelRow) => string][] = [
+  ["킬", (p) => p.bests.kills, (r) => `${r.kills}킬`],
+  ["가한 피해", (p) => p.bests.damage, (r) => int(r.damage)],
+  ["군중제어 시간", (p) => p.bests.cc, (r) => `${r.dak!.cc.toFixed(1)}초`],
+  ["팀원 회복", (p) => p.bests.heal, (r) => int(r.dak!.heal)],
+];
+
+// 횟수가 같으면 이름 순으로 세 명까지
+const opponents = (list: KillPair[], side: "killer" | "victim") =>
+  [...list]
+    .sort((a, b) => b.count - a.count || byText(a[side].player, b[side].player))
+    .slice(0, 3)
+    .map((r) => ({ r }));
+
+function Opponents({ title, list, side }: { title: string; list: { r: KillPair }[]; side: "killer" | "victim" }) {
+  return (
+    <div className="min-w-0">
+      <h3 className="text-[13px] font-semibold text-fg-3">{title}</h3>
+      <ul className="mt-2 grid gap-1.5 text-[14px]">
+        {list.map(({ r }) => {
+          const o = r[side];
+          return (
+            <li key={o.player} className="flex min-w-0 items-center gap-2">
+              <Logo team={TEAM.get(o.team)!} size={22} label />
+              <Link className="truncate font-semibold decoration-line-strong underline-offset-[3px] hover:decoration-fg-3" href={playerPath(o.player)}>
+                {o.player}
+              </Link>
+              <span className="ml-auto text-fg-3">{r.count}번</span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+function Card({ p, all, pairs }: { p: PlayerStat; all: PlayerStat[]; pairs: KillPair[] }) {
   const team = TEAM.get(p.team)!;
+  const victims = opponents(pairs.filter((x) => x.killer.player === p.name), "victim");
+  const killers = opponents(pairs.filter((x) => x.victim.player === p.name), "killer");
   return (
     <section className="panel grid grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] gap-6 p-6 max-[860px]:grid-cols-1 max-[760px]:p-4" aria-labelledby="player">
       <div className="min-w-0">
@@ -53,29 +107,53 @@ function Card({ p, all, eligible }: { p: PlayerStat; all: PlayerStat[]; eligible
             </li>
           ))}
         </ul>
-        <p className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-line-soft pt-3 text-[14px]">
-          <span className="text-fg-3">한 게임 최다 킬</span>
-          <b>{p.best.kills}킬</b>
-          <Char name={p.best.character} />
-          <span className="text-fg-3">{gameLabel(p.best)}</span>
-        </p>
+        <h3 className="mt-5 border-t border-line-soft pt-4 text-[13px] font-semibold text-fg-3">개인 최고 기록</h3>
+        <ul className="mt-2 grid gap-2 text-[14px]">
+          {BESTS.map(([label, row, value]) => {
+            const r = row(p);
+            return (
+              r && (
+                <li key={label} className="flex flex-wrap items-center gap-x-3 gap-y-0.5">
+                  <span className="w-24 text-fg-3">{label}</span>
+                  <b className="tabular-nums">{value(r)}</b>
+                  <Char name={r.character} />
+                  <span className="ml-auto text-[13px] text-fg-3">{gameLabel(r)}</span>
+                </li>
+              )
+            );
+          })}
+        </ul>
+        {(victims.length > 0 || killers.length > 0) && (
+          <div className="mt-5 grid grid-cols-2 gap-x-6 gap-y-4 border-t border-line-soft pt-4 max-[420px]:grid-cols-1">
+            <Opponents title="많이 잡은 상대" list={victims} side="victim" />
+            <Opponents title="많이 잡힌 상대" list={killers} side="killer" />
+          </div>
+        )}
       </div>
-      <dl className="grid grid-cols-2 content-start gap-3 max-[420px]:gap-2">
-        {TILES.map(([m, label, value]) => {
-          const rank = rankOf(all, p, m);
-          return (
-            <div key={m} className="rounded-lg bg-field px-4 py-3.5 max-[420px]:px-3">
-              <dt className="text-[13px] text-fg-3">{label}</dt>
-              <dd className="mt-1 text-[26px] leading-tight font-extrabold max-[420px]:text-[22px]">{value(p)}</dd>
-              {rank !== null && rank <= SHOW_RANK && (
-                <dd className="mt-0.5 text-[13px] font-semibold text-accent-text">
-                  {eligible}명 중 {rank}위
-                </dd>
-              )}
-            </div>
-          );
-        })}
-      </dl>
+      <div className="grid content-start gap-5">
+        {GROUPS.filter(([, tiles]) => p.dakGames > 0 || !tiles.every(([m]) => DAK_METRICS.has(m))).map(([title, tiles]) => (
+          <section key={title} aria-label={title}>
+            <h3 className="text-[13px] font-semibold text-fg-3">{title}</h3>
+            <dl className="mt-2 grid grid-cols-3 gap-3 max-[560px]:grid-cols-2 max-[420px]:gap-2">
+              {tiles.map(([m, label, value, sub]) => {
+                const rank = rankOf(all, p, m);
+                return (
+                  <div key={m} className="rounded-lg bg-field px-4 py-3.5 max-[420px]:px-3">
+                    <dt className="text-[13px] text-fg-3">{label}</dt>
+                    <dd className="mt-1 text-[26px] leading-tight font-extrabold max-[420px]:text-[22px]">{value(p)}</dd>
+                    {sub && <dd className="mt-0.5 text-[13px] text-fg-3">{sub(p)}</dd>}
+                    {rank !== null && (
+                      <dd className="mt-0.5 text-[13px] font-semibold text-accent-text">
+                        {rankPool(all, m)}명 중 {rank}위
+                      </dd>
+                    )}
+                  </div>
+                );
+              })}
+            </dl>
+          </section>
+        ))}
+      </div>
     </section>
   );
 }
@@ -85,8 +163,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ p
   const q = await searchParams;
   const data = kelData();
   const all = data ? playerStats(data) : [];
-  if (!all.length) return <KelPage user={user} owner={owner} screen="players" lead={NO_DATA} />;
-  const eligible = all.filter((p) => p.games >= MIN_GAMES).length;
+  if (!data || !all.length) return <KelPage user={user} owner={owner} screen="players" lead={NO_DATA} />;
   const byTeam = seasonStandings()
     .map((r) => ({ team: r.team, players: all.filter((p) => p.team === r.team.key).sort((a, b) => b.games - a.games) }))
     .filter((t) => t.players.length);
@@ -98,12 +175,13 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ p
       owner={owner}
       screen="players"
       notes={[
-        `순위는 ${MIN_GAMES}게임 이상 나온 선수 ${eligible}명끼리 비교했고, ${SHOW_RANK}위 안에 든 지표에만 표시했습니다.`,
+        `순위는 ${MIN_GAMES}게임 이상 나온 선수끼리 비교했고, 평균 순위와 게임당 데스는 작을수록 높은 순위입니다.`,
         "KPR은 경기 기록에 게임마다 적힌 선수 평점을 평균한 값이고, 한 게임의 평균은 약 1.0입니다.",
         "가한 피해 비중은 게임마다 팀 세 명이 가한 피해 합계에서 그 선수가 차지한 비율을 평균한 값입니다.",
+        "잡은 상대와 잡힌 상대는 상대를 한 명으로 정할 수 없는 킬을 빼고 셌고, 횟수가 같으면 이름 순으로 세 명까지 보여 줍니다.",
       ]}
     >
-      {picked && <Card p={picked} all={all} eligible={eligible} />}
+      {picked && <Card p={picked} all={all} pairs={killStats(data).pairs} />}
       <section className="panel p-5 max-[760px]:p-4" aria-labelledby="player-list">
         <h2 id="player-list" className="text-[17px] font-extrabold">
           선수 {all.length}명
