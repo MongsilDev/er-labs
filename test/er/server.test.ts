@@ -226,16 +226,36 @@ describe("대회 서버", () => {
     expect(n()).toBe(before - 1);
   });
 
-  it("JSON 본문이 객체가 아니면 형식 오류로 400을 낸다", async () => {
+  const post = (body: BodyInit) => new Request("http://localhost/api/t", { method: "POST", body, duplex: "half" } as RequestInit);
+  const bodyStatus = async (body: BodyInit) => {
     const { handle, readJson } = await import("../../src/er/server/http");
-    const post = (body: string) => new Request("http://localhost/api/t", { method: "POST", body });
-    for (const body of ["null", "[]", "1", '"x"']) await expect(readJson(post(body))).rejects.toThrow(SyntaxError);
-    expect(await readJson(post('{"a":1}'))).toEqual({ a: 1 });
     const res = await handle(async () => {
-      await readJson(post("null"));
+      await readJson(post(body));
       return new Response();
     });
-    expect(res.status).toBe(400);
+    return res.status;
+  };
+
+  it("JSON 본문이 객체가 아니면 형식 오류로 400을 낸다", async () => {
+    const { readJson } = await import("../../src/er/server/http");
+    for (const body of ["null", "[]", "1", '"x"']) await expect(readJson(post(body))).rejects.toThrow(SyntaxError);
+    expect(await readJson(post('{"a":1}'))).toEqual({ a: 1 });
+    expect(await bodyStatus("null")).toBe(400);
+  });
+
+  it("길이를 밝히지 않은 본문도 6MB를 넘는 순간 읽기를 멈추고 413을 낸다", async () => {
+    let pulled = 0;
+    const endless = new ReadableStream<Uint8Array>({
+      pull(c) {
+        pulled++;
+        c.enqueue(new Uint8Array(1024 * 1024));
+      },
+    });
+    expect(await bodyStatus(endless)).toBe(413);
+    expect(pulled).toBeLessThan(12);
+    // 글자 수로는 6M보다 적어도 UTF-8 바이트로 6MB를 넘으면 막음
+    expect(await bodyStatus(JSON.stringify({ a: "가".repeat(2_200_000) }))).toBe(413);
+    expect(await bodyStatus(JSON.stringify({ a: "가".repeat(100) }))).toBe(200);
   });
 
   it("창이 끝난 요청 제한 기록은 정리할 때 지운다", async () => {
