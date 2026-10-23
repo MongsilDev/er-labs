@@ -175,6 +175,21 @@ describe("대회 서버", () => {
     expect(() => t.acceptInvite(minted, owner)).toThrow("인원이 다 찼거나 취소된 초대 링크입니다.");
   });
 
+  it("개최자를 넘기고 스스로 나간 사람은 개최자일 때 만든 링크로 돌아오지 못하고, 그 링크는 다른 사람이 그대로 쓴다", () => {
+    const other = { id: "5", name: "새 운영자", avatar: null };
+    db.db().prepare("INSERT OR IGNORE INTO users(id, name, avatar, updated_at) VALUES (?, ?, NULL, ?)").run(other.id, other.name, Date.now());
+    const code = t.createTournament(owner, { name: "넘기고 나가기", mode: "points", preset: "masters", plannedRounds: 4, groupCount: 1 });
+    t.acceptInvite(t.createInvite(code, owner), op);
+    const minted = t.createInvite(code, owner, 3);
+    t.transferOwner(code, owner, op.id);
+    t.removeMember(code, owner, owner.id);
+    expect(() => t.acceptInvite(minted, owner)).toThrow("이 링크로는 다시 참여할 수 없습니다. 개최자에게 새 링크를 요청해주세요.");
+    expect(t.acceptInvite(minted, other)).toEqual({ code, already: false });
+    const until = Date.now() + 2;
+    while (Date.now() < until);
+    expect(t.acceptInvite(t.createInvite(code, op), owner)).toEqual({ code, already: false });
+  });
+
   it("감점 되살리기와 체크포인트 수동 판정도 조마다 300건을 넘지 않는다", () => {
     const code = t.createTournament(owner, { name: "상한", mode: "checkpoint", preset: "masters", plannedRounds: 12, groupCount: 2 });
     const tid = (db.db().prepare("SELECT id FROM tournaments WHERE code = ?").get(code) as { id: number }).id;
