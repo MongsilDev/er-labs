@@ -39,8 +39,8 @@ function href(scope: StyleScope, view: (typeof VIEWS)[number][0]) {
 
 function Score({ rows, scope }: { rows: TeamStyle[]; scope: StyleScope }) {
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-5 max-[1080px]:grid-cols-1">
-      <section className="panel p-5 max-[760px]:p-4 min-[1081px]:sticky min-[1081px]:top-6" aria-label="게임당 순위 점수와 킬 점수">
+    <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-5 max-[1280px]:grid-cols-1">
+      <section className="panel p-5 max-[760px]:p-4 min-[1281px]:sticky min-[1281px]:top-6" aria-label="게임당 순위 점수와 킬 점수">
         <Scatter
           key={scope}
           points={rows.map((r) => ({
@@ -66,7 +66,11 @@ function Score({ rows, scope }: { rows: TeamStyle[]; scope: StyleScope }) {
                 <th>1위</th>
                 <th>8위</th>
                 <th className="wide">3위 이내</th>
-                <th>킬 점수 비중</th>
+                <th>
+                  킬 점수
+                  <br />
+                  비중
+                </th>
                 <th className="wide">순위 점수</th>
                 <th className="wide">킬 점수</th>
                 <th>합계</th>
@@ -141,11 +145,11 @@ function Ops({ rows, ranks }: { rows: TeamOps[]; ranks: number[] }) {
                   </td>
                   <td>{r.games}</td>
                   <td className="font-bold">{r.wickline}</td>
-                  <td>{r.wicklinePlace === null ? "" : `${r.wicklinePlace.toFixed(2)}위`}</td>
+                  <td>{r.wicklinePlace === null ? "-" : `${r.wicklinePlace.toFixed(2)}위`}</td>
                   <td>{duration(r.time)}</td>
                   <td>{r.vision.toFixed(1)}</td>
                   <td>{r.camera.toFixed(1)}</td>
-                  <td>{r.escaped || ""}</td>
+                  <td>{r.escaped}</td>
                   <td className="l">
                     {r.start && (
                       <>

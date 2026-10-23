@@ -51,85 +51,84 @@ export default async function Page() {
       notes={[
         "시작 지역은 선수 한 명이 한 게임에서 시작한 기록 하나로 셉니다.",
         `시작 지역별 팀 순위에는 ${MIN_STARTS}번 넘게 시작한 지역만 넣었습니다.`,
-        `사망 장소는 선수마다 세 번까지만 기록돼 있어, 데스 ${int(deaths)}번 가운데 ${int(counted)}번만 셌습니다.`,
+        `사망 장소는 선수마다 세 번까지만 기록돼 있어, 사망 ${int(deaths)}번 가운데 ${int(counted)}번만 셌습니다.`,
         `선수별 표에는 ${MIN_GAMES}게임 이상 나온 선수만 넣었습니다.`,
       ]}
     >
       <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-5 max-[1080px]:grid-cols-1">
-        <section className="panel p-5 max-[760px]:p-4" aria-labelledby="start-rank">
-          <h2 id="start-rank" className="text-[17px] font-extrabold">
-            시작 지역별 팀 순위
-          </h2>
-          <KelScroll label="시작 지역별 팀 순위" className="mt-3">
-            <table className="kel-table">
-              <thead>
-                <tr>
-                  <th className="l">지역</th>
-                  <th>시작</th>
-                  <th>평균 순위</th>
-                  <th>3위 이내</th>
-                </tr>
-              </thead>
-              <tbody>
-                {starts.map((s) => (
-                  <tr key={s.area}>
-                    <td className="l font-semibold">{s.area}</td>
-                    <td>{s.count}</td>
-                    <td className="font-bold">{s.avgPlace.toFixed(2)}위</td>
-                    <td>{pct(s.top3)}</td>
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-5">
+          <section className="panel p-5 max-[760px]:p-4" aria-labelledby="start-rank">
+            <h2 id="start-rank" className="text-[17px] font-extrabold">
+              시작 지역별 팀 순위
+            </h2>
+            <KelScroll label="시작 지역별 팀 순위" className="mt-3">
+              <table className="kel-table">
+                <thead>
+                  <tr>
+                    <th className="l">지역</th>
+                    <th>시작</th>
+                    <th>평균 순위</th>
+                    <th>3위 이내</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </KelScroll>
-        </section>
-        <section className="panel p-5 max-[760px]:p-4" aria-labelledby="deaths">
-          <h2 id="deaths" className="text-[17px] font-extrabold">
-            사망이 많았던 지역
-          </h2>
-          <ul className="mt-4 grid gap-2.5 text-[14px]">
-            {reg.deaths.map((x) => (
-              <li key={x.area} className="grid grid-cols-[88px_minmax(0,1fr)_96px] items-center gap-3 max-[420px]:grid-cols-[72px_minmax(0,1fr)_88px]">
-                <span className="font-semibold">{x.area}</span>
-                <span className="h-2.5 rounded-r-[4px]" style={{ width: `${(x.count / maxDeath) * 100}%`, background: TONES[1] }} aria-hidden="true" />
-                <span className="text-right tabular-nums">
-                  <b>{int(x.count)}</b> <span className="text-[12px] text-fg-3">시작 {x.starts}</span>
-                </span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      </div>
-      <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-5 max-[1080px]:grid-cols-1">
-        <section className="panel p-5 max-[760px]:p-4" aria-labelledby="team-starts">
-          <h2 id="team-starts" className="text-[17px] font-extrabold">
-            팀별로 많이 시작한 지역
-          </h2>
-          <KelScroll label="팀별로 많이 시작한 지역" className="mt-3">
-            <table className="kel-table">
-              <thead>
-                <tr>
-                  <th className="l">팀</th>
-                  {RANKS.map((k) => (
-                    <th key={k} className="l">
-                      {k}
-                    </th>
+                </thead>
+                <tbody>
+                  {starts.map((s) => (
+                    <tr key={s.area}>
+                      <td className="l font-semibold">{s.area}</td>
+                      <td>{s.count}</td>
+                      <td className="font-bold">{s.avgPlace.toFixed(2)}위</td>
+                      <td>{pct(s.top3)}</td>
+                    </tr>
                   ))}
-                </tr>
-              </thead>
-              <tbody>
-                {teams.map((t) => (
-                  <tr key={t.team}>
-                    <td className="l max-w-[180px]">
-                      <TeamName team={TEAM.get(t.team)!} />
-                    </td>
-                    <Areas areas={t.areas} />
+                </tbody>
+              </table>
+            </KelScroll>
+          </section>
+          <section className="panel p-5 max-[760px]:p-4" aria-labelledby="deaths">
+            <h2 id="deaths" className="text-[17px] font-extrabold">
+              사망이 많았던 지역
+            </h2>
+            <ul className="mt-4 grid grid-cols-[88px_minmax(0,1fr)_auto_auto] gap-x-3 gap-y-2.5 text-[14px]">
+              {reg.deaths.map((x) => (
+                <li key={x.area} className="col-span-4 grid grid-cols-subgrid items-center">
+                  <span className="font-semibold">{x.area}</span>
+                  <span className="h-2.5 rounded-r-[4px]" style={{ width: `${(x.count / maxDeath) * 100}%`, background: TONES[1] }} aria-hidden="true" />
+                  <b className="text-right tabular-nums">{int(x.count)}</b>
+                  <span className="text-right text-[12px] text-fg-3 tabular-nums">시작 {x.starts}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+          <section className="panel p-5 max-[760px]:p-4" aria-labelledby="team-starts">
+            <h2 id="team-starts" className="text-[17px] font-extrabold">
+              팀별로 많이 시작한 지역
+            </h2>
+            <KelScroll label="팀별로 많이 시작한 지역" className="mt-3">
+              <table className="kel-table">
+                <thead>
+                  <tr>
+                    <th className="l pin">팀</th>
+                    {RANKS.map((k) => (
+                      <th key={k} className="l">
+                        {k}
+                      </th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </KelScroll>
-        </section>
+                </thead>
+                <tbody>
+                  {teams.map((t) => (
+                    <tr key={t.team}>
+                      <td className="l pin max-w-[180px]">
+                        <TeamName team={TEAM.get(t.team)!} />
+                      </td>
+                      <Areas areas={t.areas} />
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </KelScroll>
+          </section>
+        </div>
         <section className="panel p-5 max-[760px]:p-4" aria-labelledby="player-starts">
           <h2 id="player-starts" className="text-[17px] font-extrabold">
             선수별로 많이 시작한 지역
@@ -138,7 +137,7 @@ export default async function Page() {
             <table className="kel-table">
               <thead>
                 <tr>
-                  <th className="l">선수</th>
+                  <th className="l pin">선수</th>
                   <th>게임</th>
                   {RANKS.map((k) => (
                     <th key={k} className="l">
@@ -150,7 +149,7 @@ export default async function Page() {
               <tbody>
                 {players.map((p) => (
                   <tr key={p.name}>
-                    <td className="l max-w-[160px]">
+                    <td className="l pin max-w-[160px]">
                       <PlayerName name={p.name} team={TEAM.get(p.team)} />
                     </td>
                     <td className="text-fg-3">{p.games}</td>
