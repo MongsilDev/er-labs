@@ -228,3 +228,121 @@ export function finals(data: Kel): Final[] {
     return [{ event, teams, rounds, state: finalState(teams, rounds) }];
   });
 }
+
+// 비율은 [이름, 횟수, 분모 대비 비율]로, 많은 순서대로
+export type Share = { name: string; count: number; share: number };
+
+function shares<T>(list: T[], name: (x: T) => string, total = list.length): Share[] {
+  return [...Map.groupBy(list.filter((x) => name(x)), name)]
+    .map(([k, v]) => ({ name: k, count: v.length, share: total ? v.length / total : 0 }))
+    .sort((a, b) => b.count - a.count || byText(a.name, b.name));
+}
+
+export type GearSlot = { slot: string; weapon?: string } & Share;
+
+export type CharacterBuild = {
+  key: string;
+  picks: number;
+  games: number;
+  rate: number;
+  avgPlace: number;
+  wins: number;
+  winRate: number;
+  weapons: (Share & { avgPlace: number })[];
+  tactical: Share[];
+  traits: Share[];
+  // 사망 기록 첫 칸에서 이 실험체가 처치한 수
+  deaths: number;
+  lastHits: Share[];
+  gear: GearSlot[];
+  order: Share | null;
+  skills: KelDak["skills"];
+  players: { name: string; team: string; count: number }[];
+};
+
+const GEAR = ["무기", "옷", "머리", "팔", "다리"];
+
+// 무기 칸은 무기 종류마다 따로 셈. 분모는 그 무기를 든 기록 수
+function gearOf(rows: DakRow[], weapons: Share[]): GearSlot[] {
+  const weapon = weapons.flatMap((w) => {
+    const list = rows.filter((r) => r.dak.weapon === w.name);
+    const top = shares(list, (r) => r.dak.gear[0])[0];
+    return top ? [{ slot: w.name, weapon: w.name, ...top }] : [];
+  });
+  const rest = GEAR.slice(1).flatMap((slot, i) => {
+    const top = shares(rows, (r) => r.dak.gear[i + 1])[0];
+    return top ? [{ slot, ...top }] : [];
+  });
+  return [...weapon, ...rest];
+}
+
+// 실험체 카드. 무기, 전술 스킬, 특성, 장비, 스킬 순서의 분모는 그 실험체를 고른 기록 수
+export const characterBuilds = memo((data) => {
+  const all = withDak(data.rows);
+  if (!all.some((r) => r.dak.tactical || r.dak.weapon)) return [];
+  const total = count(data.rows);
+  // dak.gg 처치 실험체 key를 경기 기록 이름으로, attachDak처럼 소문자로 맞춤
+  const keyOf = new Map(data.rows.map((r) => [r.character.toLowerCase(), r.character]));
+  const hits = Map.groupBy(
+    all.flatMap((r) => (r.dak.death ? [{ ...r.dak.death, character: keyOf.get(r.dak.death.character.toLowerCase()) ?? r.dak.death.character }] : [])),
+    (d) => d.character,
+  );
+  return [...Map.groupBy(all, (r) => r.character)]
+    .map(([key, rows]): CharacterBuild => {
+      const weapons = shares(rows, (r) => r.dak.weapon).map((w) => ({ ...w, avgPlace: mean(rows.filter((r) => r.dak.weapon === w.name).map((r) => r.placement)) }));
+      const killed = hits.get(key) ?? [];
+      const wins = rows.filter((r) => r.placement === 1).length;
+      return {
+        key,
+        picks: rows.length,
+        games: count(rows),
+        rate: count(rows) / total,
+        avgPlace: mean(rows.map((r) => r.placement)),
+        wins,
+        winRate: wins / rows.length,
+        weapons,
+        tactical: shares(rows, (r) => r.dak.tactical).slice(0, 3),
+        traits: shares(rows, (r) => r.dak.trait).slice(0, 3),
+        deaths: killed.length,
+        lastHits: shares(killed, (d) => d.cause).slice(0, 4),
+        gear: gearOf(rows, weapons),
+        order: shares(rows, (r) => r.dak.order)[0] ?? null,
+        skills: rows[0].dak.skills,
+        players: [...Map.groupBy(rows, (r) => r.player)]
+          .map(([name, v]) => ({ name, team: v[0].team, count: v.length }))
+          .sort((a, b) => b.count - a.count || byText(a.name, b.name))
+          .slice(0, 4),
+      };
+    })
+    .sort((a, b) => b.picks - a.picks || byCharacter(a.key, b.key));
+});
+
+export type PickRate = Share & { avgPlace: number; group?: string; byEvent: Record<KelEvent, number | null> };
+
+// 분모는 그 대회의 선수 기록 수
+function pickRates(rows: DakRow[], name: (r: DakRow) => string): PickRate[] {
+  const byEvent = Map.groupBy(rows, (r) => r.event);
+  return shares(rows, name).map((s) => {
+    const list = rows.filter((r) => name(r) === s.name);
+    return {
+      ...s,
+      avgPlace: mean(list.map((r) => r.placement)),
+      byEvent: Object.fromEntries(
+        KEL_EVENTS.map((e) => {
+          const ev = byEvent.get(e.key) ?? [];
+          return [e.key, ev.length ? ev.filter((r) => name(r) === s.name).length / ev.length : null];
+        }),
+      ) as Record<KelEvent, number | null>,
+    };
+  });
+}
+
+export const seasonBuilds = memo((data) => {
+  const rows = withDak(data.rows);
+  const groups = new Map(rows.map((r) => [r.dak.trait, r.dak.traitGroup]));
+  return {
+    records: rows.length,
+    tactical: pickRates(rows, (r) => r.dak.tactical),
+    traits: pickRates(rows, (r) => r.dak.trait).map((t) => ({ ...t, group: groups.get(t.name) })),
+  };
+});

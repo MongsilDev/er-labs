@@ -57,6 +57,25 @@ const KEL_CHARS = ["Nadine", "Alonso", "Debi & Marlene", "Li Dailin", "NiaH", "Y
 // dak.gg 실험체 이름표의 key, 경기 기록의 영문 이름과 표기가 다름
 const DAK_KEYS = ["Nadine", "Alonso", "DebiMarlene", "LiDailin", "Niah", "YuMin", "Jackie", "Aya", "Eleven"];
 
+// 빌드 이름표. 나딘(1번)은 Q칸에 스킬이 둘이라 번호가 작은 이름을 써야 함
+const DAK_LABELS = {
+  "d_masteries.json": { masteries: [{ id: 1, name: "석궁" }, { id: 2, name: "활" }] },
+  "d_items.json": { items: [101, 102, 201, 301, 401, 501].map((id, i) => ({ id, name: ["혈색반월", "아르기로톡소스", "현자의 로브", "빛의 증표", "운명의 주사위", "알렉산드로스"][i] })) },
+  "d_tactical-skills.json": { tacticalSkills: [{ id: 30, name: "블링크" }, { id: 40, name: "강한 결속" }] },
+  "d_trait-skills.json": {
+    traitSkillGroups: [{ key: "Havoc", name: "파괴" }],
+    traitSkills: [{ id: 7000401, name: "흡혈마", group: "Havoc" }, { id: 7000601, name: "아드레날린", group: "Havoc" }],
+  },
+  "d_skills.json": {
+    skills: [
+      { id: 1033250, characterId: 1, slot: "Q", name: "황소의 눈 강화" },
+      ...["T", "Q", "W", "E", "R", "D"].map((slot, i) => ({ id: 1033100 + i * 100, characterId: 1, slot, name: ["야성", "황소의 눈", "다람쥐 덫", "원숭이 와이어", "늑대 맹습", "석궁"][i] })),
+    ],
+  },
+};
+// 사망 기록 첫 칸의 마지막 일격 기술, 이름 접두어와 단계 번호는 지워져야 함
+const CAUSES = ["basicAttack", "나딘 Q - 황소의 눈", "다람쥐 덫_2"];
+
 // 첫 게임의 팀 순서-선수 순서별 가한 피해
 const LOW_DAMAGE = new Map([
   ["7-0", 281],
@@ -103,13 +122,16 @@ export function kelFixture(dataDir: string) {
   ];
   const dak = join(dir, "dakgg");
   mkdirSync(join(dak, "games"), { recursive: true });
-  writeFileSync(join(dak, "d_characters.json"), JSON.stringify({ characters: DAK_KEYS.map((key, i) => ({ id: i + 1, key })) }));
+  writeFileSync(join(dak, "d_characters.json"), JSON.stringify({ characters: DAK_KEYS.map((key, i) => ({ id: i + 1, key, name: i ? key : "나딘" })) }));
+  for (const [file, json] of Object.entries(DAK_LABELS)) writeFileSync(join(dak, file), JSON.stringify(json));
   files.forEach(([name, teams, rounds], f) => {
     const date = name.slice(-14, -4);
     const lines = [KEL_HEADER];
     for (let r = 1; r <= rounds; r++) {
       const gameId = 10_000 + f * 100 + r;
       const players: object[] = [];
+      const skillInfos: object[] = [];
+      const c4 = name.includes("CIRCUIT_4");
       teams.forEach((team, i) => {
         const g = all.indexOf(team);
         const place = ((i + r * 3) % teams.length) + 1;
@@ -137,10 +159,19 @@ export function kelFixture(dataDir: string) {
             addTelephotoCamera: (i + p + r) % 7,
             viewContribution: 20 + i * 4 + p + r,
             killWicklineGainVFCredit: place === 2 ? 10 : 0,
+            // 나딘은 짝수 자리가 석궁, 홀수 자리가 활. 서킷 4에서만 첫 자리가 강한 결속, 핵심 특성은 첫 자리만 흡혈마
+            userNum: i * 3 + p + 1,
+            bestWeapon: c === 0 && p % 2 ? 2 : 1,
+            equipment: { 0: c === 0 && p % 2 ? 102 : 101, 1: 201, 2: 301, 3: 401, 4: 501 },
+            tacticalSkillGroup: c4 && p === 0 ? 40 : 30,
+            traitFirstCore: p === 0 ? 7000401 : 7000601,
+            // 둘째 자리 선수는 모두 나딘에게 처치됨
+            ...(p === 1 ? { killer: "player", killerCharacter: "Nadine", causeOfDeath: CAUSES[(r + i) % 3] } : { killer: "" }),
           });
+          skillInfos.push({ userNum: i * 3 + p + 1, orders: r % 2 ? ["E", "Q", "W", "E", "T", "R", "Q"] : ["Q", "W", "E", "Q", "T", "R"] });
         }
       });
-      writeFileSync(join(dak, "games", `${gameId}.json`), JSON.stringify({ games: players }));
+      writeFileSync(join(dak, "games", `${gameId}.json`), JSON.stringify({ skillInfos, games: players }));
     }
     writeFileSync(join(dir, name), "\ufeff" + lines.join("\n") + "\n");
   });

@@ -98,7 +98,7 @@ export const KEL_SCREENS: Record<KelScreen, { path: string; title: string; publi
   teams: { path: "/er/kel/teams", title: "팀 성향", public: true },
   players: { path: "/er/kel/players", title: "선수 카드", public: true },
   roles: { path: "/er/kel/roles", title: "팀 안에서 맡은 역할", public: true },
-  characters: { path: "/er/kel/characters", title: "실험체 등장률", public: true },
+  characters: { path: "/er/kel/characters", title: "실험체", public: true },
   comps: { path: "/er/kel/comps", title: "자주 나온 3인 조합", public: true },
   records: { path: "/er/kel/records", title: "한 게임 기록", public: true },
 };
@@ -140,7 +140,7 @@ export const KEL_SECTIONS: { title: string; items: [KelScreen, string][] }[] = [
   {
     title: "실험체",
     items: [
-      ["characters", "대회별 등장률, 평균 순위, 1위 비율"],
+      ["characters", "대회별 등장률, 무기, 전술 스킬, 핵심 특성, 최종 장비, 스킬 순서"],
       ["comps", "조합별 횟수, 평균 순위, 1위 횟수"],
     ],
   },
