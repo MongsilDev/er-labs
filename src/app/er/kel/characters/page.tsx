@@ -52,11 +52,11 @@ function Bar({ s, sub }: { s: Share; sub?: string }) {
   );
 }
 
-function Block({ title, children }: { title: string; children: React.ReactNode }) {
+function Block({ title, empty, children }: { title: string; empty?: boolean; children: React.ReactNode }) {
   return (
     <div className="min-w-0">
       <h3 className="mb-1.5 text-[13px] font-semibold text-fg-3">{title}</h3>
-      {children}
+      {empty ? <p className="text-[14px] text-fg-3">기록 없음</p> : children}
     </div>
   );
 }
@@ -100,39 +100,35 @@ function Card({ b }: { b: CharacterBuild }) {
         </ul>
       </div>
       <div className="grid grid-cols-3 content-start gap-x-7 gap-y-6 max-[1080px]:grid-cols-2 max-[560px]:grid-cols-1">
-        <Block title="무기">
+        <Block title="무기" empty={!b.weapons.length}>
           <ul>
             {b.weapons.map((w) => (
               <Bar key={w.name} s={w} sub={`${w.count}번, 평균 ${place(w.avgPlace)}`} />
             ))}
           </ul>
         </Block>
-        <Block title="전술 스킬">
+        <Block title="전술 스킬" empty={!b.tactical.length}>
           <ul>
             {b.tactical.map((s) => (
               <Bar key={s.name} s={s} />
             ))}
           </ul>
         </Block>
-        <Block title="핵심 특성">
+        <Block title="핵심 특성" empty={!b.traits.length}>
           <ul>
             {b.traits.map((s) => (
               <Bar key={s.name} s={s} />
             ))}
           </ul>
         </Block>
-        <Block title="마지막 일격 기술">
-          {b.lastHits.length ? (
-            <ul>
-              {b.lastHits.map((s) => (
-                <Bar key={s.name} s={s} sub={`${s.count}번`} />
-              ))}
-            </ul>
-          ) : (
-            <p className="text-[14px] text-fg-3">기록 없음</p>
-          )}
+        <Block title="마지막 일격 기술" empty={!b.lastHits.length}>
+          <ul>
+            {b.lastHits.map((s) => (
+              <Bar key={s.name} s={s} sub={`${s.count}번`} />
+            ))}
+          </ul>
         </Block>
-        <Block title="많이 간 최종 장비">
+        <Block title="많이 간 최종 장비" empty={!b.gear.length}>
           <dl className="grid grid-cols-[auto_minmax(0,1fr)_auto] gap-x-3 gap-y-2 text-[14px]">
             {b.gear.map((g) => (
               <div key={g.slot} className="contents">
@@ -143,8 +139,8 @@ function Card({ b }: { b: CharacterBuild }) {
             ))}
           </dl>
         </Block>
-        <Block title="1~6레벨 스킬 순서">
-          {b.order ? (
+        <Block title="1~6레벨 스킬 순서" empty={!b.order}>
+          {b.order && (
             <>
               <ol className="flex flex-wrap gap-1.5" aria-label={b.order.name}>
                 {order.map((s, i) => (
@@ -162,8 +158,6 @@ function Card({ b }: { b: CharacterBuild }) {
               </ul>
               <p className="mt-2 text-[13px] text-fg-3">고른 기록의 {pct(b.order.share)}</p>
             </>
-          ) : (
-            <p className="text-[14px] text-fg-3">기록 없음</p>
           )}
         </Block>
       </div>
@@ -320,7 +314,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ v
           w2 && `${josa(w1.name, "을", "를")} 든 기록이 ${w1.count}번, ${josa(w2.name, "을", "를")} 든 기록이 ${w2.count}번입니다.`,
         ]}
         notes={[
-          `무기, 전술 스킬, 핵심 특성, 최종 장비, 스킬 순서 비율은 그 실험체를 고른 기록 ${b.picks}개를 기준으로 셉니다.`,
+          `무기, 전술 스킬, 핵심 특성, 최종 장비, 스킬 순서 비율은 그 실험체를 고른 기록 가운데 경기 상세가 있는 ${b.records}개를 기준으로 셉니다.`,
           "무기 칸 장비는 그 무기를 든 기록을 기준으로 셉니다.",
           `마지막 일격 기술은 사망 기록 첫 칸에서 이 실험체가 처치한 ${b.deaths}번을 기준으로 셉니다.`,
           b.unnamed > 0 && `공식 기술 이름을 찾지 못한 ${b.unnamed}번은 목록에 넣지 않았습니다.`,

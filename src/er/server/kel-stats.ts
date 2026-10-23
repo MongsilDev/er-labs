@@ -409,6 +409,8 @@ export type GearSlot = { slot: string; weapon?: string } & Share;
 export type CharacterBuild = {
   key: string;
   picks: number;
+  // 고른 기록 가운데 경기 상세가 있는 수, 빌드 비율의 분모
+  records: number;
   games: number;
   rate: number;
   avgPlace: number;
@@ -465,6 +467,7 @@ export const characterBuilds = memo((data) => {
       return {
         key,
         picks: every.length,
+        records: rows.length,
         games: count(every),
         rate: count(every) / total,
         avgPlace: mean(every.map((r) => r.placement)),
@@ -479,7 +482,7 @@ export const characterBuilds = memo((data) => {
         gear: gearOf(rows, weapons),
         order: shares(rows, (r) => r.dak.order)[0] ?? null,
         skills: rows[0].dak.skills,
-        players: [...Map.groupBy(rows, (r) => r.player)]
+        players: [...Map.groupBy(every, (r) => r.player)]
           .map(([name, v]) => ({ name, team: v[0].team, count: v.length }))
           .sort((a, b) => b.count - a.count || byText(a.name, b.name))
           .slice(0, 4),
