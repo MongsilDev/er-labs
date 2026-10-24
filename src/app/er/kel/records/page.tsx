@@ -3,8 +3,10 @@ import KelPage, { KelScroll, KelTabs, NO_DATA, pickTab } from "@/er/components/k
 import { Logo, PlayerName } from "@/er/components/kel/Team";
 import Char from "@/er/components/t/Char";
 import { int } from "@/er/lib/cut";
+import { fmt } from "@/er/lib/format";
 import { playerPath, TEAM } from "@/er/lib/kel";
-import { kelData, kelGate, kelMetadata, type KelRow } from "@/er/server/kel";
+import { placementPoints } from "@/er/lib/kel-calc";
+import { kelData, kelGate, kelMetadata, type KelRow, type TeamGame } from "@/er/server/kel";
 import { gameLabel, lows, records } from "@/er/server/kel-stats";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +17,27 @@ const VIEWS: ["season" | "characters" | "low", string][] = [
   ["characters", "실험체별"],
   ["low", "낮은 기록"],
 ];
+
+function TeamWho({ g, detail }: { g: TeamGame; detail?: string }) {
+  const team = TEAM.get(g.team)!;
+  return (
+    <div className="mt-1 grid gap-1">
+      <p className="flex items-center gap-1.5 text-[15px] font-bold">
+        <Logo team={team} size={22} />
+        {team.name}
+      </p>
+      <p className="text-[13px] leading-relaxed text-fg-3">
+        {gameLabel(g)}
+        {detail && (
+          <>
+            <br />
+            {detail}
+          </>
+        )}
+      </p>
+    </div>
+  );
+}
 
 function Ranking({ id, title, rows, label, value }: { id: string; title: string; rows: { r: KelRow; rank: number }[]; label: string; value: (r: KelRow) => React.ReactNode }) {
   return (
@@ -70,24 +93,21 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ v
   if (!data) return <KelPage user={user} owner={owner} screen="records" lead={NO_DATA} />;
   const rec = records(data);
   const low = view === "low" ? lows(data) : null;
-  const g = rec.teamKills;
-  const team = TEAM.get(g.team)!;
 
   return (
     <KelPage user={user} owner={owner} screen="records">
       <KelTabs screen="records" param="view" label="보기" items={VIEWS} current={view} />
       {view === "season" && (
         <>
-          <section className="grid grid-cols-3 gap-3 max-[1080px]:grid-cols-2" aria-label="한 게임 최고 기록">
+          <section className="grid grid-cols-4 gap-3 max-[1080px]:grid-cols-2" aria-label="한 게임 최고 기록">
             <Bests rec={rec} keys={["kills", "damage", "taken", "lowTeamDamage", "cc", "heal", "camera", "vision"]} href={(r) => playerPath(r.player)} />
-            <Best label="팀 최다 킬" value={g.kills} unit="킬" className="max-[1080px]:col-span-2">
-              <div className="mt-1 grid gap-1">
-                <p className="flex items-center gap-1.5 text-[15px] font-bold">
-                  <Logo team={team} size={22} />
-                  {team.name}
-                </p>
-                <p className="text-[13px] leading-relaxed text-fg-3">{gameLabel(g)}</p>
-              </div>
+            <Best label="팀 최다 킬" value={rec.teamKills.kills} unit="킬" className="col-span-2 max-[1080px]:col-span-1">
+              <TeamWho g={rec.teamKills} />
+            </Best>
+            <Best label="팀 최다 게임 점수" value={fmt(rec.teamScore.value)} unit="점" className="col-span-2 max-[1080px]:col-span-1">
+              {rec.teamScore.games.map((s) => (
+                <TeamWho key={`${s.gameId}-${s.team}`} g={s} detail={`순위\u00a0점수\u00a0${placementPoints(s.placement)} + 킬\u00a0점수\u00a0${fmt(s.killScore)}`} />
+              ))}
             </Best>
           </section>
           <Ranking id="top-damage" title={`가한 피해 상위 ${rec.damage.length}개 기록`} rows={rec.damage} label="가한 피해" value={(r) => int(r.damage)} />

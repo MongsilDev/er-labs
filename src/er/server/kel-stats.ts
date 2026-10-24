@@ -2,7 +2,7 @@ import "server-only";
 import { byCharacter, byText } from "@/er/lib/format";
 import { EVENT_NAME, KEL_EVENTS, TEAM, type KelEvent } from "@/er/lib/kel";
 import { finalState, placementPoints, type FinalState, type Round } from "@/er/lib/kel-calc";
-import { CIRCUIT_STAGES, stageRounds, type Kel, type KelRow } from "./kel";
+import { CIRCUIT_STAGES, stageRounds, type Kel, type KelRow, type TeamGame } from "./kel";
 import type { KelDak } from "./kel-dakgg";
 
 type DakRow = KelRow & { dak: KelDak };
@@ -203,11 +203,15 @@ export function comps(data: Kel, min: number): Comp[] {
 
 const STAGE_ORDER: readonly string[] = CIRCUIT_STAGES;
 // 같은 값의 기록이 경기 순서대로 나오도록 날짜, 단계, 라운드 순으로 미리 정렬
-const inOrder = (rows: KelRow[]) =>
+const inOrder = <T extends { date: string; stage: string; round: number }>(rows: T[]) =>
   [...rows].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : STAGE_ORDER.indexOf(a.stage) - STAGE_ORDER.indexOf(b.stage) || a.round - b.round));
+
+// 감점 전 게임 점수, 결승 라운드별 점수 표의 라운드 칸과 같은 값
+const teamGameScore = (g: TeamGame) => placementPoints(g.placement) + g.killScore;
 
 export const records = memo((data) => {
   const rows = inOrder(data.rows);
+  const teamScore = ranked(inOrder(data.games), teamGameScore, 1).map(({ r }) => r);
   const low = rows.filter((r) => r.placement >= 7);
   const dak = withDak(rows);
   const best = (value: (d: KelDak) => number) => (dak.length ? top(dak, (r) => value(r.dak)) : null);
@@ -225,6 +229,8 @@ export const records = memo((data) => {
     taken: top(rows, (r) => r.taken),
     lowTeamDamage: low.length ? top(low, (r) => r.damage) : null,
     teamKills: top(data.games, (g) => g.kills),
+    // 동점은 모두 넣음
+    teamScore: { value: teamScore.length ? teamGameScore(teamScore[0]) : 0, games: teamScore },
     characters: [...Map.groupBy(rows, (r) => r.character)]
       .map(([key, list]) => ({
         key,

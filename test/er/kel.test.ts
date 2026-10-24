@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { characterName } from "../../src/er/lib/format";
 import { championshipTeams, KEL_TEAMS, seasonStandings } from "../../src/er/lib/kel";
-import { finalState, standings, type Entry, type Round } from "../../src/er/lib/kel-calc";
+import { finalState, placementPoints, standings, type Entry, type Round } from "../../src/er/lib/kel-calc";
 import { kelData, stageRounds } from "../../src/er/server/kel";
 import { lastHit } from "../../src/er/server/kel-dakgg";
 import { kelOdds } from "../../src/er/server/kel-odds";
@@ -120,6 +120,20 @@ describe("KEL 자료", () => {
     expect([rec.cc!.dak.cc, rec.heal!.dak.heal, rec.camera!.dak.camera, rec.vision!.dak.vision]).toEqual([41, 1700, 6, 58]);
     const seconds = [...Map.groupBy(data.games, (g) => g.team)].map(([team, list]) => [team, list.filter((g) => g.placement === 2).length]);
     expect(Object.fromEntries(wicklines(data).map((w) => [w.team, w.count]))).toEqual(Object.fromEntries(seconds));
+  });
+
+  it("팀 최다 게임 점수는 순위 점수와 킬 점수를 더한 값이 가장 큰 팀 게임을 동점까지 날짜순으로 모두 넣는다", () => {
+    kelFixture(process.env.DATA_DIR!);
+    const data = kelData()!;
+    const score = (g: (typeof data.games)[number]) => placementPoints(g.placement) + g.killScore;
+    const max = Math.max(...data.games.map(score));
+    const { teamScore } = records(data);
+    expect(teamScore.value).toBe(max);
+    expect(teamScore.games.map(score)).toEqual(teamScore.games.map(() => max));
+    expect(teamScore.games).toHaveLength(data.games.filter((g) => score(g) === max).length);
+    expect(teamScore.games.length).toBeGreaterThan(1);
+    const dates = teamScore.games.map((g) => g.date);
+    expect(dates).toEqual([...dates].sort());
   });
 
   it("낮은 기록은 5위 안의 기록을 넣고, 같은 값은 같은 순위로 모두 넣는다", () => {
