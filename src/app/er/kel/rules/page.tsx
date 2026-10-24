@@ -184,7 +184,7 @@ export default async function Page() {
             <table className="kel-table">
               <thead>
                 <tr>
-                  <th className="l">
+                  <th className="l pin">
                     <span className="sr-only">서킷</span>
                   </th>
                   {ranks.map((label) => (
@@ -195,7 +195,7 @@ export default async function Page() {
               <tbody>
                 {POINT_ROWS.map(([name, points]) => (
                   <tr key={name}>
-                    <td className="l">{name}</td>
+                    <td className="l pin">{name}</td>
                     {ranks.map((label, i) => (
                       <td key={label}>{(points[i] ?? 0).toLocaleString("ko-KR")}</td>
                     ))}

@@ -30,9 +30,9 @@ function Title({ href, children }: { href: string; children: React.ReactNode }) 
 
 type Stat = { label: string; value: React.ReactNode; color?: string };
 
-function Stats({ items }: { items: Stat[] }) {
+function Stats({ items, className = "" }: { items: Stat[]; className?: string }) {
   return (
-    <dl className="mt-auto flex flex-wrap gap-x-8 gap-y-3 border-t border-line-soft pt-4">
+    <dl className={`mt-auto flex flex-wrap gap-x-8 gap-y-3 border-t border-line-soft pt-4 ${className}`}>
       {items.map((s) => (
         <div key={s.label} className="grid gap-0.5">
           <dt className="flex items-center gap-1.5 text-[12px] text-fg-3">
@@ -46,7 +46,8 @@ function Stats({ items }: { items: Stat[] }) {
   );
 }
 
-function Tool({ game, icon, href, name, desc, children, stats, className = "" }: {
+// statsTop이면 760 이상에서 기록 줄을 제목 줄 오른쪽에 둠
+function Tool({ game, icon, href, name, desc, children, stats, statsTop = false, className = "" }: {
   game: string;
   icon: string;
   href: string;
@@ -54,18 +55,24 @@ function Tool({ game, icon, href, name, desc, children, stats, className = "" }:
   desc: string;
   children?: React.ReactNode;
   stats?: Stat[];
+  statsTop?: boolean;
   className?: string;
 }) {
-  return (
-    <section className={`panel flex flex-col p-6 max-[760px]:p-5 ${className}`} aria-label={name}>
+  const head = (
+    <>
       <span className="mb-1.5 flex items-center gap-2 text-[13px] text-fg-3">
         <Image className="size-6 rounded-md" src={`/img/game/${icon}.webp`} alt="" width={24} height={24} unoptimized />
         {game}
       </span>
       <Title href={href}>{name}</Title>
       <p className="mt-1 text-[14px] text-fg-2">{desc}</p>
-      {children && <div className={stats ? "mt-5 mb-5" : "mt-5"}>{children}</div>}
-      {stats && <Stats items={stats} />}
+    </>
+  );
+  return (
+    <section className={`panel flex flex-col p-6 max-[760px]:p-5 ${statsTop ? "min-[760px]:grid min-[760px]:grid-cols-[minmax(0,1fr)_auto] min-[760px]:gap-x-8" : ""} ${className}`} aria-label={name}>
+      {statsTop ? <div className="flex min-w-0 flex-col">{head}</div> : head}
+      {children && <div className={`${stats ? "mt-5 mb-5" : "mt-5"} ${statsTop ? "min-[760px]:col-span-2 min-[760px]:mb-0" : ""}`}>{children}</div>}
+      {stats && <Stats items={stats} className={statsTop ? "min-[760px]:col-start-2 min-[760px]:row-start-1 min-[760px]:mt-0 min-[760px]:self-center min-[760px]:border-t-0 min-[760px]:pt-0" : ""} />}
     </section>
   );
 }
@@ -110,6 +117,7 @@ export default async function Hub() {
             name="KEL 기록"
             desc="2026 KEL 서킷 순위, 결승 라운드별 점수, 선수와 실험체 기록"
             className="col-span-2 max-[760px]:col-span-1"
+            statsTop
             stats={[
               { label: "준결승", value: <Day date="2026-11-07" text="11월 7일" /> },
               { label: "결승", value: <Day date="2026-11-08" text="11월 8일" /> },

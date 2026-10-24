@@ -24,7 +24,7 @@ export default async function Page() {
       notes={`표에는 ${MIN}번 이상 등장한 ${rows.length}개 조합을 넣었습니다.`}
     >
       <section className="panel p-5 max-[760px]:p-4">
-        <KelScroll label="자주 나온 3인 조합">
+        <KelScroll label="자주 등장한 3인 조합">
           <table className="kel-table">
             <thead>
               <tr>
