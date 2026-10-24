@@ -196,10 +196,11 @@ async function open(screen: Screen, width: number, theme: "dark" | "light"): Pro
 }
 
 describe("화면 점검", () => {
+  // 동시 실행 테스트라 expect는 테스트 문맥에서 받음
   for (const screen of SCREENS) {
     for (const width of [390, 1440]) {
       for (const theme of ["dark", "light"] as const) {
-        it(`${screen.name} ${width} ${theme}`, async () => {
+        it.concurrent(`${screen.name} ${width} ${theme}`, async ({ expect }) => {
           const { page, errors, status } = await open(screen, width, theme);
           try {
             expect(status).toBe(screen.status ?? 200);

@@ -9,5 +9,6 @@ export default defineConfig({
       "server-only": fileURLToPath(new URL("./test/stubs/server-only.ts", import.meta.url)),
     },
   },
-  test: { environment: "node", include: ["test/**/ui/**/*.ui.ts"], testTimeout: 180_000, hookTimeout: 120_000 },
+  // it.concurrent 화면 점검이 동시에 여는 페이지 수, Mac mini 메모리 기준
+  test: { environment: "node", include: ["test/**/ui/**/*.ui.ts"], testTimeout: 180_000, hookTimeout: 120_000, maxConcurrency: 4 },
 });
